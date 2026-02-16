@@ -34,4 +34,10 @@ module.exports = {
     SENT: "Sent",
     RECEIVED: "Received",
   },
+  MESSAGE_TYPES: {
+    INSTANT: "INSTANT",
+    SCHEDULE: "SCHEDULE",
+    PROMOTIONAL: "PROMOTIONAL",
+    TRANSACTIONAL: "TRANSACTIONAL",
+  },
 };

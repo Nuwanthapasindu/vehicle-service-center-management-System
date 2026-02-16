@@ -23,17 +23,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT","PATCH", "DELETE"],
   })
 );
 app.use(helmet());
 app.use(log);
 // Serve Swagger documentation
-
+if (process.env.NODE_ENV !== "production") {
 app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec,{
   explorer: true,
   
 }));
+}
 // ROUTES
 app.use("/api/v1/auth", authRouter);
 
