@@ -2,18 +2,37 @@ const joi = require("joi");
 const validator = require("./core");
 
 const registerValidationSchema = joi.object({
-  email: joi.string().email().required().trim().messages({
-    "any.required": "Email is required",
-    "string.email": "Email is not valid",
-    "string.empty": "Email is required",
-    "string.trim": "Email must not contain leading or trailing spaces",
+  name: joi.string().required().trim().messages({
+    "any.required": "Name is required",
+    "string.empty": "Name is required",
+  }),
+  mobile: joi
+    .string()
+    .required()
+    .trim()
+    .length(10)
+    .pattern(/^[0-9]{10}$/)
+    .messages({
+      "any.required": "Mobile number is required",
+      "string.empty": "Mobile number is required",
+      "string.length": "Mobile number must be exactly 10 digits",
+      "string.pattern.base": "Mobile number must contain only digits",
+    }),
+  address: joi.string().required().trim().messages({
+    "any.required": "Address is required",
+    "string.empty": "Address is required",
+  }),
+  userName: joi.string().required().trim().alphanum().messages({
+    "any.required": "Username is required",
+    "string.empty": "Username is required",
+    "string.alphanum": "Username must only contain letters and numbers",
   }),
   password: joi
     .string()
     .min(8)
     .max(30)
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/,
     )
     .trim()
     .required()
@@ -28,18 +47,13 @@ const registerValidationSchema = joi.object({
     }),
 });
 const loginValidationSchema = joi.object({
-  email: joi.string().email().required().trim().messages({
-    "any.required": "Email is required",
-    "string.email": "Email is not valid",
-    "string.empty": "Email is required",
-    "string.trim": "Email must not contain leading or trailing spaces",
+  userName: joi.string().required().trim().messages({
+    "any.required": "Username is required",
+    "string.empty": "Username is required",
   }),
-  password: joi.string().min(8).max(30).trim().required().messages({
+  password: joi.string().required().trim().messages({
     "any.required": "Password is required",
     "string.empty": "Password is required",
-    "string.min": "Password must be at least 8 characters",
-    "string.max": "Password must be at most 30 characters",
-    "string.trim": "Password must not contain leading or trailing spaces",
   }),
 });
 const accountVerificationValidationSchema = joi.object({
@@ -53,28 +67,26 @@ const accountVerificationValidationSchema = joi.object({
 });
 
 const resendAccountVerificationValidationSchema = joi.object({
-  email: joi.string().email().required().trim().messages({
-    "any.required": "Email is required",
-    "string.email": "Email is not valid",
-    "string.empty": "Email is required",
-    "string.trim": "Email must not contain leading or trailing spaces",
+  userName: joi.string().required().trim().messages({
+    "any.required": "Username is required",
+    "string.empty": "Username is required",
   }),
 });
 
 const resetPasswordValidationSchema = joi.object({
-  passwordRestToken: joi.string().required().min(20).trim().messages({
-    "any.required": "Password reset token is required",
-    "string.empty": "Password reset token is required",
-    "string.min": "Password reset token must be at least 20 characters",
-    "string.trim":
-      "Password reset token must not contain leading or trailing spaces",
+  otp: joi.string().required().min(6).max(6).trim().messages({
+    "any.required": "OTP is required",
+    "string.empty": "OTP is required",
+    "string.min": "OTP must be at least 6 characters",
+    "string.max": "OTP must be at most 6 characters",
+    "string.trim": "OTP must not contain leading or trailing spaces",
   }),
   password: joi
     .string()
     .min(8)
     .max(30)
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/,
     )
     .trim()
     .required()
@@ -90,13 +102,13 @@ const resetPasswordValidationSchema = joi.object({
 });
 
 module.exports.validatedAccountVerification = validator(
-  accountVerificationValidationSchema
+  accountVerificationValidationSchema,
 );
 module.exports.validatedRegister = validator(registerValidationSchema);
 module.exports.validatedLogin = validator(loginValidationSchema);
 module.exports.validatedResetPassword = validator(
-  resetPasswordValidationSchema
+  resetPasswordValidationSchema,
 );
 module.exports.validatedResendAccountVerification = validator(
-  resendAccountVerificationValidationSchema
+  resendAccountVerificationValidationSchema,
 );
