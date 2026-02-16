@@ -10,13 +10,11 @@ const registerValidationSchema = joi.object({
     .string()
     .required()
     .trim()
-    .length(10)
-    .pattern(/^[0-9]{10}$/)
+    .pattern(/^(?:\+94|94|0)?7[0-8]\d{7}$/)
     .messages({
       "any.required": "Mobile number is required",
-      "string.empty": "Mobile number is required",
-      "string.length": "Mobile number must be exactly 10 digits",
-      "string.pattern.base": "Mobile number must contain only digits",
+      "string.empty": "Mobile number cannot be empty",
+      "string.pattern.base": "Please provide a valid mobile number",
     }),
   address: joi.string().required().trim().messages({
     "any.required": "Address is required",
@@ -47,9 +45,10 @@ const registerValidationSchema = joi.object({
     }),
 });
 const loginValidationSchema = joi.object({
-  userName: joi.string().required().trim().messages({
+ userName: joi.string().required().trim().alphanum().messages({
     "any.required": "Username is required",
     "string.empty": "Username is required",
+    "string.alphanum": "Username must only contain letters and numbers",
   }),
   password: joi.string().required().trim().messages({
     "any.required": "Password is required",
@@ -67,9 +66,10 @@ const accountVerificationValidationSchema = joi.object({
 });
 
 const resendAccountVerificationValidationSchema = joi.object({
-  userName: joi.string().required().trim().messages({
+  userName: joi.string().required().trim().alphanum().messages({
     "any.required": "Username is required",
     "string.empty": "Username is required",
+    "string.alphanum": "Username must only contain letters and numbers",
   }),
 });
 
