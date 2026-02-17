@@ -139,7 +139,7 @@ module.exports.refreshToken = async (refreshToken) => {
       process.env.REFRESH_TOKEN_SECRET,
     );
     const tokenUser = await User.findById(decodedToken.id);
-    if (!tokenUser) throw new AppError("Invalid refresh token", 400);
+    if (!tokenUser || !tokenUser.isActive || tokenUser.isDeleted) throw new AppError("Invalid refresh token", 400);
     // CREATE NEW JWT TOKEN
     const token = jwt.sign(
       {

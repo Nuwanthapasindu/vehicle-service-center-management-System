@@ -21,7 +21,7 @@ const authTokenMiddleware = async (request, response, next) => {
     const authUser = await User.findById(decodedToken.id)
       .select(["-__v","-isActive","-isDeleted"])
       .lean();
-    if (!authUser) throw new AppError("unauthorized", 401);
+    if (!authUser || !authUser.isActive || authUser.isDeleted) throw new AppError("unauthorized", 401);
     const { _id, ...restUser } = authUser;
     let user = { ...restUser };
     if (
@@ -29,7 +29,7 @@ const authTokenMiddleware = async (request, response, next) => {
       authUser.role === USER_ROLES.MECHANIC
     ) {
       const employee = await Employee.findOne({ user: _id })
-        .select(["-__v", "-user"])
+        .select(["-__v", "-user", "-_id"])
         .lean();
       if (!employee) throw new AppError("unauthorized", 401);
       user = { ...user, ...employee };
