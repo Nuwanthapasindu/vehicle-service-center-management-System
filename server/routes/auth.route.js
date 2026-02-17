@@ -34,12 +34,20 @@ const responseBuild = require("../util/responseBuilder");
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - name
+ *               - mobile
+ *               - address
+ *               - userName
  *               - password
  *             properties:
- *               email:
+ *               name:
  *                 type: string
- *                 format: email
+ *               mobile:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               userName:
+ *                 type: string
  *               password:
  *                 type: string
  *                 format: password
@@ -74,12 +82,11 @@ router.post("/register", (req, res, next) => {
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - userName
  *               - password
  *             properties:
- *               email:
+ *               userName:
  *                 type: string
- *                 format: email
  *               password:
  *                 type: string
  *                 format: password
@@ -96,7 +103,7 @@ router.post("/register", (req, res, next) => {
  *                 refreshToken:
  *                   type: string
  *       400:
- *         description: Invalid email or password
+ *         description: Invalid username or password
  *       401:
  *         description: Account not verified
  */
@@ -159,11 +166,10 @@ router.post("/verification", (req, res, next) => {
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - mobile
  *             properties:
- *               email:
+ *               mobile:
  *                 type: string
- *                 format: email
  *     responses:
  *       200:
  *         description: OTP resent
@@ -202,7 +208,6 @@ router.get("/me", authTokenMiddleware, (req, res, next) => {
     })
     .catch((e) => next(e));
 });
-
 
 /**
  * @swagger
@@ -257,11 +262,10 @@ router.post("/token-refresh", (req, res, next) => {
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - mobile
  *             properties:
- *               email:
+ *               mobile:
  *                 type: string
- *                 format: email
  *     responses:
  *       200:
  *         description: Password reset link sent
@@ -276,7 +280,7 @@ router.post("/forgotPassword", (req, res, next) => {
     .then((message) =>
       responseBuilder.buildResponse({
         message,
-      })
+      }),
     )
     .catch((e) => next(e));
 });
@@ -294,10 +298,10 @@ router.post("/forgotPassword", (req, res, next) => {
  *           schema:
  *             type: object
  *             required:
- *               - passwordRestToken
+ *               - otp
  *               - password
  *             properties:
- *               passwordRestToken:
+ *               otp:
  *                 type: string
  *               password:
  *                 type: string

@@ -66,11 +66,16 @@ const accountVerificationValidationSchema = joi.object({
 });
 
 const resendAccountVerificationValidationSchema = joi.object({
-  userName: joi.string().required().trim().alphanum().messages({
-    "any.required": "Username is required",
-    "string.empty": "Username is required",
-    "string.alphanum": "Username must only contain letters and numbers",
-  }),
+ mobile: joi
+    .string()
+    .required()
+    .trim()
+    .pattern(/^(?:\+94|94|0)?7[0-8]\d{7}$/)
+    .messages({
+      "any.required": "Mobile number is required",
+      "string.empty": "Mobile number cannot be empty",
+      "string.pattern.base": "Please provide a valid mobile number",
+    }),
 });
 
 const resetPasswordValidationSchema = joi.object({

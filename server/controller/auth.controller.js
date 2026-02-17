@@ -80,7 +80,7 @@ module.exports.login = async (payload) => {
     const passwordCheck = comparePassword(payload.password, auth.password);
     if (!passwordCheck) throw new AppError("Invalid username or password", 400);
 
-    const user = auth.user;
+    const { user } = auth;
 
     // CHECK USER IS VERIFIED (Active)
     if (!user.isActive) {
@@ -102,7 +102,7 @@ module.exports.login = async (payload) => {
       { algorithm: "HS512", expiresIn: "30d" },
     );
 
-    return { accessToken, refreshToken, user };
+    return { accessToken, refreshToken};
   } catch (error) {
     throw new AppError(error.message, error.statusCode);
   }
@@ -161,32 +161,33 @@ module.exports.resendAccountVerification = async (payload) => {
     const { error } = validatedResendAccountVerification(payload);
     if (error) throw new AppError(error.details[0].message, 400);
 
-    // FIND AUTH BY USERNAME
-    const auth = await Auth.findOne({ userName: payload.userName }).populate(
-      "user",
-    );
+    // FIND USER BY MOBILE
+    const user = await User.findOne({ mobile: payload.mobile });
+    if (!user) throw new AppError("User not found", 400);
+
+    // FIND AUTH FOR THIS USER
+    const auth = await Auth.findOne({ user: user._id });
     if (!auth) throw new AppError("User not found", 400);
 
-    // CHECK IF ALREADY VERIFIED (isActive=true implies verified)
-    if (!auth.verificationOtp && auth.user.isActive) {
+    // CHECK IF ALREADY VERIFIED
+    if (!auth.verificationOtp && user.isActive) {
       throw new AppError("Account already verified", 400);
     }
 
-    // UPDATE OTP
+    // UPDATE OTP IN AUTH
     auth.verificationOtp = otp;
     await auth.save();
 
     // SEND SMS
     try {
-      await sendSms(auth.user.mobile, `Your verification code is: ${otp}`);
+      await sendSms(user.mobile, `Your verification code is: ${otp}`);
     } catch (smsError) {
-      console.error("SMS sending failed:", smsError);
-      // throw new AppError("Failed to send verification SMS", 500);
+      throw smsError;
     }
 
     return "OTP resent successfully";
   } catch (error) {
-    throw new AppError(error.message, error.statusCode);
+    throw new AppError(error.message, error.statusCode || 500);
   }
 };
 module.exports.authenticatedUser = async (authUser) => {
@@ -194,15 +195,86 @@ module.exports.authenticatedUser = async (authUser) => {
   return authUser;
 };
 module.exports.forgotPassword = async (payload) => {
-  // TODO: Implement forgot password with SMS/OTP logic if needed,
-  // or keep email-based if that's still desired for password reset.
-  // For now, disabling or leaving as pending since instruction was specific to register/login/otp.
-  throw new AppError(
-    "Forgot password functionality pending update to SMS/OTP",
-    501,
-  );
+  let session;
+  try {
+    // START SESSION
+    session = await User.startSession();
+    session.startTransaction();
+    const otp = otpGenerator();
+    // VALIDATE PAYLOAD (Reusing resendAccountVerification as it accepts mobile)
+    const { error } = validatedResendAccountVerification(payload);
+    if (error) throw new AppError(error.details[0].message, 400);
+
+    // FIND USER BY MOBILE
+    const user = await User.findOne({ mobile: payload.mobile });
+    if (!user) throw new AppError("User not found", 400);
+
+    // FIND AUTH FOR THIS USER
+    const auth = await Auth.findOne({ user: user._id });
+    if (!auth) throw new AppError("User not found", 400);
+
+    // UPDATE OTP IN AUTH (Reusing verificationOtp for password reset verification)
+    auth.verificationOtp = otp;
+    await auth.save({ session });
+
+    user.isActive = false;
+    await user.save({ session });
+
+    session.commitTransaction();
+
+    // SEND SMS
+    try {
+      await sendSms(user.mobile, `Your password reset code is: ${otp}`);
+    } catch (smsError) {
+      throw smsError;
+    }
+
+    return "Password reset OTP sent successfully";
+  } catch (error) {
+    if (session) {
+      await session.abortTransaction();
+    }
+    throw new AppError(error.message, error.statusCode || 500);
+  } finally {
+    if (session) {
+      session.endSession();
+    }
+  }
 };
 module.exports.resetPassword = async (payload) => {
-  // TODO: Implement reset password logic
-  throw new AppError("Reset password functionality pending update", 501);
+  // VALIDATE PAYLOAD
+  const { error } = validatedResetPassword(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
+
+  try {
+    // FIND AUTH BY OTP
+    const auth = await Auth.findOne({ verificationOtp: payload.otp }).populate(
+      "user",
+    );
+    if (!auth) throw new AppError("Invalid OTP", 400);
+
+    // UPDATE PASSWORD
+    auth.password = hashPassword(payload.password);
+    auth.verificationOtp = null; // Clear OTP
+    await auth.save();
+
+    // Ensure User is active
+    if (!auth.user.isActive) {
+      await User.findByIdAndUpdate(auth.user._id, { isActive: true });
+    }
+
+    // Send SMS Notification
+    try {
+      await sendSms(
+        auth.user.mobile,
+        "Your password has been reset successfully.",
+      );
+    } catch (smsError) {
+      console.error("SMS notification failed:", smsError);
+    }
+
+    return "Password reset successfully";
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode);
+  }
 };
