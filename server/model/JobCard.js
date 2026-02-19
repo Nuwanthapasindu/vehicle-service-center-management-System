@@ -22,6 +22,10 @@ const jobCardSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Package",
     },
+    milageCount: {
+      type: Number,
+      default: 0
+    },
     startTime: {
       type: Date,
     },
