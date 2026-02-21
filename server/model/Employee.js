@@ -27,6 +27,10 @@ const employeeSchema = new Schema(
       enum: Object.values(GENDERS),
       required: true,
     },
+    isAvailable: {
+      type: Boolean,
+      default: true
+    }
   },
   {
     timestamps: true,
