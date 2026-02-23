@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   textContainer: {
     alignItems: "center",
     paddingHorizontal: 10,
-    marginTop: 30, // pushed down slightly for exact visual match
+    marginTop: 30,
     width: "100%",
   },
   title: {
