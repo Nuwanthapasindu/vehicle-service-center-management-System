@@ -5,6 +5,8 @@ const colors = Object.freeze({
     DARK:"#1A1D23",
     SECONDARY: "#64748B",
     BORDER_COLOR:"#E2E8F0",
+    DANGER_COLOR:"#EF4444",
+    
 
 })
 
