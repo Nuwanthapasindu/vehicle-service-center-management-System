@@ -11,8 +11,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import colors from "../../constants/colors";
+import useAsyncStorage from "../../hooks/useAsyncStorage";
 import storageKeys from "../../constants/storageKeys";
 import logo from "../../assets/logo.png";
 import slider1 from "../../assets/slider1.jpg";
@@ -41,10 +41,10 @@ export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const slidesRef = useRef(null);
   const router = useRouter();
-
+  const { writeToStorage } = useAsyncStorage();
   const handleComplete = async () => {
     try {
-      await AsyncStorage.setItem(storageKeys.HAS_VIEWED_ONBOARDING, "true");
+      await writeToStorage(storageKeys.HAS_VIEWED_ONBOARDING, "true");
       router.replace("/(auth)/Login");
     } catch (error) {
       console.error("Error setting onboarding status", error);
