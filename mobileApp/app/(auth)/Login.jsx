@@ -25,7 +25,12 @@ const { width } = Dimensions.get("window");
 
 const validationSchema = Yup.object().shape({
   username: Yup.string().required("Required"),
-  password: Yup.string().required("Required"),
+  password: Yup.string()
+    .strict(true)
+    .trim("Password must not contain leading or trailing spaces")
+    .min(8, "Password must be at least 8 characters")
+    .max(30, "Password must be at most 30 characters")
+    .required("Password is required"),
 });
 
 export default function Login() {
@@ -88,6 +93,7 @@ export default function Login() {
                   error={errors.username}
                   touched={touched.username}
                   autoCapitalize="none"
+                  autoFocus={true}
                 />
 
                 {/* Password Input */}

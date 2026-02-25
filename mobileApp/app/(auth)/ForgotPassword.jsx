@@ -20,8 +20,13 @@ import CustomInput from "../../components/CustomInput";
 
 const validationSchema = Yup.object().shape({
   mobileNumber: Yup.string()
-    .required("Mobile number is required")
-    .min(10, "Mobile number is too short"),
+    .strict(true)
+    .trim("Mobile number cannot contain leading or trailing spaces")
+    .matches(
+      /^(?:\+94|94|0)?7[0-8]\d{7}$/,
+      "Please provide a valid mobile number",
+    )
+    .required("Mobile number is required"),
 });
 
 export default function ForgotPassword() {
