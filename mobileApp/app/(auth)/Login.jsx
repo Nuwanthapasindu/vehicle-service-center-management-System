@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Image,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +19,7 @@ import { useRouter } from "expo-router";
 
 import colors from "../../constants/colors";
 import logo from "../../assets/logo.png";
+import CustomInput from "../../components/CustomInput";
 
 const { width } = Dimensions.get("window");
 
@@ -72,74 +72,42 @@ export default function Login() {
             }) => (
               <View style={styles.formContainer}>
                 {/* Username Input */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Username</Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      touched.username && errors.username && styles.inputError,
-                    ]}
-                  >
+                <CustomInput
+                  label="Username"
+                  icon={
                     <Ionicons
                       name="person-outline"
                       size={20}
                       color={colors.SECONDARY}
-                      style={styles.inputIcon}
                     />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter your username"
-                      placeholderTextColor="#94A3B8"
-                      autoCapitalize="none"
-                      onChangeText={handleChange("username")}
-                      onBlur={handleBlur("username")}
-                      value={values.username}
-                    />
-                  </View>
-                  {touched.username && errors.username && (
-                    <Text style={styles.errorText}>{errors.username}</Text>
-                  )}
-                </View>
+                  }
+                  placeholder="Enter your username"
+                  value={values.username}
+                  onChangeText={handleChange("username")}
+                  onBlur={handleBlur("username")}
+                  error={errors.username}
+                  touched={touched.username}
+                  autoCapitalize="none"
+                />
 
                 {/* Password Input */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Password</Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      touched.password && errors.password && styles.inputError,
-                    ]}
-                  >
+                <CustomInput
+                  label="Password"
+                  icon={
                     <Ionicons
                       name="lock-closed-outline"
                       size={20}
                       color={colors.SECONDARY}
-                      style={styles.inputIcon}
                     />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter your password"
-                      placeholderTextColor="#94A3B8"
-                      secureTextEntry={!showPassword}
-                      onChangeText={handleChange("password")}
-                      onBlur={handleBlur("password")}
-                      value={values.password}
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={styles.eyeIcon}
-                    >
-                      <Ionicons
-                        name={showPassword ? "eye-outline" : "eye-outline"}
-                        size={20}
-                        color={colors.SECONDARY}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  {touched.password && errors.password && (
-                    <Text style={styles.errorText}>{errors.password}</Text>
-                  )}
-                </View>
+                  }
+                  placeholder="Enter your password"
+                  value={values.password}
+                  onChangeText={handleChange("password")}
+                  onBlur={handleBlur("password")}
+                  error={errors.password}
+                  touched={touched.password}
+                  isPassword={true}
+                />
 
                 {/* Login Button */}
                 <TouchableOpacity
@@ -224,44 +192,8 @@ const styles = StyleSheet.create({
   formContainer: {
     width: "100%",
   },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.DARK,
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.LIGHT,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    borderRadius: 8,
-    height: 52,
-    paddingHorizontal: 16,
-  },
-  inputError: {
-    borderColor: colors.DANGER_COLOR,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.DARK,
-  },
-  eyeIcon: {
-    padding: 4,
-  },
-  errorText: {
-    color: colors.DANGER_COLOR,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+  formContainer: {
+    width: "100%",
   },
   loginButton: {
     backgroundColor: colors.PRIMARY,

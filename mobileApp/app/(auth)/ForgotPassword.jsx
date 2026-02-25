@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +16,7 @@ import * as Yup from "yup";
 import { useRouter } from "expo-router";
 
 import colors from "../../constants/colors";
+import CustomInput from "../../components/CustomInput";
 
 const validationSchema = Yup.object().shape({
   mobileNumber: Yup.string()
@@ -73,39 +73,24 @@ export default function ForgotPassword() {
               }) => (
                 <View style={styles.inputsSection}>
                   {/* Mobile Input */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Mobile Number</Text>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        touched.mobileNumber &&
-                          errors.mobileNumber &&
-                          styles.inputError,
-                      ]}
-                    >
+                  <CustomInput
+                    label="Mobile Number"
+                    icon={
                       <Ionicons
                         name="phone-portrait-outline"
                         size={20}
                         color={colors.SECONDARY}
-                        style={styles.inputIcon}
                       />
-                      <TextInput
-                        style={styles.input}
-                        placeholder="e.g., +1 234 567 890"
-                        placeholderTextColor="#94A3B8"
-                        keyboardType="num-pad"
-                        autoCapitalize="none"
-                        onChangeText={handleChange("mobileNumber")}
-                        onBlur={handleBlur("mobileNumber")}
-                        value={values.mobileNumber}
-                      />
-                    </View>
-                    {touched.mobileNumber && errors.mobileNumber && (
-                      <Text style={styles.errorText}>
-                        {errors.mobileNumber}
-                      </Text>
-                    )}
-                  </View>
+                    }
+                    placeholder="e.g., +1 234 567 890"
+                    keyboardType="num-pad"
+                    autoCapitalize="none"
+                    value={values.mobileNumber}
+                    onChangeText={handleChange("mobileNumber")}
+                    onBlur={handleBlur("mobileNumber")}
+                    error={errors.mobileNumber}
+                    touched={touched.mobileNumber}
+                  />
 
                   {/* Send OTP Button */}
                   <TouchableOpacity
@@ -186,42 +171,6 @@ const styles = StyleSheet.create({
   },
   inputsSection: {
     width: "100%",
-  },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.DARK,
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.LIGHT,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    borderRadius: 8,
-    height: 52,
-    paddingHorizontal: 16,
-  },
-  inputError: {
-    borderColor: colors.DANGER_COLOR,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.DARK,
-  },
-  errorText: {
-    color: colors.DANGER_COLOR,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
   },
   submitButton: {
     backgroundColor: colors.DARK,
