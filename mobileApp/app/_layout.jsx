@@ -5,6 +5,7 @@ import storageKeys from "../constants/storageKeys";
 
 import { Provider } from "react-redux";
 import { store } from "../store/store";
+import Toast from "react-native-toast-message";
 
 export default function RootLayout() {
   const { readFromStorage } = useAsyncStorage();
@@ -23,6 +24,7 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <Slot />
+      <Toast />
     </Provider>
   );
 }
