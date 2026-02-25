@@ -3,6 +3,9 @@ import { Slot, useRouter } from "expo-router";
 import useAsyncStorage from "../hooks/useAsyncStorage";
 import storageKeys from "../constants/storageKeys";
 
+import { Provider } from "react-redux";
+import { store } from "../store/store";
+
 export default function RootLayout() {
   const { readFromStorage } = useAsyncStorage();
   const router = useRouter();
@@ -17,5 +20,9 @@ export default function RootLayout() {
     checkOnboardingStatus();
   }, [router]);
 
-  return <Slot />;
+  return (
+    <Provider store={store}>
+      <Slot />
+    </Provider>
+  );
 }

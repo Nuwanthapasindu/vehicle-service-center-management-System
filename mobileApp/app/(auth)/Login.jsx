@@ -17,6 +17,11 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { useRouter } from "expo-router";
 
+import { useDispatch } from "react-redux";
+import * as SecureStore from "expo-secure-store";
+import { setCredentials } from "../../store/authSlice";
+import axiosClient from "../../utils/axiosClient";
+
 import colors from "../../constants/colors";
 import logo from "../../assets/logo.png";
 import CustomInput from "../../components/CustomInput";
@@ -34,8 +39,43 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function Login() {
-  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
+
+  const handleLogin = async (values, { setSubmitting, setStatus }) => {
+    try {
+      // Send login request to the auth controller
+      const response = await axiosClient.post("/auth/login", {
+        username: values.username,
+        password: values.password,
+      });
+
+      const { accessToken, refreshToken, user } = response.data;
+
+      // Persist the tokens securely
+      if (accessToken) {
+        await SecureStore.setItemAsync("accessToken", accessToken);
+      }
+      if (refreshToken) {
+        await SecureStore.setItemAsync("refreshToken", refreshToken);
+      }
+
+      // Store current user session centrally in Redux
+      dispatch(setCredentials({ user }));
+
+      // Send the authenticated user to the main/home screen
+      // router.replace("/(home)/");
+      alert("Success! Logged in and tokens securely saved.");
+    } catch (error) {
+      console.error("Login Error:", error.response?.data || error.message);
+      setStatus(
+        error.response?.data?.message ||
+          "Invalid credentials! Please try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -65,7 +105,7 @@ export default function Login() {
           <Formik
             initialValues={{ username: "", password: "" }}
             validationSchema={validationSchema}
-            onSubmit={(values) => console.log("Login attempt:", values)}
+            onSubmit={handleLogin}
           >
             {({
               handleChange,
@@ -74,8 +114,20 @@ export default function Login() {
               values,
               errors,
               touched,
+              isSubmitting,
+              status,
             }) => (
               <View style={styles.formContainer}>
+                {status && (
+                  <Text
+                    style={[
+                      styles.errorText,
+                      { marginBottom: 16, fontSize: 14, textAlign: "center" },
+                    ]}
+                  >
+                    {status}
+                  </Text>
+                )}
                 {/* Username Input */}
                 <CustomInput
                   label="Username"
@@ -117,16 +169,21 @@ export default function Login() {
 
                 {/* Login Button */}
                 <TouchableOpacity
-                  style={styles.loginButton}
+                  style={[styles.loginButton, isSubmitting && { opacity: 0.7 }]}
                   activeOpacity={0.8}
                   onPress={handleSubmit}
+                  disabled={isSubmitting}
                 >
-                  <Text style={styles.loginButtonText}>Sign In</Text>
-                  <Ionicons
-                    name="log-in-outline"
-                    size={22}
-                    color={colors.DARK}
-                  />
+                  <Text style={styles.loginButtonText}>
+                    {isSubmitting ? "Signing in..." : "Sign In"}
+                  </Text>
+                  {!isSubmitting && (
+                    <Ionicons
+                      name="log-in-outline"
+                      size={22}
+                      color={colors.DARK}
+                    />
+                  )}
                 </TouchableOpacity>
 
                 {/* Forgot Password */}
