@@ -61,7 +61,7 @@ export default function ForgotPassword() {
             <Formik
               initialValues={{ mobileNumber: "" }}
               validationSchema={validationSchema}
-              onSubmit={(values) => console.log("OTP Request:", values)}
+              onSubmit={(values) => router.replace("/OtpVerification")}
             >
               {({
                 handleChange,
@@ -93,7 +93,7 @@ export default function ForgotPassword() {
                         style={styles.input}
                         placeholder="e.g., +1 234 567 890"
                         placeholderTextColor="#94A3B8"
-                        keyboardType="phone-pad"
+                        keyboardType="num-pad"
                         autoCapitalize="none"
                         onChangeText={handleChange("mobileNumber")}
                         onBlur={handleBlur("mobileNumber")}
