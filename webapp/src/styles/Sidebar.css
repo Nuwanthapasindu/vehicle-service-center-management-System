@@ -1,0 +1,151 @@
+/* Sidebar Container */
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  background-color: #111111; /* Dark background */
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+  position: fixed; /* Fixed position for dashboard layouts */
+  left: 0;
+  top: 0;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+  z-index: 100;
+}
+
+/* --- Header --- */
+.sidebar-header {
+  padding: 25px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #333;
+}
+
+.sidebar-header .logo-icon {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header .logo-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.logo-subtext {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* --- Navigation --- */
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 15px;
+  overflow-y: auto;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 15px;
+  border-radius: 8px;
+  color: #cccccc;
+  text-decoration: none;
+  margin-bottom: 5px;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background-color: #222222;
+  color: #fff;
+}
+
+.nav-item.active {
+  background-color: var(--primary); /* Active state green background */
+  color: #111111; /* Dark text on green background */
+  font-weight: 600;
+}
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+}
+
+.nav-label {
+  font-size: 0.95rem;
+}
+
+/* --- Footer / Attention Card --- */
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid #333;
+}
+
+.attention-card {
+  background-color: #1A1A1A;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+
+.attention-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--primary);
+}
+
+.attention-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.attention-card p {
+  font-size: 0.8rem;
+  color: #888;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.btn-logout {
+  width: 100%;
+  background-color: var(--primary);
+  color: #111111;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-logout:hover {
+  background-color: #7fc500;
+}

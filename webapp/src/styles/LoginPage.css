@@ -1,0 +1,164 @@
+/* Main Layout */
+.login-card-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background-color: var(--background-main);
+}
+
+/* Card Container */
+.login-card-unique {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--background-secondary);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Ensures image stays inside border radius */
+}
+
+/* --- Hero Image Section --- */
+.card-hero-section {
+  position: relative;
+  height: 120px;
+  /* Replace with your dark sports car image */
+  background-image: url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end; /* Align text to bottom */
+  padding: 30px;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
+}
+
+.hero-content {
+  position: relative;
+  color: #fff;
+}
+
+.hero-content h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.hero-content p {
+  margin: 5px 0 0 0;
+  opacity: 1;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+/* --- Form Section --- */
+.card-form-section {
+  padding: 30px;
+}
+
+.login-form-unique {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group-unique {
+  position: relative;
+}
+
+.input-group-unique input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 14px 14px 14px 45px;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #FAFAFA;
+  transition: border 0.2s;
+}
+
+.input-group-unique input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: #fff;
+}
+
+.icon-left {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.icon-right {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+}
+
+.form-options-unique {
+  text-align: right;
+  margin-top: -5px;
+}
+
+.form-options-unique a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.form-options-unique a:hover {
+  color: var(--primary);
+}
+
+.btn-login-unique {
+  background-color: var(--primary);
+  color: #111;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.btn-login-unique:hover {
+  background-color: #7fc500;
+}
+
+/* --- Card Footer --- */
+.card-footer-unique {
+  margin-top: 25px;
+  text-align: center;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.card-footer-unique a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 5px;
+}
+
+.card-footer-unique a:hover {
+  text-decoration: underline;
+}

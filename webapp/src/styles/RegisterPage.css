@@ -1,0 +1,162 @@
+/* Main Layout */
+.create-card-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background-color: var(--background-main);
+}
+
+/* Card Container */
+.create-card-container {
+  width: 100%;
+  max-width: 450px;
+  background-color: var(--background-secondary);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* --- Hero Image Section --- */
+.card-hero-create {
+  position: relative;
+  height: 120px;
+  /* Dark car background image */
+  background-image: url('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end; /* Text at bottom */
+  padding: 30px;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.8));
+}
+
+.hero-content {
+  position: relative;
+  color: #fff;
+}
+
+.hero-content h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.hero-content p {
+  margin: 8px 0 0 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+  max-width: 90%;
+}
+
+/* --- Form Section --- */
+.card-form-create {
+  padding: 35px;
+}
+
+.card-form-create form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Input Styling */
+.input-group-create {
+  position: relative;
+}
+
+.input-group-create input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 14px 14px 14px 45px;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #FAFAFA;
+  transition: border 0.2s;
+}
+
+.input-group-create input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: #fff;
+}
+
+.icon-left {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.icon-right {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+}
+
+/* Password Strength */
+.password-strength {
+  text-align: right;
+  margin-top: -10px; /* Pull closer to input */
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.strength-text.strong {
+  color: var(--primary);
+}
+
+/* Button */
+.btn-create-unique {
+  background-color: var(--primary);
+  color: #111;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  margin-top: 5px;
+}
+
+.btn-create-unique:hover {
+  background-color: #7fc500;
+}
+
+/* Footer */
+.card-footer-create {
+  margin-top: 25px;
+  text-align: center;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.card-footer-create a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 5px;
+}
+
+.card-footer-create a:hover {
+  text-decoration: underline;
+}

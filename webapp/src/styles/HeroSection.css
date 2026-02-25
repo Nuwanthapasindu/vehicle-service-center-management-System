@@ -1,0 +1,194 @@
+/* Container Setup */
+.landing-container {
+  position: relative;
+  min-height: 100vh;
+  background-color: #000;
+}
+
+/* --- Transparent Header Adjustment --- */
+.landing-header-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+/* 
+   This class overrides the default Header background to make it transparent.
+   Assuming 'Header' is the class name inside Header.css
+*/
+.landing-header-wrapper .header {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.landing-header-wrapper .logo-text,
+.landing-header-wrapper .nav-link,
+.landing-header-wrapper .btn-login {
+  color: #fff; /* Force white text for contrast against dark background */
+}
+
+.landing-header-wrapper .nav-link.active {
+  color: var(--primary);
+}
+
+.landing-header-wrapper .nav-link:hover {
+  color: var(--primary);
+}
+
+
+/* --- Hero Section --- */
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Background Layers */
+.hero-bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Replace with your actual high-res background image */
+  background-image: url('https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+  animation: slowZoom 20s infinite alternate;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom, 
+    rgba(0,0,0,0.6) 0%, 
+    rgba(0,0,0,0.4) 50%, 
+    rgba(0,0,0,0.8) 100%
+  );
+  z-index: 2;
+}
+
+/* --- Content Styling --- */
+.hero-content {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  max-width: 800px;
+  padding: 0 20px;
+  color: #fff;
+}
+
+.hero-tag {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+  color: #fff;
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(5px);
+}
+
+.hero-title {
+  font-size: 5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 10px 0;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+  font-size: 2rem;
+  font-weight: 300;
+  font-style: italic;
+  margin: 0 0 25px 0;
+  color: var(--primary); /* Green accent color */
+}
+
+.hero-description {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- Buttons --- */
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #111;
+  border: none;
+  padding: 15px 35px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #a8f02a;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 15px 35px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #fff;
+}
+
+/* --- Animations --- */
+@keyframes slowZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.5rem;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+  }
+}

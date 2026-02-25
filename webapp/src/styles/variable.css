@@ -1,0 +1,24 @@
+/* variable.css
+   Design System Variables using your provided colors
+   ---------------------------------------------------
+   primary: #8FDB01
+   primary-muted: #F4FCE6
+   background-main: #F8F9FA
+   background-secondary: #FFFFFF
+   text: #000000
+   text-muted: #A4A4A7
+*/
+
+:root {
+    --primary : #8FDB01;
+    --primary-muted : #F4FCE6;
+
+    --background-main : #F8F9FA;
+    --background-secondary : #FFFFFF;
+
+    
+    --text-muted : #A4A4A7;
+    --text : #000000;
+
+}
+
