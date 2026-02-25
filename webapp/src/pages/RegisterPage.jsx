@@ -1,44 +1,64 @@
 import React, { useState } from "react";
 import "../styles/RegisterPage.css";
 import axios from "axios";
-import { API_BASE } from "../api";
+
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import UserIcon from "../assets/icons/UserIcon";
+import PhoneIcon from "../assets/icons/PhoneIcon";
+import SettingsIcon from "../assets/icons/SettingsIcon";
+import LockIcon from "../assets/icons/LockIcon";
+import EyeIcon from "../assets/icons/EyeIcon";
+import EyeOffIcon from "../assets/icons/EyeOffIcon";
+
+// Validation Schema
+const RegisterSchema = Yup.object().shape({
+  name: Yup.string().required("Full Name is required"),
+  mobile: Yup.string()
+    .matches(/^[0-9]+$/, "Must be only digits")
+    .min(10, "Must be at least 10 digits")
+    .required("Mobile Number is required"),
+  username: Yup.string().required("Username is required"),
+  email: Yup.string().email("Invalid email address").required("Email is required"),
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    username: "",
-    mobile: "",
-    email: "",
-    password: "",
-  });
-
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [strength] = useState("STRONG");
+  const navigate = useNavigate();
 
   const togglePassword = () => {
     setPasswordVisible((prev) => !prev);
   };
 
-  //  handle input changes
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  // fixed register function
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post(`${API_BASE}/auth/register`, formData);
-      console.log("Registered:", res.data);
-      alert("Registration successful!");
-    } catch (err) {
-      console.error("Register error:", err.response?.data || err.message);
-      alert(err.response?.data?.message || "Registration failed!");
-    }
-  };
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      username: "",
+      mobile: "",
+      email: "",
+      password: "",
+    },
+    validationSchema: RegisterSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        const res = await axios.post(`${process.env.REACT_APP_API_BASE}/auth/register`, values);
+        console.log("Registered:", res.data);
+        toast.success("Registration successful!");
+        navigate("/login");
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Registration failed!");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
   return (
     <div className="page-wrapper">
@@ -55,62 +75,65 @@ const RegisterPage = () => {
 
           {/* Form Section */}
           <div className="card-form-create">
-            <form onSubmit={handleRegister}>
+            <form onSubmit={formik.handleSubmit}>
               {/* Full Name */}
               <div className="input-group-create">
                 <span className="icon-left">
-                  {/* 👤 icon */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
+                  <UserIcon />
                 </span>
                 <input
                   type="text"
                   name="name"
                   placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
+                  value={formik.values.name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={formik.touched.name && formik.errors.name ? "input-error" : ""}
                 />
               </div>
+              {formik.touched.name && formik.errors.name ? (
+                <div className="error-text">{formik.errors.name}</div>
+              ) : null}
 
               {/* Mobile Number */}
               <div className="input-group-create">
                 <span className="icon-left">
                   {/* ☎ icon */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.12 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                  </svg>
+                  <PhoneIcon />
                 </span>
                 <input
                   type="tel"
                   name="mobile"
                   placeholder="Mobile Number"
-                  value={formData.mobile}
-                  onChange={handleChange}
-                  required
+                  value={formik.values.mobile}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={formik.touched.mobile && formik.errors.mobile ? "input-error" : ""}
                 />
               </div>
+              {formik.touched.mobile && formik.errors.mobile ? (
+                <div className="error-text">{formik.errors.mobile}</div>
+              ) : null}
 
               {/* Username */}
               <div className="input-group-create">
                 <span className="icon-left">
                   {/* ⚙️ icon */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83A2 2 0 0 1 7.04 4l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                  </svg>
+                  <SettingsIcon />
                 </span>
                 <input
                   type="text"
                   name="username"
                   placeholder="User Name"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
+                  value={formik.values.username}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={formik.touched.username && formik.errors.username ? "input-error" : ""}
                 />
               </div>
+              {formik.touched.username && formik.errors.username ? (
+                <div className="error-text">{formik.errors.username}</div>
+              ) : null}
 
               {/* Email */}
               <div className="input-group-create">
@@ -119,32 +142,37 @@ const RegisterPage = () => {
                   type="email"
                   name="email"
                   placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={formik.touched.email && formik.errors.email ? "input-error" : ""}
                 />
               </div>
+              {formik.touched.email && formik.errors.email ? (
+                <div className="error-text">{formik.errors.email}</div>
+              ) : null}
 
               {/* Password */}
               <div className="input-group-create">
                 <span className="icon-left">
-                  <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
+                  <LockIcon />
                 </span>
                 <input
                   type={passwordVisible ? "text" : "password"}
                   name="password"
                   placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={formik.touched.password && formik.errors.password ? "input-error" : ""}
                 />
                 <span className="icon-right" onClick={togglePassword}>
-                  {passwordVisible ? "🙈" : "👁️"}
+                  {passwordVisible ? <EyeOffIcon /> : <EyeIcon />}
                 </span>
               </div>
+              {formik.touched.password && formik.errors.password ? (
+                <div className="error-text">{formik.errors.password}</div>
+              ) : null}
 
               {/* Password Strength */}
               <div className="password-strength">
@@ -152,15 +180,19 @@ const RegisterPage = () => {
               </div>
 
               {/* Submit */}
-              <button type="submit" className="btn-create-unique">
-                Create Account <span>→</span>
+              <button
+                type="submit"
+                className="btn-create-unique"
+                disabled={formik.isSubmitting}
+              >
+                {formik.isSubmitting ? "Creating Account..." : "Create Account"} <span>→</span>
               </button>
             </form>
 
             {/* Footer */}
             <div className="card-footer-create">
               <span>Already have an account?</span>
-              <a href="/login">Sign In</a>
+              <Link to="/login">Sign In</Link>
             </div>
           </div>
         </div>

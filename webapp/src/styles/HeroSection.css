@@ -26,7 +26,8 @@
 .landing-header-wrapper .logo-text,
 .landing-header-wrapper .nav-link,
 .landing-header-wrapper .btn-login {
-  color: #fff; /* Force white text for contrast against dark background */
+  color: #fff;
+  /* Force white text for contrast against dark background */
 }
 
 .landing-header-wrapper .nav-link.active {
@@ -70,12 +71,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    to bottom, 
-    rgba(0,0,0,0.6) 0%, 
-    rgba(0,0,0,0.4) 50%, 
-    rgba(0,0,0,0.8) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.4) 50%,
+      rgba(0, 0, 0, 0.8) 100%);
   z-index: 2;
 }
 
@@ -99,7 +98,7 @@
   letter-spacing: 2px;
   margin-bottom: 25px;
   color: #fff;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(5px);
 }
 
@@ -110,7 +109,7 @@
   margin: 0 0 10px 0;
   letter-spacing: -1px;
   text-transform: uppercase;
-  text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .hero-subtitle {
@@ -118,7 +117,8 @@
   font-weight: 300;
   font-style: italic;
   margin: 0 0 25px 0;
-  color: var(--primary); /* Green accent color */
+  color: var(--primary);
+  /* Green accent color */
 }
 
 .hero-description {
@@ -143,15 +143,15 @@
   color: #111;
   border: none;
   padding: 15px 35px;
-  border-radius: 8px;
+  border-radius: var(--border-radius-md);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition: transform var(--transition-fast), background-color var(--transition-fast);
 }
 
 .btn-primary:hover {
-  background-color: #a8f02a;
+  background-color: var(--primary-hover);
   transform: translateY(-2px);
 }
 
@@ -160,11 +160,11 @@
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 15px 35px;
-  border-radius: 8px;
+  border-radius: var(--border-radius-md);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .btn-secondary:hover {
@@ -174,8 +174,13 @@
 
 /* --- Animations --- */
 @keyframes slowZoom {
-  from { transform: scale(1); }
-  to { transform: scale(1.1); }
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.1);
+  }
 }
 
 /* --- Responsive Adjustments --- */
@@ -183,12 +188,34 @@
   .hero-title {
     font-size: 3rem;
   }
-  
+
   .hero-subtitle {
     font-size: 1.5rem;
   }
-  
+
   .hero-actions {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2.2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .hero-description {
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    width: 100%;
   }
 }

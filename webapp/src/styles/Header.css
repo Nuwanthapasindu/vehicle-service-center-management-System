@@ -10,7 +10,8 @@
   padding: 0 80px;
   height: 80px;
   background-color: var(--background-secondary);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  /* Subtle shadow for depth */
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -41,7 +42,8 @@
 .nav-menu ul {
   display: flex;
   list-style: none;
-  gap: 40px; /* Spacing between menu items */
+  gap: 40px;
+  /* Spacing between menu items */
   margin: 0;
   padding: 0;
 }
@@ -51,7 +53,7 @@
   color: var(--text);
   font-size: 1rem;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: color var(--transition-normal);
   position: relative;
 }
 
@@ -91,7 +93,7 @@
   cursor: pointer;
   text-decoration: none;
   padding: 8px 16px;
-  transition: color 0.3s ease;
+  transition: color var(--transition-normal);
 }
 
 .btn-login:hover {
@@ -102,17 +104,17 @@
   background-color: var(--primary);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--border-radius-sm);
   padding: 10px 24px;
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color var(--transition-normal), transform var(--transition-fast);
   box-shadow: 0 4px 6px rgba(143, 219, 1, 0.2);
 }
 
 .btn-book:hover {
-  background-color: #7fc500; /* Slightly darker shade for hover */
+  background-color: var(--primary-hover);
   transform: translateY(-1px);
 }
 
@@ -121,8 +123,44 @@
   .header {
     padding: 0 20px;
   }
-  
+
   .nav-menu ul {
     gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 15px 20px;
+    gap: 15px;
+    position: relative;
+  }
+
+  .nav-menu {
+    order: 3;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .nav-menu ul {
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .nav-link {
+    font-size: 0.95rem;
+  }
+
+  .auth-actions {
+    gap: 10px;
+  }
+
+  .btn-login,
+  .btn-book {
+    padding: 8px 16px;
+    font-size: 0.85rem;
   }
 }

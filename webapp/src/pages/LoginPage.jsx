@@ -2,43 +2,48 @@ import React, { useState } from "react";
 import "../styles/LoginPage.css";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { API_BASE } from "../api";
 
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { toast } from 'react-toastify';
+
+import UserIcon from "../assets/icons/UserIcon";
+import LockIcon from "../assets/icons/LockIcon";
+import EyeIcon from "../assets/icons/EyeIcon";
+import EyeOffIcon from "../assets/icons/EyeOffIcon";
+
+// Validation Schema
+const LoginSchema = Yup.object().shape({
+  email: Yup.string().email("Invalid email address").required("Email is required"),
+  password: Yup.string().required("Password is required"),
+});
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const navigate = useNavigate(); // redirect after login if needed
+  const navigate = useNavigate();
 
   const togglePassword = () => {
     setPasswordVisible((prev) => !prev);
   };
 
-  // Handle input changes
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  // Fixed login function
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post(`${API_BASE}/auth/login`, formData);
-      localStorage.setItem("token", res.data.token);
-      console.log("Logged in:", res.data.user);
-      alert("Login successful!");
-      navigate("/dashboard"); // redirect after login (optional)
-    } catch (err) {
-      console.error("Login error:", err.response?.data || err.message);
-      alert(err.response?.data?.message || "Login failed!");
-    }
-  };
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: LoginSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        const res = await axios.post(`${process.env.REACT_APP_API_BASE}/auth/login`, values);
+        localStorage.setItem("token", res.data.token);
+        toast.success("Login successful!");
+        navigate("/dashboard");
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Login failed!");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
   return (
     <div className="page-wrapper">
@@ -55,83 +60,47 @@ const LoginPage = () => {
 
           {/* Bottom Section */}
           <div className="card-form-section">
-            <form className="login-form-unique" onSubmit={handleLogin}>
+            <form className="login-form-unique" onSubmit={formik.handleSubmit}>
               {/* Email Input */}
               <div className="input-group-unique">
                 <span className="icon-left">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
+                  <UserIcon />
                 </span>
                 <input
                   type="email"
                   name="email"
                   placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={formik.touched.email && formik.errors.email ? "input-error" : ""}
                 />
               </div>
+              {formik.touched.email && formik.errors.email ? (
+                <div className="error-text">{formik.errors.email}</div>
+              ) : null}
 
               {/* Password Input */}
               <div className="input-group-unique">
                 <span className="icon-left">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
+                  <LockIcon />
                 </span>
                 <input
                   type={passwordVisible ? "text" : "password"}
                   name="password"
                   placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={formik.touched.password && formik.errors.password ? "input-error" : ""}
                 />
                 <span className="icon-right" onClick={togglePassword}>
-                  {passwordVisible ? (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="var(--text-muted)"
-                      strokeWidth="2"
-                    >
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                  ) : (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="var(--text-muted)"
-                      strokeWidth="2"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  )}
+                  {passwordVisible ? <EyeOffIcon /> : <EyeIcon />}
                 </span>
               </div>
+              {formik.touched.password && formik.errors.password ? (
+                <div className="error-text">{formik.errors.password}</div>
+              ) : null}
 
               {/* Forgot Password */}
               <div className="form-options-unique">
@@ -139,8 +108,12 @@ const LoginPage = () => {
               </div>
 
               {/* Login Button */}
-              <button type="submit" className="btn-login-unique">
-                Login <span>→</span>
+              <button
+                type="submit"
+                className="btn-login-unique"
+                disabled={formik.isSubmitting}
+              >
+                {formik.isSubmitting ? "Logging in..." : "Login"} <span>→</span>
               </button>
             </form>
 

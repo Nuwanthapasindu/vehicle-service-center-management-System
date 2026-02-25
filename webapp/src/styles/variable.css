@@ -1,24 +1,74 @@
 /* variable.css
-   Design System Variables using your provided colors
+   Design System Variables & Common Classes
    ---------------------------------------------------
-   primary: #8FDB01
-   primary-muted: #F4FCE6
-   background-main: #F8F9FA
-   background-secondary: #FFFFFF
-   text: #000000
-   text-muted: #A4A4A7
 */
 
 :root {
-    --primary : #8FDB01;
-    --primary-muted : #F4FCE6;
+    /* Colors */
+    --primary: #8FDB01;
+    --primary-muted: #F4FCE6;
+    --primary-hover: #7fc500;
 
-    --background-main : #F8F9FA;
-    --background-secondary : #FFFFFF;
+    --background-main: #F8F9FA;
+    --background-secondary: #FFFFFF;
+    --background-dark: #111111;
 
+    --text: #000000;
+    --text-muted: #A4A4A7;
+    --text-light: #ffffff;
+
+    /* Borders & Shadows */
+    --border-color: #E5E5E5;
+    --border-radius-sm: 6px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 16px;
     
-    --text-muted : #A4A4A7;
-    --text : #000000;
+    --box-shadow-card: 0 10px 30px rgba(0, 0, 0, 0.1);
 
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
 }
 
+/* Common Classes */
+.btn-global-primary {
+    background-color: var(--primary);
+    color: #111;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-global-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.card-global {
+    background-color: var(--background-secondary);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-card);
+    overflow: hidden;
+}
+
+.input-global {
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    font-size: 0.95rem;
+    background-color: #FAFAFA;
+    transition: border var(--transition-fast);
+}
+
+.input-global:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: var(--background-secondary);
+}
