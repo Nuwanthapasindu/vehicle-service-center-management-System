@@ -3,8 +3,6 @@ import { Slot, useRouter } from "expo-router";
 import useAsyncStorage from "../hooks/useAsyncStorage";
 import storageKeys from "../constants/storageKeys";
 
-import { Provider } from "react-redux";
-import { store } from "../store/store";
 import Toast from "react-native-toast-message";
 
 export default function RootLayout() {
@@ -21,10 +19,5 @@ export default function RootLayout() {
     checkOnboardingStatus();
   }, [router]);
 
-  return (
-    <Provider store={store}>
-      <Slot />
-      <Toast />
-    </Provider>
-  );
+  return <Slot />;
 }
