@@ -1,39 +1,24 @@
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
+import store from "../store";
+import { fetchUser } from "../store/slices/authSlice";
 import storageKeys from "../constants/storageKeys";
+import useSecureStorage from "../hooks/useSecureStorage";
 
-export const refreshAccessToken = async () => {
-  try {
-    const currentRefreshToken = await SecureStore.getItemAsync(
-      storageKeys.REFRESH_TOKEN,
-    );
-    // Call the token refresh endpoint natively using standard axios to avoid cyclic interceptors
-    const response = await axios.post(`/auth/token-refresh`, {
-      refreshToken: currentRefreshToken,
-    });
+async function tokenRefresh() {
+  const {getItem,deleteItem} = useSecureStorage();
+  const refreshToken = await  getItem(storageKeys.REFRESH_TOKEN);
+  if (refreshToken) {
+    try {
+      const response = await axios.post("/auth/token-refresh", {
+        refreshToken,
+      });
 
-    const { payload } = response.data;
-
-    if (payload?.accessToken) {
-      // Safely persist the new tokens to Secure Store
-      await SecureStore.setItemAsync(
-        storageKeys.PERSONAL_ACCESS_TOKEN,
-        payload.accessToken,
-      );
-      return payload.accessToken;
+      store.dispatch(fetchUser(response.data.payload.accessToken));
+    } catch (error) {
+      await deleteItem(storageKeys.REFRESH_TOKEN);
+      await deleteItem(storageKeys.PERSONAL_ACCESS_TOKEN);
+      store.dispatch(fetchUser(null));
     }
-  } catch (error) {
-
-    // Failed token refresh implies current session is entirely revoked or expired. Clear secured items.
-    await SecureStore.deleteItemAsync(storageKeys.PERSONAL_ACCESS_TOKEN);
-    await SecureStore.deleteItemAsync(storageKeys.REFRESH_TOKEN);
-
-    // Clear React app Redux state globally to immediately drop rendering user views
-    // Lazy require to avoid importing 'store' globally which throws circular dependency loops
-    const { store } = require("../store");
-    const { logout } = require("../store/slice/authSlice");
-    store.dispatch(logout());
-
-    throw error;
   }
-};
+}
+export default tokenRefresh;
