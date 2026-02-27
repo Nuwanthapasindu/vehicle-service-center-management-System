@@ -10,10 +10,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import colors from "../../constants/colors";
+import useAsyncStorage from "../../hooks/useAsyncStorage";
+import storageKeys from "../../constants/storageKeys";
 import logo from "../../assets/logo.png";
 import slider1 from "../../assets/slider1.jpg";
-import slider2 from "../../assets/slider2.png";
+import slider2 from "../../assets/slider2.jpg";
 
 const { width } = Dimensions.get("window");
 
@@ -37,6 +40,16 @@ const slides = [
 export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const slidesRef = useRef(null);
+  const router = useRouter();
+  const { writeToStorage } = useAsyncStorage();
+  const handleComplete = async () => {
+    try {
+      await writeToStorage(storageKeys.HAS_VIEWED_ONBOARDING, "true");
+      router.replace("/(auth)/Login");
+    } catch (error) {
+      console.error("Error setting onboarding status", error);
+    }
+  };
 
   const viewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems && viewableItems.length > 0) {
@@ -81,7 +94,7 @@ export default function Page() {
           </View>
           <Text style={styles.logoText}>AutoMate</Text>
         </View>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleComplete}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>
@@ -113,7 +126,11 @@ export default function Page() {
         </View>
 
         {/* CTA Button */}
-        <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.primaryButton}
+          activeOpacity={0.8}
+          onPress={handleComplete}
+        >
           <Text style={styles.buttonText}>Get Started</Text>
           <Ionicons name="arrow-forward" size={24} color={colors.DARK} />
         </TouchableOpacity>

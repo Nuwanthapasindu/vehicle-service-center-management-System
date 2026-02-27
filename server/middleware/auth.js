@@ -19,7 +19,7 @@ const authTokenMiddleware = async (request, response, next) => {
     const decodedToken = jwt.verify(jwtToken, process.env.JWT_SECRET);
     if (!decodedToken) throw new AppError("unauthorized", 401);
     const authUser = await User.findById(decodedToken.id)
-      .select(["-__v","-isActive","-isDeleted"])
+      .select(["-__v"])
       .lean();
     if (!authUser || !authUser.isActive || authUser.isDeleted) throw new AppError("unauthorized", 401);
     const { _id, ...restUser } = authUser;

@@ -163,11 +163,11 @@ module.exports.resendAccountVerification = async (payload) => {
 
     // FIND USER BY MOBILE
     const user = await User.findOne({ mobile: payload.mobile });
-    if (!user) throw new AppError("User not found", 400);
+    if (!user) throw new AppError("No registered user found with this mobile", 400);
 
     // FIND AUTH FOR THIS USER
     const auth = await Auth.findOne({ user: user._id });
-    if (!auth) throw new AppError("User not found", 400);
+    if (!auth) throw new AppError("No registered user found with this mobile", 400);
 
     // CHECK IF ALREADY VERIFIED
     if (!auth.verificationOtp && user.isActive) {
@@ -207,11 +207,11 @@ module.exports.forgotPassword = async (payload) => {
 
     // FIND USER BY MOBILE
     const user = await User.findOne({ mobile: payload.mobile });
-    if (!user) throw new AppError("User not found", 400);
+    if (!user) throw new AppError("No registered user found with this mobile", 400);
 
     // FIND AUTH FOR THIS USER
     const auth = await Auth.findOne({ user: user._id });
-    if (!auth) throw new AppError("User not found", 400);
+    if (!auth) throw new AppError("No registered user found with this mobile", 400);
 
     // UPDATE OTP IN AUTH (Reusing verificationOtp for password reset verification)
     auth.verificationOtp = otp;

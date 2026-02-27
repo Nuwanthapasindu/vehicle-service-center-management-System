@@ -91,7 +91,7 @@ const resetPasswordValidationSchema = joi.object({
     .min(8)
     .max(30)
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/
     )
     .trim()
     .required()
