@@ -17,11 +17,6 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { useRouter } from "expo-router";
 
-import { useDispatch } from "react-redux";
-import * as SecureStore from "expo-secure-store";
-import { setCredentials } from "../../store/authSlice";
-import axiosClient from "../../utils/axiosClient";
-
 import colors from "../../constants/colors";
 import logo from "../../assets/logo.png";
 import CustomInput from "../../components/CustomInput";
@@ -40,41 +35,9 @@ const validationSchema = Yup.object().shape({
 
 export default function Login() {
   const router = useRouter();
-  const dispatch = useDispatch();
 
-  const handleLogin = async (values, { setSubmitting, setStatus }) => {
-    try {
-      // Send login request to the auth controller
-      const response = await axiosClient.post("/auth/login", {
-        username: values.username,
-        password: values.password,
-      });
+  const handleLogin = async () => {
 
-      const { accessToken, refreshToken, user } = response.data;
-
-      // Persist the tokens securely
-      if (accessToken) {
-        await SecureStore.setItemAsync("accessToken", accessToken);
-      }
-      if (refreshToken) {
-        await SecureStore.setItemAsync("refreshToken", refreshToken);
-      }
-
-      // Store current user session centrally in Redux
-      dispatch(setCredentials({ user }));
-
-      // Send the authenticated user to the main/home screen
-      // router.replace("/(home)/");
-      alert("Success! Logged in and tokens securely saved.");
-    } catch (error) {
-      console.error("Login Error:", error.response?.data || error.message);
-      setStatus(
-        error.response?.data?.message ||
-          "Invalid credentials! Please try again.",
-      );
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   return (

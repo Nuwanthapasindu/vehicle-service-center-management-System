@@ -74,11 +74,13 @@ export default function OtpVerification() {
                 </Text>
               </Text>
             </View>
-            <TouchableOpacity disabled={timer > 0} style={styles.resendButton}>
+            <TouchableOpacity 
+            // disabled={timer > 0} 
+            style={styles.resendButton}>
               <Text
                 style={[
                   styles.resendButtonText,
-                  timer > 0 && styles.resendTextDisabled,
+                  // timer > 0 && styles.resendTextDisabled,
                 ]}
               >
                 RESEND OTP
@@ -89,7 +91,7 @@ export default function OtpVerification() {
           <View style={styles.spacer} />
 
           {/* Bottom Verify Button */}
-          <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.submitButton} activeOpacity={0.8} onPress={() => router.replace("/(auth)/PasswordReset")}>
             <Text style={styles.submitButtonText}>VERIFY & CONTINUE</Text>
             <Ionicons name="chevron-forward" size={24} color={colors.DARK} />
           </TouchableOpacity>

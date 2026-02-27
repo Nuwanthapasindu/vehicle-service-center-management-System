@@ -88,7 +88,7 @@ export default function ForgotPassword() {
                       />
                     }
                     placeholder="e.g., +1 234 567 890"
-                    keyboardType="num-pad"
+                    keyboardType="number-pad"
                     autoCapitalize="none"
                     value={values.mobileNumber}
                     onChangeText={handleChange("mobileNumber")}
