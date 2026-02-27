@@ -1,10 +1,29 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
 
-createRoot(document.getElementById('root')).render(
+import store, { storeSubscribe } from "./store";
+import tokenRefresh from "./services/tokenRefresh";
+
+import AuthProvider from "./context/auth/AuthProvider";
+import Router from "./Router.jsx";
+
+import "./assets/css/main.css";
+import "./assets/css/variable.css";
+
+import "./services/axios.defaults.js";
+
+storeSubscribe();
+tokenRefresh();
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <Provider store={store}>
+      <BrowserRouter>
+      <AuthProvider>
+        <Router />
+        </AuthProvider>
+      </BrowserRouter>
+    </Provider>
   </StrictMode>,
-)
+);
