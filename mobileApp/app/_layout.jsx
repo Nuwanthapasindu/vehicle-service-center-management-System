@@ -4,12 +4,12 @@ import { Slot, useRouter } from "expo-router";
 import { Provider } from "react-redux";
 import Toast from "react-native-toast-message";
 
-import  store, { storeSubscribe }  from "../store";
+import store, { storeSubscribe } from "../store";
 import tokenRefresh from "../services/tokenRefresh";
 import storageKeys from "../constants/storageKeys";
 import useAsyncStorage from "../hooks/useAsyncStorage";
 import AuthProvider from "../context/AuthContext";
-
+import "../services/axios.defaults";
 
 storeSubscribe();
 tokenRefresh();
@@ -30,7 +30,7 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <AuthProvider>
-        <Slot />
+      <Slot />
       </AuthProvider>
       <Toast />
     </Provider>

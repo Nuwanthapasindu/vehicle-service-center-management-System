@@ -22,29 +22,34 @@ import CustomInput from "../../components/CustomInput";
 import { loginValidationSchema } from "../../schema/authSchemas";
 import axios from "axios";
 import Toast from "react-native-toast-message";
-import * as SecureStore from "expo-secure-store";
 import storageKeys from "../../constants/storageKeys";
+import useSecureStorage from "../../hooks/useSecureStorage";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "../../store/slices/authSlice";
 const { width } = Dimensions.get("window");
 const initialValues = {
   userName: "",
   password: "",
 };
 export default function Login() {
+  const dispatch = useDispatch();
   const router = useRouter();
+  const { saveItem } = useSecureStorage();
 
   const handleLogin = async (values) => {
     try {
-      // 1. Authenticate with backend
+      
       const response = await axios.post("/auth/login", values);
       const { payload } = response.data;
+      await saveItem(storageKeys.PERSONAL_ACCESS_TOKEN, payload.accessToken);
+      await saveItem(storageKeys.REFRESH_TOKEN, payload.refreshToken);
+      dispatch(fetchUser(payload.accessToken));
     } catch (error) {
+      console.log(error);
       Toast.show({
         type: "error",
         text1: "Login failed",
-        text2:
-          error.response?.data?.payload?.message ||
-          error.message ||
-          "An error occurred during login.",
+        text2: error.response?.data?.payload?.message,
       });
     }
   };

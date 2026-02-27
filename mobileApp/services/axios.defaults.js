@@ -1,13 +1,14 @@
 import axios from "axios";
 import tokenRefresh from "./tokenRefresh";
 import storageKeys from "../constants/storageKeys";
+import useSecureStorage from "../hooks/useSecureStorage";
 
-
+const {getItem} = useSecureStorage();
 axios.defaults.baseURL = process.env.EXPO_PUBLIC_API_URL;
 axios.defaults.timeout = 10000;
-axios.interceptors.request.use((config) => {
+axios.interceptors.request.use(async (config) => {
   // GET PERSONAL ACCESS TOKEN
-  const personalAccessToken = sessionStorage.getItem(storageKeys.PERSONAL_ACCESS_TOKEN);
+  const personalAccessToken = await getItem(storageKeys.PERSONAL_ACCESS_TOKEN);
   config.headers.Authorization = `Bearer ${personalAccessToken}`;
   return config;
 });
