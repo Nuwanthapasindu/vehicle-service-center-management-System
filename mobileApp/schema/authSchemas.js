@@ -1,7 +1,7 @@
 import * as Yup from "yup";
 
 export const loginValidationSchema = Yup.object().shape({
-  username: Yup.string().required("Required"),
+  userName: Yup.string().required("User name is required"),
   password: Yup.string()
     .strict(true)
     .trim("Password must not contain leading or trailing spaces")

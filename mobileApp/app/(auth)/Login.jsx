@@ -20,13 +20,53 @@ import colors from "../../constants/colors";
 import logo from "../../assets/logo.png";
 import CustomInput from "../../components/CustomInput";
 import { loginValidationSchema } from "../../schema/authSchemas";
-
+import axios from "axios";
+import Toast from "react-native-toast-message";
+import { useDispatch } from "react-redux";
+import * as SecureStore from "expo-secure-store";
+import storageKeys from "../../constants/storageKeys";
+import { fetchAuthenticatedUser } from "../../store/slice/authSlice";
 const { width } = Dimensions.get("window");
-
+const initialValues = {
+  userName: "",
+  password: "",
+};
 export default function Login() {
   const router = useRouter();
+  const dispatch = useDispatch();
 
-  const handleLogin = async () => {};
+  const handleLogin = async (values) => {
+    try {
+      // 1. Authenticate with backend
+      const response = await axios.post("/auth/login", values);
+      const { payload } = response.data;
+
+      // 2. Persist tokens securely
+      await SecureStore.setItemAsync(
+        storageKeys.PERSONAL_ACCESS_TOKEN,
+        payload.accessToken,
+      );
+      await SecureStore.setItemAsync(
+        storageKeys.REFRESH_TOKEN,
+        payload.refreshToken,
+      );
+
+      // 3. Trigger Redux Thunk to fetch fully authenticated user profile (uses our axios interceptor natively)
+      await dispatch(fetchAuthenticatedUser()).unwrap();
+
+      // 4. Redirect into secured dashboard!
+      router.replace("/(tabs)/Home");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Login failed",
+        text2:
+          error.response?.data?.payload?.message ||
+          error.message ||
+          "An error occurred during login.",
+      });
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -54,7 +94,7 @@ export default function Login() {
 
           {/* Form */}
           <Formik
-            initialValues={{ username: "", password: "" }}
+            initialValues={initialValues}
             validationSchema={loginValidationSchema}
             onSubmit={handleLogin}
           >
@@ -90,11 +130,11 @@ export default function Login() {
                     />
                   }
                   placeholder="Enter your username"
-                  value={values.username}
-                  onChangeText={handleChange("username")}
-                  onBlur={handleBlur("username")}
-                  error={errors.username}
-                  touched={touched.username}
+                  value={values.userName}
+                  onChangeText={handleChange("userName")}
+                  onBlur={handleBlur("userName")}
+                  error={errors.userName}
+                  touched={touched.userName}
                   autoCapitalize="none"
                   autoFocus={true}
                 />
