@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import storageKeys from "../../constants/storageKeys";
 import useSecureStorage from "../../hooks/useSecureStorage";
+import enums from "../../constants/enums";
+import Toast from "react-native-toast-message";
 // INITIAL STATE
 const initialState = {
   user: null,
@@ -35,7 +37,17 @@ export const fetchUser = (personalAccessToken) => async (dispatch) => {
       dispatch(setToken(personalAccessToken));
       await saveItem(storageKeys.PERSONAL_ACCESS_TOKEN, personalAccessToken);
       const response = await axios.get("/auth/me");
-      dispatch(setUser(response.data.payload?.authenticatedUser));
+      if(response.data.payload?.authenticatedUser?.role !== enums.USER_ROLES.CUSTOMER){
+        dispatch(setUser(response.data.payload?.authenticatedUser));
+      }else{
+        Toast.show({
+          type: "error",
+          text1: "You are not authorized to access this application",
+        });
+        await deleteItem(storageKeys.REFRESH_TOKEN);
+        dispatch(setToken(null));
+        dispatch(setUser(null));
+      }
     } else {
       await deleteItem(storageKeys.REFRESH_TOKEN);
       dispatch(setToken(null));
