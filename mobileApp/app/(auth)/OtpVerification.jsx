@@ -57,16 +57,8 @@ export default function OtpVerification() {
 
   const handleResend = async () => {
     try {
-      const endpoint =
-        isPasswordReset === "true"
-          ? "/auth/forgotPassword"
-          : "/auth/verification/resend";
-
-      const payload =
-        isPasswordReset === "true"
-          ? { mobile: mobileNumber }
-          : { mobile: mobileNumber };
-
+      const endpoint = "/auth/verification/resend";
+      const payload = { mobile: mobileNumber };
       const response = await axios.post(endpoint, payload);
 
       Toast.show({
@@ -115,7 +107,7 @@ export default function OtpVerification() {
               numberOfDigits={6}
               focusColor={colors.PRIMARY}
               onTextChange={(text) => setOtp(text)}
-              onFilled={(text) => handleVerify()}
+              onFilled={(text) => setOtp(text)}
               theme={{
                 containerStyle: styles.otpContainer,
                 pinCodeContainerStyle: styles.pinCodeContainer,

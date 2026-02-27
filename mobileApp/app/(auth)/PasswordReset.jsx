@@ -12,14 +12,46 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 import colors from "../../constants/colors";
 import CustomInput from "../../components/CustomInput";
 import { passwordResetValidationSchema } from "../../schema/authSchemas";
+import axios from "axios";
+import Toast from "react-native-toast-message";
 
 export default function PasswordReset() {
   const router = useRouter();
+  const { otp } = useLocalSearchParams();
+
+  const handleResetPassword = async (values, { setSubmitting }) => {
+    try {
+      const response = await axios.put("/auth/reset-password", {
+        otp,
+        password: values.newPassword,
+      });
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2:
+          response?.data?.payload?.message || "Password reset successfully",
+      });
+      router.replace("/(auth)/Login");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: error.response?.data?.payload?.message,
+        text2:  "Password reset failed",
+        
+      });
+      if (error.response?.data?.payload?.message === "Invalid OTP") {
+        router.back();
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -41,7 +73,7 @@ export default function PasswordReset() {
             <Formik
               initialValues={{ newPassword: "", confirmPassword: "" }}
               validationSchema={passwordResetValidationSchema}
-              onSubmit={(values) => console.log(values)}
+              onSubmit={handleResetPassword}
             >
               {({
                 handleChange,
@@ -50,6 +82,7 @@ export default function PasswordReset() {
                 values,
                 errors,
                 touched,
+                isSubmitting,
               }) => (
                 <View style={styles.inputsSection}>
                   {/* Password Input */}
@@ -91,11 +124,17 @@ export default function PasswordReset() {
 
                   {/* Send OTP Button */}
                   <TouchableOpacity
-                    style={styles.submitButton}
+                    style={[
+                      styles.submitButton,
+                      isSubmitting && { opacity: 0.7 },
+                    ]}
                     activeOpacity={0.8}
                     onPress={handleSubmit}
+                    disabled={isSubmitting}
                   >
-                    <Text style={styles.submitButtonText}>RESET PASSWORD</Text>
+                    <Text style={styles.submitButtonText}>
+                      {isSubmitting ? "UPDATING..." : "RESET PASSWORD"}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}

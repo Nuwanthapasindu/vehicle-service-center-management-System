@@ -29,9 +29,6 @@ export const passwordResetValidationSchema = Yup.object().shape({
     .max(30, "Password must be at most 30 characters")
     .required("Password is required"),
   confirmPassword: Yup.string()
-    .strict(true)
-    .trim("Password must not contain leading or trailing spaces")
-    .min(8, "Password must be at least 8 characters")
-    .max(30, "Password must be at most 30 characters")
-    .required("Password is required"),
+    .oneOf([Yup.ref("newPassword")], "Passwords must match")
+    .required("Confirm password is required"),
 });
