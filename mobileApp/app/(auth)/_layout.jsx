@@ -3,7 +3,7 @@ import useAuthentication from "../../hooks/useAuth";
 export default function AuthLayout() {
   const { isAuthenticated } = useAuthentication();
   if (isAuthenticated) {
-    return <Redirect href="/(protected)/Home" />;
+    return <Redirect href="/(protected)/(admin)/Dashboard" />;
   }
 
   return (
