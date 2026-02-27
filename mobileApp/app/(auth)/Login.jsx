@@ -45,7 +45,6 @@ export default function Login() {
       await saveItem(storageKeys.REFRESH_TOKEN, payload.refreshToken);
       dispatch(fetchUser(payload.accessToken));
     } catch (error) {
-      console.log(error);
       Toast.show({
         type: "error",
         text1: "Login failed",

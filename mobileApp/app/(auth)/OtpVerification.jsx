@@ -69,7 +69,6 @@ export default function OtpVerification() {
       setTimer(60);
       setIsResendDisabled(true);
     } catch (error) {
-      console.log(error);
       Toast.show({
         type: "error",
         text1: "Failed",
