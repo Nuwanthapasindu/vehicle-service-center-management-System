@@ -12,22 +12,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
-import * as Yup from "yup";
 import { useRouter } from "expo-router";
 
 import colors from "../../constants/colors";
 import CustomInput from "../../components/CustomInput";
-
-const validationSchema = Yup.object().shape({
-  mobileNumber: Yup.string()
-    .strict(true)
-    .trim("Mobile number cannot contain leading or trailing spaces")
-    .matches(
-      /^(?:\+94|94|0)?7[0-8]\d{7}$/,
-      "Please provide a valid mobile number",
-    )
-    .required("Mobile number is required"),
-});
+import { forgotPasswordValidationSchema } from "../../schema/authSchemas";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -65,7 +54,7 @@ export default function ForgotPassword() {
 
             <Formik
               initialValues={{ mobileNumber: "" }}
-              validationSchema={validationSchema}
+              validationSchema={forgotPasswordValidationSchema}
               onSubmit={(values) => router.replace("/OtpVerification")}
             >
               {({

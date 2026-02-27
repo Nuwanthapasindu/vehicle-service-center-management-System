@@ -14,31 +14,19 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
-import * as Yup from "yup";
 import { useRouter } from "expo-router";
 
 import colors from "../../constants/colors";
 import logo from "../../assets/logo.png";
 import CustomInput from "../../components/CustomInput";
+import { loginValidationSchema } from "../../schema/authSchemas";
 
 const { width } = Dimensions.get("window");
-
-const validationSchema = Yup.object().shape({
-  username: Yup.string().required("Required"),
-  password: Yup.string()
-    .strict(true)
-    .trim("Password must not contain leading or trailing spaces")
-    .min(8, "Password must be at least 8 characters")
-    .max(30, "Password must be at most 30 characters")
-    .required("Password is required"),
-});
 
 export default function Login() {
   const router = useRouter();
 
-  const handleLogin = async () => {
-
-  };
+  const handleLogin = async () => {};
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -67,7 +55,7 @@ export default function Login() {
           {/* Form */}
           <Formik
             initialValues={{ username: "", password: "" }}
-            validationSchema={validationSchema}
+            validationSchema={loginValidationSchema}
             onSubmit={handleLogin}
           >
             {({

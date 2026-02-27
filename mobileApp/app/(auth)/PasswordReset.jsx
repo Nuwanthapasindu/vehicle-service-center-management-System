@@ -12,27 +12,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
-import * as Yup from "yup";
 import { useRouter } from "expo-router";
 
 import colors from "../../constants/colors";
 import CustomInput from "../../components/CustomInput";
-
-
-const validationSchema = Yup.object().shape({
-  newPassword: Yup.string()
-    .strict(true)
-    .trim("Password must not contain leading or trailing spaces")
-    .min(8, "Password must be at least 8 characters")
-    .max(30, "Password must be at most 30 characters")
-    .required("Password is required"),
-  confirmPassword: Yup.string()
-    .strict(true)
-    .trim("Password must not contain leading or trailing spaces")
-    .min(8, "Password must be at least 8 characters")
-    .max(30, "Password must be at most 30 characters")
-    .required("Password is required"),
-});
+import { passwordResetValidationSchema } from "../../schema/authSchemas";
 
 export default function PasswordReset() {
   const router = useRouter();
@@ -56,7 +40,7 @@ export default function PasswordReset() {
           <View style={styles.formContainer}>
             <Formik
               initialValues={{ newPassword: "", confirmPassword: "" }}
-              validationSchema={validationSchema}
+              validationSchema={passwordResetValidationSchema}
               onSubmit={(values) => console.log(values)}
             >
               {({
