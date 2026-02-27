@@ -17,9 +17,36 @@ import { useRouter } from "expo-router";
 import colors from "../../constants/colors";
 import CustomInput from "../../components/CustomInput";
 import { forgotPasswordValidationSchema } from "../../schema/authSchemas";
+import axios from "axios";
+import Toast from "react-native-toast-message";
 
 export default function ForgotPassword() {
   const router = useRouter();
+
+  const handleSendOTP = async (values, { setSubmitting }) => {
+    try {
+      const response = await axios.post("/auth/forgotPassword", {
+        mobile: values.mobileNumber,
+      });
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: response?.data?.payload?.message || "OTP sent successfully",
+      });
+      router.push({
+        pathname: "/(auth)/OtpVerification",
+        params: { mobileNumber: values.mobileNumber, isPasswordReset: "true" },
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Failed",
+        text2: error.response?.data?.payload?.message || "Failed to send OTP",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -55,7 +82,7 @@ export default function ForgotPassword() {
             <Formik
               initialValues={{ mobileNumber: "" }}
               validationSchema={forgotPasswordValidationSchema}
-              onSubmit={(values) => router.replace("/OtpVerification")}
+              onSubmit={handleSendOTP}
             >
               {({
                 handleChange,
@@ -64,6 +91,7 @@ export default function ForgotPassword() {
                 values,
                 errors,
                 touched,
+                isSubmitting,
               }) => (
                 <View style={styles.inputsSection}>
                   {/* Mobile Input */}
@@ -76,7 +104,7 @@ export default function ForgotPassword() {
                         color={colors.SECONDARY}
                       />
                     }
-                    placeholder="e.g., +1 234 567 890"
+                    placeholder="e.g., +94 71 234 5678"
                     keyboardType="number-pad"
                     autoCapitalize="none"
                     value={values.mobileNumber}
@@ -88,16 +116,24 @@ export default function ForgotPassword() {
 
                   {/* Send OTP Button */}
                   <TouchableOpacity
-                    style={styles.submitButton}
+                    style={[
+                      styles.submitButton,
+                      isSubmitting && { opacity: 0.7 },
+                    ]}
                     activeOpacity={0.8}
                     onPress={handleSubmit}
+                    disabled={isSubmitting}
                   >
-                    <Text style={styles.submitButtonText}>SEND OTP</Text>
-                    <Ionicons
-                      name="arrow-forward"
-                      size={20}
-                      color={colors.LIGHT}
-                    />
+                    <Text style={styles.submitButtonText}>
+                      {isSubmitting ? "SENDING..." : "SEND OTP"}
+                    </Text>
+                    {!isSubmitting && (
+                      <Ionicons
+                        name="arrow-forward"
+                        size={20}
+                        color={colors.LIGHT}
+                      />
+                    )}
                   </TouchableOpacity>
                 </View>
               )}
