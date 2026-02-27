@@ -35,7 +35,7 @@ export default function ForgotPassword() {
       });
       router.push({
         pathname: "/(auth)/OtpVerification",
-        params: { mobileNumber: values.mobileNumber, isPasswordReset: "true" },
+        params: { mobileNumber: values.mobileNumber},
       });
     } catch (error) {
       Toast.show({

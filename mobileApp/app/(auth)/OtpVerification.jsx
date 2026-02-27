@@ -12,12 +12,79 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { OtpInput } from "react-native-otp-entry";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 import colors from "../../constants/colors";
+import axios from "axios";
+import Toast from "react-native-toast-message";
 
 export default function OtpVerification() {
   const router = useRouter();
+  const { mobileNumber } = useLocalSearchParams();
+  const [otp, setOtp] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timer, setTimer] = useState(60);
+  const [isResendDisabled, setIsResendDisabled] = useState(true);
+
+  // Timer logic for resend OTP
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setIsResendDisabled(false);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleVerify = async () => {
+    if (otp.length !== 6) {
+      Toast.show({
+        type: "error",
+        text1: "Invalid OTP",
+        text2: "Please enter a valid 6-digit OTP",
+      });
+      return;
+    }
+
+    router.push({
+      pathname: "/(auth)/PasswordReset",
+      params: { otp },
+    });
+  };
+
+  const handleResend = async () => {
+    try {
+      const endpoint =
+        isPasswordReset === "true"
+          ? "/auth/forgotPassword"
+          : "/auth/verification/resend";
+
+      const payload =
+        isPasswordReset === "true"
+          ? { mobile: mobileNumber }
+          : { mobile: mobileNumber };
+
+      const response = await axios.post(endpoint, payload);
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: response?.data?.payload?.message || "OTP resent successfully",
+      });
+      setTimer(60);
+      setIsResendDisabled(true);
+    } catch (error) {
+      console.log(error);
+      Toast.show({
+        type: "error",
+        text1: "Failed",
+        text2: error.response?.data?.payload?.message || "Failed to resend OTP",
+      });
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -39,7 +106,7 @@ export default function OtpVerification() {
             <Text style={styles.subtitle}>
               Enter the 6-digit code sent to your{"\n"}
               mobile number{" "}
-              <Text style={styles.subtitleBold}>+1 (555) 012-3456</Text>
+              <Text style={styles.subtitleBold}>{mobileNumber}</Text>
             </Text>
           </View>
 
@@ -47,8 +114,8 @@ export default function OtpVerification() {
             <OtpInput
               numberOfDigits={6}
               focusColor={colors.PRIMARY}
-              onTextChange={(text) => console.log(text)}
-              onFilled={(text) => console.log(`OTP is ${text}`)}
+              onTextChange={(text) => setOtp(text)}
+              onFilled={(text) => handleVerify()}
               theme={{
                 containerStyle: styles.otpContainer,
                 pinCodeContainerStyle: styles.pinCodeContainer,
@@ -70,17 +137,19 @@ export default function OtpVerification() {
               <Text style={styles.timerText}>
                 Resend code in{" "}
                 <Text style={styles.timerBold}>
-                  0:59
+                  0:{timer < 10 ? `0${timer}` : timer}
                 </Text>
               </Text>
             </View>
-            <TouchableOpacity 
-            // disabled={timer > 0} 
-            style={styles.resendButton}>
+            <TouchableOpacity
+              disabled={isResendDisabled}
+              onPress={handleResend}
+              style={styles.resendButton}
+            >
               <Text
                 style={[
                   styles.resendButtonText,
-                  // timer > 0 && styles.resendTextDisabled,
+                  isResendDisabled && styles.resendTextDisabled,
                 ]}
               >
                 RESEND OTP
@@ -91,9 +160,18 @@ export default function OtpVerification() {
           <View style={styles.spacer} />
 
           {/* Bottom Verify Button */}
-          <TouchableOpacity style={styles.submitButton} activeOpacity={0.8} onPress={() => router.replace("/(auth)/PasswordReset")}>
-            <Text style={styles.submitButtonText}>VERIFY & CONTINUE</Text>
-            <Ionicons name="chevron-forward" size={24} color={colors.DARK} />
+          <TouchableOpacity
+            style={[styles.submitButton, isSubmitting && { opacity: 0.7 }]}
+            activeOpacity={0.8}
+            onPress={handleVerify}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.submitButtonText}>
+              {isSubmitting ? "VERIFYING..." : "VERIFY & CONTINUE"}
+            </Text>
+            {!isSubmitting && (
+              <Ionicons name="chevron-forward" size={24} color={colors.DARK} />
+            )}
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </SafeAreaView>
