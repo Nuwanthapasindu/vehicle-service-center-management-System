@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
-import useAuthentication from '../../hooks/useAuth'
+import useAuthentication from '../../../hooks/useAuth'
 
 export default function Home() {
   const {logout, profile} = useAuthentication()
