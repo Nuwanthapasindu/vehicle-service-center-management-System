@@ -11,7 +11,7 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@reduxjs/toolkit": "^2.11.2",
-    "axios": "^1.13.5",
+    "axios": "^1.7.9",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
     "expo-linking": "~8.0.11",
@@ -19,14 +19,18 @@
     "expo-secure-store": "^15.0.8",
     "expo-status-bar": "~3.0.9",
     "formik": "^2.4.9",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
+    "react": "18.3.1",
+    "react-native": "0.76.5",
     "react-native-otp-entry": "^1.8.5",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-toast-message": "^2.3.3",
     "react-redux": "^9.2.0",
     "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.3.18"
   },
   "private": true
 }
