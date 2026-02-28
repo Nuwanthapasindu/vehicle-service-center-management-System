@@ -51,7 +51,7 @@ function LoginPage() {
                             </div>
 
                             <div className="forgot-password">
-                                <Link to="#">Forgotten Password ?</Link>
+                                <Link to="/forgot-password">Forgotten Password ?</Link>
                             </div>
 
                             <button type="submit" className="login-submit-btn">

@@ -6,7 +6,6 @@ import OTPVerificationPage from "./pages/OTPVerificationPage/OTPVerificationPage
 import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
 
-
 function Router() {
     return (
         <Routes>
@@ -16,6 +15,7 @@ function Router() {
             <Route path="/verify-otp" element={<OTPVerificationPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+
             {/* TODO: ADD OTHER ROUTES */}
             {/* DEFAULT ROUTE 404 ROUTE */}
             <Route path="*" element={<h1>404</h1>} />
