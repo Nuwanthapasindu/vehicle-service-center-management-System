@@ -24,6 +24,10 @@ const serviceSchema = new Schema(
         },
       },
     ],
+    image: {
+      type: Schema.Types.ObjectId,
+      ref: "File",
+    },
   },
   {
     timestamps: true,
