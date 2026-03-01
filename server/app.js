@@ -11,6 +11,7 @@ require("dotenv").config();
 // ROUTERS IMPORT
 const authRouter = require("./routes/auth.route");
 const log = require("./middleware/log");
+const fileRouter = require("./routes/file.route");
 
 // CONFIGURE EXPRESS APP
 const app = express();
@@ -37,6 +38,7 @@ app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec,{
 }
 // ROUTES
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/file", fileRouter);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {
