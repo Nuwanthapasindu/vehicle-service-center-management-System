@@ -44,3 +44,101 @@ module.exports.createService = async (payload) => {
     throw new AppError(error.message, error.statusCode || 500);
   }
 };
+
+/**
+ * Get services with pagination and filtering
+ * @param {Object} queryPayload - Query parameters
+ * @returns {Promise<Object>} - Paginated services
+ */
+module.exports.getServices = async (queryPayload) => {
+  const { error } = validatedQueryServices(queryPayload);
+  if (error) throw new AppError(error.details[0].message, 400);
+
+  try {
+    const {
+      name,
+      model,
+      minPrice,
+      maxPrice,
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = queryPayload;
+
+    const query = { isDeleted: false };
+
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+
+    if (model) {
+      query["prices.model"] = model;
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      // Filtering out documents where at least one price falls in the range
+      // Because prices is an array of objects
+      query.prices = {
+        $elemMatch: {},
+      };
+      if (minPrice !== undefined)
+        query.prices.$elemMatch.price = {
+          ...query.prices.$elemMatch.price,
+          $gte: minPrice,
+        };
+      if (maxPrice !== undefined)
+        query.prices.$elemMatch.price = {
+          ...query.prices.$elemMatch.price,
+          $lte: maxPrice,
+        };
+    }
+
+    const sortOption = { [sortBy]: sortOrder === "asc" ? 1 : -1 };
+    const skip = (page - 1) * limit;
+
+    const services = await Service.find(query)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "image",
+        select: ["-_id","filePath","fileType"],
+      });
+
+    const total = await Service.countDocuments(query);
+
+    return {
+      services,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    };
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
+/**
+ * Get service by ID
+ * @param {string} id - Service ID
+ * @returns {Promise<Object>} - Service
+ */
+module.exports.getServiceById = async (id) => {
+  if (!id) throw new AppError("Service id is required", 400);
+
+  try {
+    const service = await Service.findById(id).populate({
+        path: "image",
+        select: ["-_id","filePath","fileType"],
+    }).select(["-isDeleted","-deletedAt","-__v"]);
+    
+    if (!service || service.isDeleted) {
+      throw new AppError("Service not found", 404);
+    }
+    return service;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+

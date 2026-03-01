@@ -109,3 +109,129 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
     })
     .catch((error) => next(error));
 });
+/**
+ * @swagger
+ * /api/v1/service:
+ *   get:
+ *     summary: Get all services with pagination and filtering
+ *     tags: [Service]
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Search by service name
+ *       - in: query
+ *         name: model
+ *         schema:
+ *           type: string
+ *           enum: [CAR, VAN, SUV, JEEP]
+ *         description: Filter services by vehicle model availability
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Filter by minimum price
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Filter by maximum price
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: createdAt
+ *           enum: [name, createdAt, updatedAt]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           default: desc
+ *           enum: [asc, desc]
+ *     responses:
+ *       200:
+ *         description: Successful query
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 services:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Service'
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 pages:
+ *                   type: integer
+ */
+router.get("/", (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const query = req.query;
+
+  getServices(query)
+    .then((services) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ services });
+    })
+    .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/service/bulk-update-price:
+ *   patch:
+ *     summary: Bulk update prices for multiple services
+ *     tags: [Service]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - serviceIds
+ *               - priceUpdates
+ *             properties:
+ *               serviceIds:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   type: string
+ *               priceUpdates:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - model
+ *                     - newPrice
+ *                   properties:
+ *                     model:
+ *                       type: string
+ *                       enum: [CAR, VAN, SUV, JEEP]
+ *                     newPrice:
+ *                       type: number
+ *     responses:
+ *       200:
+ *         description: Prices updated successfully
+ *       400:
+ *         description: Bad request / validation error
+ *       401:
+ *         description: Unauthorized
+ */
