@@ -5,7 +5,6 @@ const {
   validatedCreateService,
   validatedUpdateService,
   validatedQueryServices,
-  validatedBulkPriceUpdate,
 } = require("../validation/service.validation");
 const { deleteFileById } = require("./file.controller");
 
@@ -19,24 +18,27 @@ module.exports.createService = async (payload) => {
   if (error) throw new AppError(error.details[0].message, 400);
 
   try {
-    const existingService = await Service.findOne({ name: value.name, isDeleted: false });
+    const existingService = await Service.findOne({
+      name: value.name,
+      isDeleted: false,
+    });
     if (existingService) {
       throw new AppError("Service with this name already exists", 400);
     }
 
-    // if user upload a image check if it is a valid image otherwise delete it    
-   if(value.image){
-    const image = await File.findById(value.image);
-    if(!image){
-      throw new AppError("Image not found", 404);
+    // if user upload a image check if it is a valid image otherwise delete it
+    if (value.image) {
+      const image = await File.findById(value.image);
+      if (!image) {
+        throw new AppError("Image not found", 404);
+      }
+      // check if image is a image
+      if (!image.fileType.startsWith("image/")) {
+        deleteFileById(image._id);
+        throw new AppError("Image is not a valid image", 400);
+      }
     }
-    // check if image is a image
-    if(!image.fileType.startsWith("image/")){
-      deleteFileById(image._id);
-      throw new AppError("Image is not a valid image", 400);
-    }
-   }
-    
+
     const newService = new Service(value);
     await newService.save();
     return `'${value.name}' created successfully`;
@@ -103,7 +105,7 @@ module.exports.getServices = async (queryPayload) => {
       .limit(limit)
       .populate({
         path: "image",
-        select: ["-_id","filePath","fileType"],
+        select: ["-_id", "filePath", "fileType"],
       });
 
     const total = await Service.countDocuments(query);
@@ -128,11 +130,13 @@ module.exports.getServiceById = async (id) => {
   if (!id) throw new AppError("Service id is required", 400);
 
   try {
-    const service = await Service.findById(id).populate({
+    const service = await Service.findById(id)
+      .populate({
         path: "image",
-        select: ["-_id","filePath","fileType"],
-    }).select(["-isDeleted","-deletedAt","-__v"]);
-    
+        select: ["-_id", "filePath", "fileType"],
+      })
+      .select(["-isDeleted", "-deletedAt", "-__v"]);
+
     if (!service || service.isDeleted) {
       throw new AppError("Service not found", 404);
     }
@@ -142,3 +146,78 @@ module.exports.getServiceById = async (id) => {
   }
 };
 
+/**
+ * Update a service
+ * @param {string} id - Service ID
+ * @param {Object} payload - Update data
+ * @returns {Promise<Object>} - Updated service
+ */
+module.exports.updateService = async (id, payload) => {
+  if (!id) throw new AppError("Service id is required", 400);
+
+  // Prevent users from manually altering soft-delete statuses during standard updates
+  if (payload.isDeleted !== undefined) delete payload.isDeleted;
+  if (payload.deletedAt !== undefined) delete payload.deletedAt;
+
+  const { error } = validatedUpdateService(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
+
+  try {
+    if (payload.image) {
+      const uploadedFile = await File.findById(payload.image);
+      if (!uploadedFile) {
+        throw new AppError("Uploaded image file not found", 404);
+      }
+      if (!uploadedFile.fileType.startsWith("image/")) {
+        await deleteFileById(payload.image);
+        throw new AppError("Uploaded file must be an image", 400);
+      }
+    }
+
+    if (payload.name) {
+      const existingService = await Service.findOne({
+        name: payload.name,
+        _id: { $ne: id },
+        isDeleted: false, 
+      });
+      if (existingService) {
+        throw new AppError("Service name already in use", 400);
+      }
+    }
+
+    const updatedService = await Service.findByIdAndUpdate(id, payload, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedService || updatedService.isDeleted) {
+      throw new AppError("Service not found", 404);
+    }
+
+    return `${updatedService.name} updated successfully.`;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
+/**
+ * Delete a service
+ * @param {string} id - Service ID
+ * @returns {Promise<string>} - Success message
+ */
+module.exports.deleteService = async (id) => {
+  if (!id) throw new AppError("Service id is required", 400);
+
+  try {
+    const deletedService = await Service.updateOne(
+      { _id: id, isDeleted: false },
+      { isDeleted: true, deletedAt: Date.now() },
+    );
+    if (!deletedService.modifiedCount) {
+      throw new AppError("Service not found", 404);
+    }
+    return "Service deleted successfully.";
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};

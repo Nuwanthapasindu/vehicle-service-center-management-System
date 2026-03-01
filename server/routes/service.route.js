@@ -109,6 +109,7 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
     })
     .catch((error) => next(error));
 });
+
 /**
  * @swagger
  * /api/v1/service:
@@ -192,46 +193,135 @@ router.get("/", (req, res, next) => {
 
 /**
  * @swagger
- * /api/v1/service/bulk-update-price:
- *   patch:
- *     summary: Bulk update prices for multiple services
+ * /api/v1/service/{id}:
+ *   get:
+ *     summary: Get service by ID
+ *     tags: [Service]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Service ID
+ *     responses:
+ *       200:
+ *         description: Successful retrieval
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Service'
+ *       404:
+ *         description: Service not found
+ */
+router.get("/:id", (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const { id } = req.params;
+
+  getServiceById(id)
+    .then((service) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ service });
+    })
+    .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/service/{id}:
+ *   put:
+ *     summary: Update an existing service
  *     tags: [Service]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Service ID
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - serviceIds
- *               - priceUpdates
  *             properties:
- *               serviceIds:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *               description:
+ *                 type: string
+ *                 maxLength: 500
+ *               image:
+ *                 type: string
+ *               prices:
  *                 type: array
  *                 minItems: 1
  *                 items:
- *                   type: string
- *               priceUpdates:
- *                 type: array
- *                 minItems: 1
- *                 items:
- *                   type: object
- *                   required:
- *                     - model
- *                     - newPrice
- *                   properties:
- *                     model:
- *                       type: string
- *                       enum: [CAR, VAN, SUV, JEEP]
- *                     newPrice:
- *                       type: number
+ *                   $ref: '#/components/schemas/PriceEntry'
  *     responses:
  *       200:
- *         description: Prices updated successfully
+ *         description: Service updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Service'
  *       400:
  *         description: Bad request / validation error
  *       401:
  *         description: Unauthorized
+ *       404:
+ *         description: Service not found
  */
+router.put("/:id", authTokenMiddleware, (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const payload = req.body;
+  const { id } = req.params;
+
+  updateService(id, payload)
+    .then((message) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ message });
+    })
+    .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/service/{id}:
+ *   delete:
+ *     summary: Delete a service
+ *     tags: [Service]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Service ID
+ *     responses:
+ *       200:
+ *         description: Service deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Service not found
+ */
+router.delete("/:id", authTokenMiddleware, (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const { id } = req.params;
+
+  deleteService(id)
+    .then((message) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ message });
+    })
+    .catch((error) => next(error));
+});
+
+module.exports = router;
