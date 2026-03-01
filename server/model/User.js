@@ -30,6 +30,10 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
