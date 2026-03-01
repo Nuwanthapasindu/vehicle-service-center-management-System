@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = Object.freeze({
   USER_ROLES: {
     ADMIN: "ADMIN",
     MECHANIC: "MECHANIC",
@@ -40,4 +40,4 @@ module.exports = {
     PROMOTIONAL: "PROMOTIONAL",
     TRANSACTIONAL: "TRANSACTIONAL",
   },
-};
+});

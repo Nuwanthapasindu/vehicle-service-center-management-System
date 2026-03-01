@@ -8,6 +8,14 @@ const categorySchema = new Schema(
       required: true,
       unique: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

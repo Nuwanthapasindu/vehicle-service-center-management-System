@@ -26,6 +26,14 @@ const supplierSchema = new Schema(
         ref: "Inventory",
       },
     ],
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -13,6 +13,14 @@ const teamSchema = new Schema(
         ref: "Employee",
       },
     ],
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
