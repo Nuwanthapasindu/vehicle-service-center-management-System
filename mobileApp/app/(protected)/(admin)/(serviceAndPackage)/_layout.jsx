@@ -1,19 +1,19 @@
 import React from "react";
 import { Tabs } from "expo-router";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import colors from "../../../../constants/colors";
 
 export default function ServiceAndPackageLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // The stack/drawer provides the header
+        headerShown: false,
         tabBarActiveTintColor: colors.PRIMARY,
         tabBarInactiveTintColor: colors.SECONDARY,
       }}
     >
       <Tabs.Screen
-        name="(service)/Service"
+        name="(service)"
         options={{
           tabBarLabel: "SERVICES",
           tabBarIcon: ({ color, size }) => (
@@ -22,7 +22,7 @@ export default function ServiceAndPackageLayout() {
         }}
       />
       <Tabs.Screen
-        name="(package)/Package"
+        name="(package)"
         options={{
           tabBarLabel: "PACKAGES",
           tabBarIcon: ({ color, size }) => (

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import colors from "../../../../../constants/colors";
 
 const DUMMY_SERVICES = [
@@ -65,6 +66,8 @@ const DUMMY_SERVICES = [
 ];
 
 export default function Service() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       {/* Search Bar Section */}
@@ -150,7 +153,13 @@ export default function Service() {
       </ScrollView>
 
       {/* Floating Action Button */}
-      <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() =>
+          router.push("/(protected)/(admin)/(serviceAndPackage)/(service)/add")
+        }
+      >
         <Ionicons name="add" size={32} color={colors.LIGHT} />
       </TouchableOpacity>
     </View>
