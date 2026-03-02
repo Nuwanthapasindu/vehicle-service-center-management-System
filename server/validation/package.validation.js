@@ -152,15 +152,7 @@ const queryPackageValidationSchema = joi
       "string.max": "Search name must be at most 100 characters long",
       "string.trim": "Search name must not contain leading or trailing spaces",
     }),
-    model: joi
-      .string()
-      .valid(...Object.values(VEHICLE_TYPES))
-      .optional()
-      .messages({
-        "any.only": `Vehicle model must be one of: ${Object.values(
-          VEHICLE_TYPES,
-        ).join(", ")}`,
-      }),
+    model: joi.string().optional(),
     minPrice: joi.number().positive().precision(2).optional().messages({
       "number.positive": "Minimum price must be a positive number",
       "number.base": "Minimum price must be a valid number",

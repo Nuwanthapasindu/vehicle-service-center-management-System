@@ -57,7 +57,12 @@
 const router = require("express").Router();
 const {
   createPackage,
+  getPackages,
+  getPackageById,
 } = require("../controller/package.controller");
+const { authTokenMiddleware } = require("../middleware/auth");
+const responseBuild = require("../util/responseBuilder");
+
 /**
  * @swagger
  * /api/v1/package:
@@ -123,3 +128,63 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
     .catch((error) => next(error));
 });
 
+/**
+ * @swagger
+ * /api/v1/package:
+ *   get:
+ *     summary: Get all packages with pagination and filtering
+ *     tags: [Package]
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Search by package name
+ *       - in: query
+ *         name: model
+ *         schema:
+ *           type: string
+ *           enum: [CAR, VAN, SUV, JEEP]
+ *         description: Filter packages by vehicle model
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Filter by minimum price
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Filter by maximum price
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: createdAt
+ *           enum: [name, createdAt, updatedAt]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           default: desc
+ *           enum: [asc, desc]
+ *     responses:
+ *       200:
+ *         description: Successful query
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 packages:
+ *                   type: array
