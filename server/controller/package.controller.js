@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Package = require("../model/Package");
 const Service = require("../model/Service");
 const File = require("../model/File");
@@ -158,3 +159,122 @@ module.exports.getPackageById = async (id) => {
     const pkg = await Package.findById(id)
       .populate([
         {
+          path: "servicesIncluded",
+          select: ["name", "description"],
+        },
+        {
+          path: "image",
+          select: ["filePath", "fileType"],
+        },
+      ]);
+
+    if (!pkg || pkg.isDeleted) {
+      throw new AppError("Package not found", 404);
+    }
+    const { isDeleted, deletedAt, __v, ...rest } = pkg.toObject();
+    return rest;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
+/**
+ * Update a package
+ * @param {string} id - Package ID
+ * @param {Object} payload - Update data
+ * @returns {Promise<Object>} - Updated package message
+ */
+module.exports.updatePackage = async (id, payload) => {
+  if (!id) throw new AppError("Package id is required", 400);
+  // check id is a valid object id
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid package id", 400);
+  }
+
+  // Prevent internal state modifications
+  if (payload.isDeleted !== undefined) delete payload.isDeleted;
+  if (payload.deletedAt !== undefined) delete payload.deletedAt;
+
+  const { error } = validatedUpdatePackage(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
+
+  try {
+    if (payload.image) {
+      const uploadedFile = await File.findById(payload.image);
+      if (!uploadedFile) {
+        throw new AppError("Uploaded image file not found", 404);
+      }
+      if (!uploadedFile.fileType.startsWith("image/")) {
+        await deleteFileById(payload.image);
+        throw new AppError("Uploaded file must be an image", 400);
+      }
+    }
+
+    if (payload.servicesIncluded && payload.servicesIncluded.length > 0) {
+      const existingServices = await Service.find({
+        _id: { $in: payload.servicesIncluded },
+      });
+      if (existingServices.length !== payload.servicesIncluded.length) {
+        throw new AppError(
+          "One or more included services are invalid or do not exist",
+          400,
+        );
+      }
+    }
+
+    if (payload.name) {
+      const existingPackage = await Package.findOne({
+        name: payload.name,
+        _id: { $ne: id },
+        isDeleted: false,
+      });
+      if (existingPackage) {
+        throw new AppError("Package name already in use", 400);
+      }
+    }
+
+    const updatedPackage = await Package.findByIdAndUpdate(id, payload, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedPackage || updatedPackage.isDeleted) {
+      throw new AppError("Package not found", 404);
+    }
+
+    return `${updatedPackage.name} updated successfully.`;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
+/**
+ * Delete a package
+ * @param {string} id - Package ID
+ * @returns {Promise<string>} - Success message
+ */
+module.exports.deletePackage = async (id) => {
+  if (!id) throw new AppError("Package id is required", 400);
+
+  // check id is a valid object id
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid package id", 400);
+  }
+  try {
+    // check package is exists
+    const pkg = await Package.findById(id);
+    if (!pkg || pkg.isDeleted) {
+      throw new AppError("Package not found", 404);
+    }
+
+    // Relying on the globally registered soft delete plugin
+    await Package.findByIdAndUpdate(id, {
+      isDeleted: true,
+      deletedAt: Date.now(),
+    });
+
+    return `${pkg.name} deleted successfully.`;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};

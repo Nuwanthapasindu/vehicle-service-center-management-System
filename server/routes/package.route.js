@@ -59,6 +59,8 @@ const {
   createPackage,
   getPackages,
   getPackageById,
+  updatePackage,
+  deletePackage,
 } = require("../controller/package.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
@@ -188,3 +190,171 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
  *               properties:
  *                 packages:
  *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Package'
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 pages:
+ *                   type: integer
+ */
+router.get("/", (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const query = req.query;
+
+  getPackages(query)
+    .then((packages) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse(packages); // Direct passing as output includes pagination properties wrapper natively
+    })
+    .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/package/{id}:
+ *   get:
+ *     summary: Get package by ID
+ *     tags: [Package]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Package ID
+ *     responses:
+ *       200:
+ *         description: Successful retrieval
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Package'
+ *       404:
+ *         description: Package not found
+ */
+router.get("/:id", (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const { id } = req.params;
+
+  getPackageById(id)
+    .then((package) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ package });
+    })
+    .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/package/{id}:
+ *   put:
+ *     summary: Update an existing package
+ *     tags: [Package]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Package ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *               applicableVehicalModels:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   type: string
+ *                   enum: [CAR, VAN, SUV, JEEP]
+ *               description:
+ *                 type: string
+ *                 maxLength: 1000
+ *               pricingTiers:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   $ref: '#/components/schemas/PricingTier'
+ *               servicesIncluded:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               image:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Package updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Bad request / validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Package not found
+ */
+router.put("/:id", authTokenMiddleware, (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const payload = req.body;
+  const { id } = req.params;
+
+  updatePackage(id, payload)
+    .then((message) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ message });
+    })
+    .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/package/{id}:
+ *   delete:
+ *     summary: Delete a package
+ *     tags: [Package]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Package ID
+ *     responses:
+ *       200:
+ *         description: Package deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Package not found
+ */
+router.delete("/:id", authTokenMiddleware, (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const { id } = req.params;
+
+  deletePackage(id)
+    .then((message) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ message });
+    })
+    .catch((error) => next(error));
+});
+
+module.exports = router;
