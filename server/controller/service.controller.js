@@ -41,7 +41,7 @@ module.exports.createService = async (payload) => {
 
     const newService = new Service(value);
     await newService.save();
-    return `'${value.name}' created successfully`;
+    return `${value.name} created successfully`;
   } catch (error) {
     throw new AppError(error.message, error.statusCode || 500);
   }
@@ -106,14 +106,15 @@ module.exports.getServices = async (queryPayload) => {
       .populate({
         path: "image",
         select: ["-_id", "filePath", "fileType"],
-      });
+      })
+      .select(["-isDeleted", "-deletedAt", "-__v"]);
 
     const total = await Service.countDocuments(query);
 
     return {
       services,
       total,
-      page,
+      page: Number(page),
       pages: Math.ceil(total / limit),
     };
   } catch (error) {
