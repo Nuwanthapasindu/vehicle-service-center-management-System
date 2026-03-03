@@ -1,3 +1,19 @@
+.customer-portal-wrapper {
+    display: block;
+    min-height: 100vh;
+    background-color: #F8F9FA;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.customer-content-area {
+    margin-left: 250px;
+    padding-bottom: 3rem;
+    transition: all 0.2s ease;
+    min-height: 100vh;
+    width: auto;
+}
+
 .history-main-content {
     padding: 0 2.5rem;
     display: flex;
@@ -85,12 +101,18 @@
     background-color: var(--light, #FFFFFF);
     border: 1px solid var(--border-color, #E2E8F0);
     border-radius: 16px;
-    padding: 0.75rem 1.25rem;
+    padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1.5rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    transition: all 0.3s ease;
+}
+
+.filter-card:focus-within {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);
+    border-color: var(--primary-color, #8EDB00);
 }
 
 .search-box {
@@ -254,6 +276,12 @@
     gap: 1.5rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
     border: 1px solid var(--border-color, #E2E8F0);
+    transition: all 0.3s ease;
+}
+
+.feature-info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.05);
 }
 
 .feature-info-card.certified {
@@ -305,29 +333,108 @@
     }
 }
 
+@media (max-width: 1024px) {
+    .customer-content-area {
+        margin-left: 80px;
+    }
+
+    .history-main-content {
+        padding: 0 2rem;
+    }
+}
+
 @media (max-width: 991px) {
     .filter-card {
         flex-direction: column;
         align-items: stretch;
+        gap: 1rem;
+        padding: 1.25rem;
+    }
+
+    .select-filters {
+        width: 100%;
+    }
+
+    .filter-select {
+        flex: 1;
+    }
+
+    .filter-select select {
+        width: 100%;
     }
 }
 
 @media (max-width: 768px) {
     .history-main-content {
-        padding: 0 1.5rem;
+        padding: 0 1.25rem;
+        gap: 1.25rem;
     }
 
     .page-title-section {
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 1.25rem;
+        margin-bottom: 0;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
     }
 
     .book-new-btn {
         width: 100%;
         justify-content: center;
+        padding: 0.75rem 1.25rem;
     }
 
     .select-filters {
         flex-direction: column;
+    }
+
+    .history-table-card {
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+
+    .history-table-card .card-title {
+        margin-bottom: 1.25rem;
+    }
+
+    .table-responsive {
+        margin: 0 -1.25rem;
+        padding: 0 1.25rem;
+    }
+
+    .history-table {
+        min-width: 650px;
+    }
+
+    .history-table th,
+    .history-table td {
+        padding: 1rem 0.75rem;
+    }
+
+    .feature-info-card {
+        padding: 1.25rem;
+        gap: 1rem;
+    }
+
+    .info-icon-box {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .customer-content-area {
+        margin-left: 0;
+    }
+
+    .breadcrumbs {
+        margin-top: 0.5rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
     }
 }

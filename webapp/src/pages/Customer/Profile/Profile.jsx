@@ -12,7 +12,7 @@ const Profile = () => {
             <Sidebar />
 
             <div className="customer-content-area">
-                <Header title="Customer Dashboard" />
+                <Header title="My Profile" />
 
                 <main className="profile-main-content">
                     {/* Breadcrumbs */}

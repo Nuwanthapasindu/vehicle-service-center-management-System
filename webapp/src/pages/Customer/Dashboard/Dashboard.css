@@ -1,14 +1,17 @@
 .customer-portal-wrapper {
-    display: flex;
+    display: block;
     min-height: 100vh;
     background-color: #F8F9FA;
+    position: relative;
+    overflow-x: hidden;
 }
 
 .customer-content-area {
-    flex: 1;
     margin-left: 250px;
     padding-bottom: 3rem;
-    transition: margin-left 0.2s ease;
+    transition: all 0.2s ease;
+    min-height: 100vh;
+    width: auto;
 }
 
 .dashboard-main-content {
@@ -89,13 +92,21 @@
 .stat-card {
     background-color: var(--light, #FFFFFF);
     padding: 1.5rem;
-    border-radius: 16px;
+    border-radius: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
     position: relative;
     overflow: hidden;
+    min-height: 120px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .stat-label {
@@ -212,8 +223,15 @@
     align-items: center;
     gap: 1.25rem;
     padding: 1rem;
+    background-color: #FFFFFF;
     border: 1px solid #F1F5F9;
-    border-radius: 12px;
+    border-radius: 16px;
+    transition: all 0.2s ease;
+}
+
+.vehicle-item-card:hover {
+    border-color: var(--primary-color, #8EDB00);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .vehicle-image img {
@@ -402,26 +420,101 @@
     .customer-content-area {
         margin-left: 80px;
     }
+
+    .dashboard-main-content {
+        padding: 0 2rem;
+    }
 }
 
 @media (max-width: 768px) {
     .dashboard-main-content {
-        padding: 0 1.5rem;
+        padding: 0 1.25rem;
+        gap: 1.5rem;
     }
 
     .welcome-greeting {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1.5rem;
+        gap: 1.25rem;
+        padding: 1rem 0;
+    }
+
+    .greeting-text .greeting {
+        font-size: 1.75rem;
     }
 
     .global-actions {
         width: 100%;
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
     .book-btn,
     .add-btn {
-        flex: 1;
+        width: 100%;
         justify-content: center;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+        min-height: 100px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-icon-bg {
+        font-size: 2rem;
+        right: 1rem;
+    }
+
+    .dashboard-section {
+        padding: 1.25rem;
+    }
+
+    .vehicle-item-card {
+        grid-template-columns: 60px 1fr;
+        padding: 0.75rem;
+    }
+
+    .service-status {
+        grid-column: 2;
+        margin-top: 0.25rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -1.25rem;
+        padding: 0 1.25rem;
+    }
+
+    .history-table {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 480px) {
+    .customer-content-area {
+        margin-left: 0;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        min-height: auto;
+    }
+
+    .greeting-text .greeting {
+        font-size: 1.5rem;
     }
 }

@@ -41,7 +41,7 @@ const MyGarage = () => {
             <Sidebar />
 
             <div className="customer-content-area">
-                <Header title="Customer Dashboard" />
+                <Header title="My Digital Garage" />
 
                 <main className="garage-main-content">
                     {/* Breadcrumbs */}

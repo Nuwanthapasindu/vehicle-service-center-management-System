@@ -28,7 +28,7 @@ const ServiceBooking = () => {
             <Sidebar />
 
             <div className="customer-content-area">
-                <Header title="Customer Dashboard" />
+                <Header title="Service Booking" />
 
                 <main className="booking-main-content">
                     {/* Breadcrumbs */}

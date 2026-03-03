@@ -31,7 +31,7 @@ const ServiceHistory = () => {
             <Sidebar />
 
             <div className="customer-content-area">
-                <Header title="Customer Dashboard" />
+                <Header title="Service History" />
 
                 <main className="history-main-content">
                     {/* Breadcrumbs */}
