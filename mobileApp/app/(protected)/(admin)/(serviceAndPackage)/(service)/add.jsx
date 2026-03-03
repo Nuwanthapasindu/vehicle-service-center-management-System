@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import DropdownInput from "../../../../../components/DropdownInput";
+import CustomImagePicker from "../../../../../components/CustomImagePicker";
 import colors from "../../../../../constants/colors";
 
 export default function AddService() {
@@ -21,6 +22,7 @@ export default function AddService() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("CutPolish");
   const [specialCategory, setSpecialCategory] = useState("None");
+  const [imageUri, setImageUri] = useState(null);
 
   // Dynamic Pricing Mapping
   const [pricingOptions, setPricingOptions] = useState([
@@ -57,25 +59,13 @@ export default function AddService() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Photo Uploader Dummy Component */}
-        <TouchableOpacity
-          style={styles.photoUploaderWrapper}
-          activeOpacity={0.7}
-        >
-          <View style={styles.photoUploaderInner}>
-            <View style={styles.cameraIconBg}>
-              <Ionicons
-                name="camera-outline"
-                size={24}
-                color={colors.PRIMARY}
-              />
-            </View>
-            <Text style={styles.uploadTitle}>Tap to attach service image</Text>
-            <Text style={styles.uploadSubtitle}>
-              Upload a high-quality photo of the service
-            </Text>
-          </View>
-        </TouchableOpacity>
+        {/* Photo Uploader Component */}
+        <CustomImagePicker
+          imageUri={imageUri}
+          onImageSelected={setImageUri}
+          title="Tap to attach service image"
+          subtitle="Upload a high-quality photo of the service"
+        />
 
         {/* Form Fields Section */}
         <View style={styles.formSection}>
@@ -121,7 +111,7 @@ export default function AddService() {
                   },
                 ]}
               >
-                {index === 0 ? "BASE PRICE ($)" : "VARIANT PRICE ($)"}
+                VARIANT PRICE (LKR)
               </Text>
               <TextInput
                 style={styles.input}
@@ -163,14 +153,15 @@ export default function AddService() {
                 <View
                   style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
                 >
-                  <TextInput
-                    style={[styles.input, { flex: 1 }]}
+                  <DropdownInput
                     placeholder="e.g. SUV"
                     placeholderTextColor={colors.SECONDARY + "80"}
-                    value={item.name}
-                    onChangeText={(text) =>
-                      updatePricingOption(item.id, "name", text)
+                    value={category}
+                    options={CATEGORIES}
+                    onSelect={(value) =>
+                      updatePricingOption(item.id, "name", value)
                     }
+                    modalTitle="Select Category"
                   />
                   <TouchableOpacity
                     onPress={() => removePricingOption(item.id)}
@@ -218,40 +209,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
-  },
-  photoUploaderWrapper: {
-    width: "100%",
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "#CBD5E1",
-    borderStyle: "dashed",
-    backgroundColor: colors.LIGHT,
-    marginBottom: 24,
-  },
-  photoUploaderInner: {
-    padding: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cameraIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.PRIMARY + "15",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  uploadTitle: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: colors.DARK,
-    marginBottom: 6,
-  },
-  uploadSubtitle: {
-    fontSize: 12,
-    color: colors.SECONDARY,
-    textAlign: "center",
   },
   formSection: {
     gap: 20,
