@@ -11,15 +11,45 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import DropdownInput from "../../../../../components/DropdownInput";
 import colors from "../../../../../constants/colors";
 
 export default function AddService() {
   const router = useRouter();
 
-  // State mapping for the standard inputs
   const [serviceName, setServiceName] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("CutPolish");
+  const [specialCategory, setSpecialCategory] = useState("None");
+
+  // Dynamic Pricing Mapping
+  const [pricingOptions, setPricingOptions] = useState([
+    { id: "1", name: "Base", price: "" },
+  ]);
+
+  // Dropdown options
+  const CATEGORIES = ["CutPolish", "Sanitation", "Protection", "Maintenance"];
+  const SPECIAL_CATEGORIES = ["None", "Seasonal Availability", "Inactive"];
+
+  const addPricingOption = () => {
+    setPricingOptions([
+      ...pricingOptions,
+      { id: Date.now().toString(), name: "", price: "" },
+    ]);
+  };
+
+  const updatePricingOption = (id, field, value) => {
+    setPricingOptions(
+      pricingOptions.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
+    );
+  };
+
+  const removePricingOption = (id) => {
+    if (pricingOptions.length === 1) return; // Must have at least one price
+    setPricingOptions(pricingOptions.filter((item) => item.id !== id));
+  };
 
   return (
     <KeyboardAvoidingView
@@ -76,63 +106,101 @@ export default function AddService() {
           </View>
         </View>
 
-        {/* Split Price / Category Row */}
-        <View style={styles.splitRow}>
-          <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text
-              style={[
-                styles.label,
-                {
-                  fontSize: 10,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                },
-              ]}
-            >
-              BASE PRICE ($)
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="499.00"
-              placeholderTextColor={colors.SECONDARY + "80"}
-              keyboardType="numeric"
-              value={price}
-              onChangeText={setPrice}
-            />
-          </View>
-
-          <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text
-              style={[
-                styles.label,
-                {
-                  fontSize: 10,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                },
-              ]}
-            >
-              CATEGORY
-            </Text>
-            <View style={styles.fakeDropdown}>
-              <Text style={styles.dropdownText}>CutPolish</Text>
-              <Ionicons
-                name="chevron-down"
-                size={20}
-                color={colors.SECONDARY}
+        {/* Pricing Options and Category Map */}
+        {pricingOptions.map((item, index) => (
+          <View style={styles.splitRow} key={item.id}>
+            {/* Price Column */}
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    fontSize: 10,
+                    letterSpacing: 1,
+                    textTransform: "uppercase",
+                  },
+                ]}
+              >
+                {index === 0 ? "BASE PRICE ($)" : "VARIANT PRICE ($)"}
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder={index === 0 ? "499.00" : "0.00"}
+                placeholderTextColor={colors.SECONDARY + "80"}
+                keyboardType="numeric"
+                value={item.price}
+                onChangeText={(text) =>
+                  updatePricingOption(item.id, "price", text)
+                }
               />
             </View>
+
+            {/* Category / Variant Name Column */}
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    fontSize: 10,
+                    letterSpacing: 1,
+                    textTransform: "uppercase",
+                  },
+                ]}
+              >
+                {index === 0 ? "CATEGORY" : "VARIANT NAME"}
+              </Text>
+
+              {index === 0 ? (
+                /* The Category Dropdown stays locked to index 0 */
+                <DropdownInput
+                  value={category}
+                  options={CATEGORIES}
+                  onSelect={setCategory}
+                  modalTitle="Select Category"
+                />
+              ) : (
+                /* Subsequent dynamic pricing variants */
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="e.g. SUV"
+                    placeholderTextColor={colors.SECONDARY + "80"}
+                    value={item.name}
+                    onChangeText={(text) =>
+                      updatePricingOption(item.id, "name", text)
+                    }
+                  />
+                  <TouchableOpacity
+                    onPress={() => removePricingOption(item.id)}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
+        ))}
+
+        <TouchableOpacity
+          style={styles.addVariantButton}
+          onPress={addPricingOption}
+        >
+          <Text style={styles.addVariantText}>+ Add Price Variant</Text>
+        </TouchableOpacity>
 
         {/* Special Category Dropdown */}
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { marginTop: 12 }]}>
           <Text style={styles.label}>Special Category</Text>
-          <View style={styles.fakeDropdown}>
-            <Text style={styles.dropdownText}>None</Text>
-            <Ionicons name="chevron-down" size={20} color={colors.SECONDARY} />
-          </View>
+          <DropdownInput
+            value={specialCategory}
+            options={SPECIAL_CATEGORIES}
+            onSelect={setSpecialCategory}
+            modalTitle="Select Special Category"
+          />
         </View>
+
         <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
           <Ionicons name="add-circle-outline" size={22} color={colors.DARK} />
           <Text style={styles.submitButtonText}>Create Service</Text>
@@ -155,7 +223,7 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: "#CBD5E1", // Soft bluish-gray standard dashboard dashed outline
+    borderColor: "#CBD5E1",
     borderStyle: "dashed",
     backgroundColor: colors.LIGHT,
     marginBottom: 24,
@@ -194,7 +262,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#334155", // A darker grayish neutral suitable for form labeling
+    color: "#334155",
   },
   input: {
     backgroundColor: colors.LIGHT,
@@ -215,6 +283,18 @@ const styles = StyleSheet.create({
     gap: 16,
     marginTop: 20,
   },
+  addVariantButton: {
+    alignSelf: "flex-start",
+    marginTop: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginLeft: -8, // visual alignment correction
+  },
+  addVariantText: {
+    color: colors.PRIMARY,
+    fontWeight: "bold",
+    fontSize: 13,
+  },
   fakeDropdown: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -230,14 +310,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.DARK,
   },
-  footerContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-    backgroundColor: colors.BACKGROUND_COLOR,
-    borderTopWidth: 1,
-    borderTopColor: colors.BORDER_COLOR + "50",
-  },
   submitButton: {
     backgroundColor: colors.PRIMARY,
     flexDirection: "row",
@@ -246,11 +318,52 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 12,
     gap: 8,
-    marginTop: 20,
+    marginTop: 24,
   },
   submitButtonText: {
     fontSize: 16,
     fontWeight: "bold",
     color: colors.DARK,
+  },
+
+  // Custom Modal Dropdown Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: colors.LIGHT,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.BORDER_COLOR,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: colors.DARK,
+    textAlign: "center",
+  },
+  modalOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.BORDER_COLOR + "40",
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: colors.SECONDARY,
+  },
+  modalOptionTextActive: {
+    color: colors.DARK,
+    fontWeight: "bold",
   },
 });
