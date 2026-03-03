@@ -9,10 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Drawer } from "expo-router/drawer";
 import colors from "../../../../../constants/colors";
 
 export default function AddService() {
@@ -24,117 +22,100 @@ export default function AddService() {
   const [price, setPrice] = useState("");
 
   return (
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-      <Drawer.Screen options={{ headerShown: false }} />
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Photo Uploader Dummy Component */}
-          <TouchableOpacity
-            style={styles.photoUploaderWrapper}
-            activeOpacity={0.7}
-          >
-            <View style={styles.photoUploaderInner}>
-              <View style={styles.cameraIconBg}>
-                <Ionicons
-                  name="camera-outline"
-                  size={24}
-                  color={colors.PRIMARY}
-                />
-              </View>
-              <Text style={styles.uploadTitle}>
-                Tap to attach service image
-              </Text>
-              <Text style={styles.uploadSubtitle}>
-                Upload a high-quality photo of the service
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Form Fields Section */}
-          <View style={styles.formSection}>
-            {/* Service Name Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Service Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Full Exterior Polish"
-                placeholderTextColor={colors.SECONDARY + "80"}
-                value={serviceName}
-                onChangeText={setServiceName}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Photo Uploader Dummy Component */}
+        <TouchableOpacity
+          style={styles.photoUploaderWrapper}
+          activeOpacity={0.7}
+        >
+          <View style={styles.photoUploaderInner}>
+            <View style={styles.cameraIconBg}>
+              <Ionicons
+                name="camera-outline"
+                size={24}
+                color={colors.PRIMARY}
               />
             </View>
-
-            {/* Description Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Description</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Enter service details and what's included..."
-                placeholderTextColor={colors.SECONDARY + "80"}
-                multiline
-                textAlignVertical="top"
-                value={description}
-                onChangeText={setDescription}
-              />
-            </View>
+            <Text style={styles.uploadTitle}>Tap to attach service image</Text>
+            <Text style={styles.uploadSubtitle}>
+              Upload a high-quality photo of the service
+            </Text>
           </View>
+        </TouchableOpacity>
 
-          {/* Split Price / Category Row */}
-          <View style={styles.splitRow}>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text
-                style={[
-                  styles.label,
-                  {
-                    fontSize: 10,
-                    letterSpacing: 1,
-                    textTransform: "uppercase",
-                  },
-                ]}
-              >
-                BASE PRICE ($)
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="499.00"
-                placeholderTextColor={colors.SECONDARY + "80"}
-                keyboardType="numeric"
-                value={price}
-                onChangeText={setPrice}
-              />
-            </View>
-
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text
-                style={[
-                  styles.label,
-                  {
-                    fontSize: 10,
-                    letterSpacing: 1,
-                    textTransform: "uppercase",
-                  },
-                ]}
-              >
-                CATEGORY
-              </Text>
-              <View style={styles.fakeDropdown}>
-                <Text style={styles.dropdownText}>CutPolish</Text>
-                <Ionicons
-                  name="chevron-down"
-                  size={20}
-                  color={colors.SECONDARY}
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Special Category Dropdown */}
+        {/* Form Fields Section */}
+        <View style={styles.formSection}>
+          {/* Service Name Input */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Special Category</Text>
+            <Text style={styles.label}>Service Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g., Full Exterior Polish"
+              placeholderTextColor={colors.SECONDARY + "80"}
+              value={serviceName}
+              onChangeText={setServiceName}
+            />
+          </View>
+
+          {/* Description Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Enter service details and what's included..."
+              placeholderTextColor={colors.SECONDARY + "80"}
+              multiline
+              textAlignVertical="top"
+              value={description}
+              onChangeText={setDescription}
+            />
+          </View>
+        </View>
+
+        {/* Split Price / Category Row */}
+        <View style={styles.splitRow}>
+          <View style={[styles.inputGroup, { flex: 1 }]}>
+            <Text
+              style={[
+                styles.label,
+                {
+                  fontSize: 10,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                },
+              ]}
+            >
+              BASE PRICE ($)
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="499.00"
+              placeholderTextColor={colors.SECONDARY + "80"}
+              keyboardType="numeric"
+              value={price}
+              onChangeText={setPrice}
+            />
+          </View>
+
+          <View style={[styles.inputGroup, { flex: 1 }]}>
+            <Text
+              style={[
+                styles.label,
+                {
+                  fontSize: 10,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                },
+              ]}
+            >
+              CATEGORY
+            </Text>
             <View style={styles.fakeDropdown}>
-              <Text style={styles.dropdownText}>None</Text>
+              <Text style={styles.dropdownText}>CutPolish</Text>
               <Ionicons
                 name="chevron-down"
                 size={20}
@@ -142,13 +123,22 @@ export default function AddService() {
               />
             </View>
           </View>
-          <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
-            <Ionicons name="add-circle-outline" size={22} color={colors.DARK} />
-            <Text style={styles.submitButtonText}>Create Service</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
 
+        {/* Special Category Dropdown */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Special Category</Text>
+          <View style={styles.fakeDropdown}>
+            <Text style={styles.dropdownText}>None</Text>
+            <Ionicons name="chevron-down" size={20} color={colors.SECONDARY} />
+          </View>
+        </View>
+        <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
+          <Ionicons name="add-circle-outline" size={22} color={colors.DARK} />
+          <Text style={styles.submitButtonText}>Create Service</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

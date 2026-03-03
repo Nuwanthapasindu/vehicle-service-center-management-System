@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { DrawerToggleButton } from "@react-navigation/drawer";
 import colors from "../../../../../constants/colors";
 
-export default function ServiceLayout() {
+export default function PackageLayout() {
   return (
     <Stack
       screenOptions={{
@@ -21,16 +21,8 @@ export default function ServiceLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Service Catalog",
+          title: "Package Catalog",
           headerLeft: () => <DrawerToggleButton tintColor={colors.DARK} />,
-        }}
-      />
-      <Stack.Screen
-        name="add"
-        options={{
-          title: "Add New Service",
-          headerBackTitleVisible: true,
-          headerBackTitle: "Services",
         }}
       />
     </Stack>

@@ -130,6 +130,7 @@ export default function AdminDrawerLayout() {
           options={{
             drawerLabel: "Catalog & Packages",
             title: "Catalog & Packages",
+            headerShown: false,
             drawerIcon: ({ color, size }) => (
               <Ionicons name="cube-outline" size={size} color={color} />
             ),
