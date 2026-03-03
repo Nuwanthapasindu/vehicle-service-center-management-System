@@ -98,6 +98,11 @@ export default function Service() {
               key={service.id}
               style={[styles.card, !service.active && styles.cardInactive]}
               activeOpacity={0.7}
+              onPress={() =>
+                router.push(
+                  `/(protected)/(admin)/(serviceAndPackage)/(service)/${service.id}`,
+                )
+              }
               disabled={!service.active}
             >
               <View style={styles.cardLeft}>

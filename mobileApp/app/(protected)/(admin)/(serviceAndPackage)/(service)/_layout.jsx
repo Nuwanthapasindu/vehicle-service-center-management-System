@@ -33,6 +33,14 @@ export default function ServiceLayout() {
           headerBackTitle: "Services",
         }}
       />
+      <Stack.Screen
+        name="[id]"
+        options={{
+          title: "Edit Service",
+          headerBackTitleVisible: true,
+          headerBackTitle: "Services",
+        }}
+      />
     </Stack>
   );
 }
