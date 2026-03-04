@@ -14,7 +14,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import CustomImagePicker from "../../../../../components/CustomImagePicker";
 import DropdownInput from "../../../../../components/DropdownInput";
+import AddPricingTierModal from "../../../../../components/AddPricingTierModal";
 import colors from "../../../../../constants/colors";
 
 export default function EditPackage() {
@@ -58,13 +60,11 @@ export default function EditPackage() {
     "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?auto=format&fit=crop&q=80&w=800",
   );
 
-  const toggleService = (id) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const removeService = (id) => {
     setIncludedServices(
-      includedServices.map((service) =>
-        service.id === id
-          ? { ...service, selected: !service.selected }
-          : service,
-      ),
+      includedServices.filter((service) => service.id !== id),
     );
   };
 
@@ -72,11 +72,16 @@ export default function EditPackage() {
     setPricingTiers(pricingTiers.filter((tier) => tier.id !== id));
   };
 
-  const addPricingTier = () => {
+  const addPricingTier = (tier) => {
     setPricingTiers([
       ...pricingTiers,
-      { id: Date.now().toString(), name: "Standard Tier", price: "0" },
+      {
+        id: Date.now().toString(),
+        name: `${tier.name.toUpperCase()} (${tier.size})`,
+        price: tier.price,
+      },
     ]);
+    setIsModalVisible(false);
   };
 
   const removeModel = (modelToRemove) => {
@@ -219,27 +224,16 @@ export default function EditPackage() {
             {/* Service Checklists */}
             <View style={styles.checklistContainer}>
               {includedServices.map((service) => (
-                <TouchableOpacity
-                  key={service.id}
-                  style={styles.checkListItem}
-                  activeOpacity={0.7}
-                  onPress={() => toggleService(service.id)}
-                >
+                <View key={service.id} style={styles.checkListItem}>
                   <Text style={styles.checkListText}>{service.name}</Text>
-                  {service.selected ? (
+                  <TouchableOpacity onPress={() => removeService(service.id)}>
                     <Ionicons
-                      name="checkbox"
-                      size={24}
-                      color={colors.PRIMARY}
+                      name="trash-outline"
+                      size={20}
+                      color={colors.DANGER_COLOR || "#EF4444"}
                     />
-                  ) : (
-                    <Ionicons
-                      name="square-outline"
-                      size={24}
-                      color={colors.BORDER_COLOR}
-                    />
-                  )}
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </View>
               ))}
             </View>
           </View>
@@ -270,7 +264,7 @@ export default function EditPackage() {
             <TouchableOpacity
               style={styles.addTierButton}
               activeOpacity={0.7}
-              onPress={addPricingTier}
+              onPress={() => setIsModalVisible(true)}
             >
               <Ionicons name="add" size={18} color={colors.PRIMARY} />
               <Text style={styles.addTierText}>Add Pricing Tier</Text>
@@ -291,6 +285,13 @@ export default function EditPackage() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Add Pricing Tier Modal */}
+      <AddPricingTierModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onAddTier={addPricingTier}
+      />
     </KeyboardAvoidingView>
   );
 }

@@ -16,7 +16,6 @@ import colors from "../constants/colors";
 
 export default function AddPricingTierModal({ visible, onClose, onAddTier }) {
   const [newTierName, setNewTierName] = useState("");
-  const [newTierSize, setNewTierSize] = useState("Select Size");
   const [newTierPrice, setNewTierPrice] = useState("");
 
   const SIZE_OPTIONS = [
@@ -28,15 +27,13 @@ export default function AddPricingTierModal({ visible, onClose, onAddTier }) {
   ];
 
   const handleAdd = () => {
-    if (!newTierName || newTierSize === "Select Size" || !newTierPrice) return;
+    if (!newTierName || !newTierPrice) return;
     onAddTier({
       name: newTierName,
-      size: newTierSize,
       price: newTierPrice,
     });
     // Reset internal state on successful add
     setNewTierName("");
-    setNewTierSize("Select Size");
     setNewTierPrice("");
   };
 
@@ -44,7 +41,6 @@ export default function AddPricingTierModal({ visible, onClose, onAddTier }) {
     onClose();
     // Reset internal state when cancelling
     setNewTierName("");
-    setNewTierSize("Select Size");
     setNewTierPrice("");
   };
 
@@ -74,17 +70,6 @@ export default function AddPricingTierModal({ visible, onClose, onAddTier }) {
                 placeholderTextColor={colors.SECONDARY + "80"}
                 value={newTierName}
                 onChangeText={setNewTierName}
-              />
-            </View>
-
-            {/* VEHICLE SIZE */}
-            <View style={styles.modalInputGroup}>
-              <Text style={styles.modalLabel}>VEHICLE SIZE</Text>
-              <DropdownInput
-                value={newTierSize}
-                options={SIZE_OPTIONS}
-                onSelect={setNewTierSize}
-                modalTitle="Select Size"
               />
             </View>
 
