@@ -25,6 +25,22 @@ export default function PackageLayout() {
           headerLeft: () => <DrawerToggleButton tintColor={colors.DARK} />,
         }}
       />
+      <Stack.Screen
+        name="[id]"
+        options={{
+          title: "Edit Service Package",
+          headerBackTitleVisible: true,
+          headerBackTitle: "Cancel",
+        }}
+      />
+      <Stack.Screen
+        name="add"
+        options={{
+          title: "Add Package",
+          headerBackTitleVisible: true,
+          headerBackTitle: "Cancel",
+        }}
+      />
     </Stack>
   );
 }
