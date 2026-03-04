@@ -45,72 +45,79 @@ export default function AddPricingTierModal({ visible, onClose, onAddTier }) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide">
+    <Modal visible={visible} transparent animationType="fade">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.modalContentWrapper}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
       >
-        <View style={styles.modalSheet}>
-          {/* Modal Header */}
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalHeading}>Add Pricing Tier</Text>
-            <TouchableOpacity onPress={handleClose}>
-              <Ionicons name="close" size={24} color={colors.DARK} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Modal Body */}
-          <ScrollView style={styles.modalBody}>
-            {/* TIER NAME */}
-            <View style={styles.modalInputGroup}>
-              <Text style={styles.modalLabel}>TIER NAME</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. Synthetic 5W-30"
-                placeholderTextColor={colors.SECONDARY + "80"}
-                value={newTierName}
-                onChangeText={setNewTierName}
-              />
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
+            activeOpacity={1}
+            onPress={handleClose}
+          />
+          <View style={styles.modalSheet}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeading}>Add Pricing Tier</Text>
+              <TouchableOpacity onPress={handleClose}>
+                <Ionicons name="close" size={24} color={colors.DARK} />
+              </TouchableOpacity>
             </View>
 
-            {/* TIER PRICE */}
-            <View style={styles.modalInputGroup}>
-              <Text style={styles.modalLabel}>TIER PRICE</Text>
-              <View style={styles.priceInputContainer}>
-                <Text style={styles.priceInputPrefix}>Rs.</Text>
+            {/* Modal Body */}
+            <ScrollView style={styles.modalBody}>
+              {/* TIER NAME */}
+              <View style={styles.modalInputGroup}>
+                <Text style={styles.modalLabel}>TIER NAME</Text>
                 <TextInput
-                  style={styles.priceInputField}
-                  placeholder="0.00"
-                  keyboardType="numeric"
-                  value={newTierPrice}
-                  onChangeText={setNewTierPrice}
+                  style={styles.input}
+                  placeholder="e.g. Synthetic 5W-30"
+                  placeholderTextColor={colors.SECONDARY + "80"}
+                  value={newTierName}
+                  onChangeText={setNewTierName}
                 />
               </View>
-              <Text style={styles.modalHelpText}>
-                Enter the total price for this specific tier & size.
-              </Text>
-            </View>
 
-            {/* Actions */}
-            <TouchableOpacity
-              style={styles.addTierModalBtn}
-              onPress={handleAdd}
-            >
-              <Text style={styles.addTierModalText}>Add to Package</Text>
-              <Ionicons
-                name="add-circle-outline"
-                size={22}
-                color={colors.DARK}
-              />
-            </TouchableOpacity>
+              {/* TIER PRICE */}
+              <View style={styles.modalInputGroup}>
+                <Text style={styles.modalLabel}>TIER PRICE</Text>
+                <View style={styles.priceInputContainer}>
+                  <Text style={styles.priceInputPrefix}>Rs.</Text>
+                  <TextInput
+                    style={styles.priceInputField}
+                    placeholder="0.00"
+                    keyboardType="numeric"
+                    value={newTierPrice}
+                    onChangeText={setNewTierPrice}
+                  />
+                </View>
+                <Text style={styles.modalHelpText}>
+                  Enter the total price for this specific tier & size.
+                </Text>
+              </View>
 
-            <TouchableOpacity
-              style={styles.cancelModalBtn}
-              onPress={handleClose}
-            >
-              <Text style={styles.cancelModalText}>Cancel and go back</Text>
-            </TouchableOpacity>
-          </ScrollView>
+              {/* Actions */}
+              <TouchableOpacity
+                style={styles.addTierModalBtn}
+                onPress={handleAdd}
+              >
+                <Text style={styles.addTierModalText}>Add to Package</Text>
+                <Ionicons
+                  name="add-circle-outline"
+                  size={22}
+                  color={colors.DARK}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.cancelModalBtn}
+                onPress={handleClose}
+              >
+                <Text style={styles.cancelModalText}>Cancel and go back</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -118,13 +125,18 @@ export default function AddPricingTierModal({ visible, onClose, onAddTier }) {
 }
 
 const styles = StyleSheet.create({
-  modalContentWrapper: {
+  modalOverlay: {
     flex: 1,
-    backgroundColor: colors.LIGHT,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
   },
   modalSheet: {
-    flex: 1,
     backgroundColor: colors.LIGHT,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === "ios" ? 40 : 20,
+    maxHeight: "90%",
+    width: "100%",
   },
   modalHeader: {
     flexDirection: "row",
@@ -134,7 +146,6 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.BORDER_COLOR,
-    paddingTop: Platform.OS === "ios" ? 60 : 20, // push down from notch
   },
   modalHeading: {
     fontSize: 18,
@@ -143,7 +154,7 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     paddingHorizontal: 24,
-    paddingVertical: 60,
+    paddingVertical: 24,
   },
   modalInputGroup: {
     gap: 8,
