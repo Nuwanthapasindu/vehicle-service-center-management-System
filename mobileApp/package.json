@@ -13,6 +13,7 @@
     "@react-navigation/drawer": "^7.9.2",
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.7.9",
+    "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
     "expo-linking": "~8.0.11",
