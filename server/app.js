@@ -6,12 +6,14 @@ const errorHandling = require("./middleware/errorHandling");
 const swaggerUI = require("swagger-ui-express");
 const  swaggerSpec = require("./config/document.config");
 const AppError = require("./error/AppError");
+const jobCardRoutes = require("./routes/jobCard.route");
 require("dotenv").config();
 
 // ROUTERS IMPORT
 const authRouter = require("./routes/auth.route");
 const log = require("./middleware/log");
 const fileRouter = require("./routes/file.route");
+const employeeRouter = require("./routes/employee.route");
 
 // CONFIGURE EXPRESS APP
 const app = express();
@@ -39,6 +41,9 @@ app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec,{
 // ROUTES
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/file", fileRouter);
+app.use("/api/v1/employees", require("./routes/employee.route"));
+app.use("/api/v1/teams", require("./routes/team.route"));
+app.use("/api/v1/job-cards", jobCardRoutes);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {
