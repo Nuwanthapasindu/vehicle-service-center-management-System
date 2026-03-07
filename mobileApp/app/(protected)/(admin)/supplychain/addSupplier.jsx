@@ -1,32 +1,33 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Info, Phone, Trash2, Box, ChevronDown } from 'lucide-react-native';
+import { ChevronLeft, Phone } from 'lucide-react-native';
+import axios from 'axios';
 import { styles } from './styles'; 
 
-export default function AddSupplier({ onBack }) {
-  // 1. Setup State to capture inputs
+export default function AddSupplier({ onBack, API }) {
   const [companyName, setCompanyName] = useState('');
   const [agentName, setAgentName] = useState('');
   const [phone, setPhone] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 2. Function to handle saving
-  const handleSave = () => {
-    if (!companyName) {
-      Alert.alert("Error", "Company Name is required");
-      return;
+  const handleSave = async () => {
+    if (!companyName) return Alert.alert("Error", "Company Name is required");
+    
+    setIsSubmitting(true);
+    try {
+      await axios.post(`${API}/suppliers`, {
+        companyName,
+        agentName,
+        companyMobile: phone ? [phone] : []
+      });
+      Alert.alert("Success", "Supplier saved successfully!");
+      onBack();
+    } catch (error) {
+      Alert.alert("Error", error.response?.data?.error || "Failed to save supplier");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const newSupplier = {
-      name: companyName,
-      contact: agentName,
-      phone: phone,
-    };
-
-    console.log("Sending to Backend:", newSupplier);
-    // When your friend finishes the service, you'll call it here
-    Alert.alert("Success", "Supplier saved successfully!");
-    onBack();
   };
 
   return (
@@ -36,12 +37,7 @@ export default function AddSupplier({ onBack }) {
         <Text style={styles.headerTitle}>ADD SUPPLIER</Text>
         <View style={{ width: 32 }} />
       </View>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.sectionTitleRow}>
-          <Info size={18} color="#84CC16" />
-          <Text style={styles.sectionTitleText}>Basic Information</Text>
-        </View>
-        
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.label}>Company Name <Text style={{color: 'red'}}>*</Text></Text>
         <TextInput 
           style={styles.formInput} 
@@ -79,8 +75,8 @@ export default function AddSupplier({ onBack }) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveSupplierBtn} onPress={handleSave}>
-          <Text style={styles.saveSupplierBtnText}>Save Supplier</Text>
+        <TouchableOpacity style={styles.saveSupplierBtn} onPress={handleSave} disabled={isSubmitting}>
+          {isSubmitting ? <ActivityIndicator color="#1F2937" /> : <Text style={styles.saveSupplierBtnText}>Save Supplier</Text>}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

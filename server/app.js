@@ -40,6 +40,11 @@ app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec,{
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/file", fileRouter);
 
+// Add these with your other routes
+app.use('/api/suppliers', require('./routes/supplier.route'));
+app.use('/api/orders', require('./routes/purchaseOrder.route'));
+app.use('/api/inventory', require('./routes/inventory.route'));
+
 // DEFAULT ROUTE
 app.use((req, res, next) => {
   next(

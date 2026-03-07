@@ -1,136 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { 
-  Menu, Plus, Search, Phone, User, ClipboardList, Truck 
-} from 'lucide-react-native';
+import { Menu, Plus, Search, Phone, ClipboardList, Truck, AlertTriangle } from 'lucide-react-native';
+import { useNavigation } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
+import axios from 'axios';
 
-import { SUPPLIERS_DATA, SUPPLIES_DATA } from './data';
 import { styles } from './styles';
 import AddSupplier from './addSupplier';
 import EditSupplier from './editSupplier';
 import AddOrder from './AddOrder';
 import EditOrder from './editOrder';
 
+// Resolve the correct API URL dynamically, removing the '/v1' part since supply chain routes in app.js are just '/api/...'
+const API_URL = process.env.EXPO_PUBLIC_API_URL.replace('/v1', '');
+
 export default function SupplyChainApp() {
-  const [currentView, setCurrentView] = useState('LIST'); 
-  const [activeTab, setActiveTab] = useState('SUPPLIERS'); 
+  const navigation = useNavigation();
+  const [currentView, setCurrentView] = useState('LIST');
+  const [activeTab, setActiveTab] = useState('SUPPLIERS');
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchText, setSearchText] = useState('');
+
+  const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [lowStockWarning, setLowStockWarning] = useState(false);
 
-  // 1. Search Filtering Logic
-  const getFilteredData = () => {
-    const data = activeTab === 'SUPPLIERS' ? SUPPLIERS_DATA : SUPPLIES_DATA;
-    if (!searchText) return data;
-    
-    return data.filter(item => 
-      item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      (item.contact && item.contact.toLowerCase().includes(searchText.toLowerCase()))
-    );
-  };
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const endpoint = activeTab === 'SUPPLIERS' ? '/suppliers' : '/orders';
+      const response = await axios.get(`${API_URL}${endpoint}`);
+      setData(response.data);
 
-  const handleFabPress = () => {
-    setSelectedItem(null);
-    if (activeTab === 'SUPPLIERS') {
-      setCurrentView('ADD_SUPPLIER');
-    } else {
-      setCurrentView('ADD_ORDER');
+      // Check for low stock alerts
+      const stockRes = await axios.get(`${API_URL}/inventory/low-stock`);
+      setLowStockWarning(stockRes.data.length > 0);
+    } catch (error) {
+      console.error("Fetch Error:", error.response?.data || error.message);
+      // Optional: Alert the user if the server is unreachable.
+      Alert.alert("Network Error", "Could not connect to the server. Please check your connection.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // --- NAVIGATION ROUTER ---
-  if (currentView === 'ADD_SUPPLIER') return <AddSupplier onBack={() => setCurrentView('LIST')} />;
-  if (currentView === 'EDIT_SUPPLIER') return <EditSupplier supplier={selectedItem} onBack={() => setCurrentView('LIST')} />;
-  if (currentView === 'ADD_ORDER') return <AddOrder onBack={() => setCurrentView('LIST')} />;
-  if (currentView === 'EDIT_ORDER') return <EditOrder order={selectedItem} onBack={() => setCurrentView('LIST')} />;
+  useEffect(() => {
+    if (currentView === 'LIST') {
+      fetchData();
+    }
+  }, [activeTab, currentView]);
+
+  const getFilteredData = () => {
+    if (!searchText) return data;
+    return data.filter(item => {
+      const searchStr = activeTab === 'SUPPLIERS' ? item.companyName : item.supplier?.companyName;
+      return searchStr?.toLowerCase().includes(searchText.toLowerCase());
+    });
+  };
+
+  const handleFabPress = () => {
+    setCurrentView(activeTab === 'SUPPLIERS' ? 'ADD_SUPPLIER' : 'ADD_ORDER');
+  };
+
+  // Views Routing
+  if (currentView === 'ADD_SUPPLIER') return <AddSupplier onBack={() => setCurrentView('LIST')} API={API_URL} />;
+  if (currentView === 'EDIT_SUPPLIER') return <EditSupplier supplier={selectedItem} onBack={() => setCurrentView('LIST')} API={API_URL} />;
+  if (currentView === 'ADD_ORDER') return <AddOrder onBack={() => setCurrentView('LIST')} API={API_URL} />;
+  if (currentView === 'EDIT_ORDER') return <EditOrder order={selectedItem} onBack={() => setCurrentView('LIST')} API={API_URL} />;
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Menu color="#1F2937" size={28} />
+        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
+          <Menu color="#1F2937" size={28} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>{activeTab}</Text>
-        <View style={{ width: 28 }} />
+        {lowStockWarning ? <AlertTriangle color="#EF4444" size={28} /> : <View style={{ width: 28 }} />}
       </View>
 
-      {/* Search Bar - Linked to State */}
+      {/* Low Stock Warning Banner */}
+      {lowStockWarning && (
+        <View style={{ backgroundColor: '#FEF2F2', padding: 10, alignItems: 'center' }}>
+          <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>⚠️ Inventory Low Stock Alert</Text>
+        </View>
+      )}
+
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchSection}>
           <Search size={20} color="#9CA3AF" style={styles.searchIcon} />
-          <TextInput 
-            style={styles.searchInput} 
-            placeholder={`Search ${activeTab.toLowerCase()}...`} 
-            placeholderTextColor="#9CA3AF" 
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search..."
             value={searchText}
             onChangeText={setSearchText}
           />
         </View>
       </View>
 
-      {/* Main List with Loading State */}
+      {/* Main List */}
       {isLoading ? (
         <ActivityIndicator size="large" color="#84CC16" style={{ marginTop: 50 }} />
       ) : (
         <FlatList
           data={getFilteredData()}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20, color: '#9CA3AF' }}>No results found</Text>}
-          renderItem={({ item }) => {
-            const isReceived = item.status?.toUpperCase() === 'RECEIVED';
-            
-            return (
-              <TouchableOpacity 
-                style={
-                  activeTab === 'SUPPLIERS' 
-                    ? styles.card 
-                    : [styles.card, { borderLeftWidth: 5, borderLeftColor: isReceived ? '#84CC16' : '#FFB800' }]
-                } 
-                onPress={() => { 
-                    setSelectedItem(item);
-                    setCurrentView(activeTab === 'SUPPLIERS' ? 'EDIT_SUPPLIER' : 'EDIT_ORDER');
-                }}
-              >
-                <View style={styles.cardContent}>
-                  <Text style={styles.supplierName}>{item.name}</Text>
-                  {activeTab === 'SUPPLIERS' ? (
-                    <>
-                      <View style={styles.infoRow}>
-                        <User size={14} color="#9CA3AF" />
-                        <Text style={styles.infoText}>Contact: {item.contact}</Text>
-                      </View>
-                      <View style={styles.infoRow}>
-                        <Phone size={14} color="#9CA3AF" />
-                        <Text style={styles.infoText}>{item.phone}</Text>
-                      </View>
-                    </>
-                  ) : (
-                    <Text style={styles.subtitle}>{item.date} • {item.items} Items</Text>
-                  )}
-                </View>
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.card,
+                activeTab === 'SUPPLIES' && {
+                  borderLeftWidth: 5,
+                  borderLeftColor: item.status === 'Received' ? '#84CC16' : '#FFB800'
+                }
+              ]}
+              onPress={() => {
+                setSelectedItem(item);
+                setCurrentView(activeTab === 'SUPPLIERS' ? 'EDIT_SUPPLIER' : 'EDIT_ORDER');
+              }}
+            >
+              <View style={styles.cardContent}>
+                <Text style={styles.supplierName}>
+                  {activeTab === 'SUPPLIERS' ? item.companyName : item.supplier?.companyName || "Unknown Supplier"}
+                </Text>
 
-                <View style={{ alignItems: 'flex-end' }}>
-                  {activeTab === 'SUPPLIES' && (
-                    <View style={[styles.badge, { backgroundColor: isReceived ? '#F4FCE3' : '#FFFBEB' }]}>
-                      <Text style={[styles.badgeText, { color: isReceived ? '#84CC16' : '#FFB800' }]}>
-                        {item.status}
-                      </Text>
-                    </View>
-                  )}
-                  
-                  {activeTab === 'SUPPLIERS' ? (
-                    <View style={styles.callButton}>
-                      <Phone size={20} color="#1F2937" />
-                    </View>
-                  ) : (
-                    <Text style={styles.totalCostValue}>Rs. {item.cost}</Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            );
-          }}
+                {activeTab === 'SUPPLIERS' ? (
+                  <Text style={styles.infoText}>Agent: {item.agentName || 'N/A'}</Text>
+                ) : (
+                  <Text style={styles.subtitle}>{item.items?.length || 0} Items - {item.status}</Text>
+                )}
+              </View>
+
+              <View style={{ alignItems: 'flex-end' }}>
+                {activeTab === 'SUPPLIERS' ? (
+                  <View style={styles.callButton}>
+                    <Phone size={20} color="#1F2937" />
+                  </View>
+                ) : (
+                  <Text style={styles.totalCostValue}>Rs. {item.totalCost || 0}</Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          )}
         />
       )}
 
@@ -141,18 +155,12 @@ export default function SupplyChainApp() {
 
       {/* Bottom Tabs */}
       <View style={styles.bottomTabs}>
-        <TouchableOpacity 
-          style={styles.tabItem} 
-          onPress={() => { setActiveTab('SUPPLIERS'); setSearchText(''); }}
-        >
+        <TouchableOpacity style={styles.tabItem} onPress={() => { setActiveTab('SUPPLIERS'); setSearchText(''); }}>
           <Truck size={24} color={activeTab === 'SUPPLIERS' ? '#84CC16' : '#9CA3AF'} />
           <Text style={[styles.tabText, activeTab === 'SUPPLIERS' && styles.activeTabText]}>SUPPLIERS</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.tabItem} 
-          onPress={() => { setActiveTab('SUPPLIES'); setSearchText(''); }}
-        >
+
+        <TouchableOpacity style={styles.tabItem} onPress={() => { setActiveTab('SUPPLIES'); setSearchText(''); }}>
           <ClipboardList size={24} color={activeTab === 'SUPPLIES' ? '#84CC16' : '#9CA3AF'} />
           <Text style={[styles.tabText, activeTab === 'SUPPLIES' && styles.activeTabText]}>SUPPLIES</Text>
         </TouchableOpacity>
