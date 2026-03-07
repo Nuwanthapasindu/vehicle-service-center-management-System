@@ -3,7 +3,10 @@ const Inventory = require('../model/Inventory');
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const orders = await PurchaseOrder.find().populate('supplier', 'companyName agentName').sort({ createdAt: -1 });
+    const orders = await PurchaseOrder.find()
+      .populate('supplier', 'companyName agentName')
+      .populate('items.itemId', 'name unitType')
+      .sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) { res.status(500).json({ error: error.message }); }
 };

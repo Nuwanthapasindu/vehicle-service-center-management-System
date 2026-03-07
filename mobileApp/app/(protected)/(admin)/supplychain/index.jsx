@@ -25,6 +25,7 @@ export default function SupplyChainApp() {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lowStockWarning, setLowStockWarning] = useState(false);
+  const [lowStockItems, setLowStockItems] = useState([]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -35,6 +36,7 @@ export default function SupplyChainApp() {
 
       // Check for low stock alerts
       const stockRes = await axios.get(`${API_URL}/inventory/low-stock`);
+      setLowStockItems(stockRes.data);
       setLowStockWarning(stockRes.data.length > 0);
     } catch (error) {
       console.error("Fetch Error:", error.response?.data || error.message);
@@ -82,9 +84,17 @@ export default function SupplyChainApp() {
 
       {/* Low Stock Warning Banner */}
       {lowStockWarning && (
-        <View style={{ backgroundColor: '#FEF2F2', padding: 10, alignItems: 'center' }}>
-          <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>⚠️ Inventory Low Stock Alert</Text>
-        </View>
+        <TouchableOpacity
+          style={{ backgroundColor: '#FEF2F2', padding: 10, alignItems: 'center' }}
+          onPress={() => {
+            if (lowStockItems.length > 0) {
+              const itemNames = lowStockItems.map(i => `• ${i.name} (Qty: ${i.qty})`).join('\n');
+              Alert.alert('Low Stock Items', itemNames);
+            }
+          }}
+        >
+          <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>⚠️ Inventory Low Stock Alert (Tap to view)</Text>
+        </TouchableOpacity>
       )}
 
       {/* Search Bar */}
@@ -114,7 +124,7 @@ export default function SupplyChainApp() {
                 styles.card,
                 activeTab === 'SUPPLIES' && {
                   borderLeftWidth: 5,
-                  borderLeftColor: item.status === 'Received' ? '#84CC16' : '#FFB800'
+                  borderLeftColor: item.status === 'Received' ? '#84CC16' : (item.status === 'Sent' ? '#3B82F6' : '#FFB800')
                 }
               ]}
               onPress={() => {

@@ -6,36 +6,40 @@ import axios from 'axios';
 import { styles } from './styles';
 
 export default function EditOrder({ order, onBack, API }) {
-  const isPending = order?.status === 'Pending';
+  const isPending = order?.status === 'Sent'; // Usually means it's sent to supplier and waiting to receive
+  const isDraft = order?.status === 'Draft';
 
   const handleMarkAsReceived = () => {
     Alert.alert("Confirm Receipt", "This will add items to your inventory. Continue?", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Confirm", onPress: async () => {
-            try {
-              await axios.put(`${API}/orders/${order._id}/receive`);
-              Alert.alert("Success", "Inventory updated successfully!");
-              onBack();
-            } catch (error) { 
-              Alert.alert("Error", error.response?.data?.message || "Could not mark as received."); 
-            }
-          } 
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Confirm", onPress: async () => {
+          try {
+            await axios.put(`${API}/orders/${order._id}/receive`);
+            Alert.alert("Success", "Inventory updated successfully!");
+            onBack();
+          } catch (error) {
+            Alert.alert("Error", error.response?.data?.message || "Could not mark as received.");
+          }
         }
-      ]
+      }
+    ]
     );
   };
 
   const handleDelete = () => {
     Alert.alert("Delete", "Are you sure you want to remove this record?", [
       { text: "No" },
-      { text: "Yes", style: 'destructive', onPress: async () => {
+      {
+        text: "Yes", style: 'destructive', onPress: async () => {
           try {
             await axios.delete(`${API}/orders/${order._id}`);
             onBack();
           } catch (error) {
             Alert.alert("Error", "Could not delete order.");
           }
-      }}
+        }
+      }
     ]);
   };
 
@@ -43,18 +47,18 @@ export default function EditOrder({ order, onBack, API }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack}><ChevronLeft color="#84CC16" size={32} /></TouchableOpacity>
-        <Text style={styles.headerTitle}>{isPending ? "PENDING ORDER" : "RECEIVED ORDER"}</Text>
+        <Text style={styles.headerTitle}>{isDraft ? "DRAFT ORDER" : (isPending ? "SENT ORDER" : "RECEIVED ORDER")}</Text>
         <View style={{ width: 32 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.smallLabelCaps}>SUPPLIER: {order?.supplier?.companyName}</Text>
-        
+
         {order?.items?.map((item, index) => (
           <View key={index} style={styles.orderItemCard}>
-            <Text style={styles.itemName}>{item.name}</Text>
+            <Text style={styles.itemName}>{item.itemId?.name || 'Unknown Item'}</Text>
             <View style={{ marginTop: 15, flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.tinyLabel}>QTY: {item.qty}</Text>
+              <Text style={styles.tinyLabel}>QTY: {item.qty} {item.unitType}</Text>
               <Text style={styles.tinyLabel}>COST: Rs.{item.cost}</Text>
             </View>
           </View>
@@ -65,15 +69,19 @@ export default function EditOrder({ order, onBack, API }) {
         </View>
       </ScrollView>
 
-      <View style={[styles.footer, !isPending && { height: 160 }]}>
+      <View style={[styles.footer, !isPending && !isDraft && { height: 160 }]}>
         {isPending ? (
           <TouchableOpacity style={styles.saveSupplierBtn} onPress={handleMarkAsReceived}>
             <Text style={styles.saveSupplierBtnText}>MARK AS RECEIVED</Text>
             <CheckCircle2 size={20} color="#1F2937" style={{ marginLeft: 8 }} />
           </TouchableOpacity>
+        ) : isDraft ? (
+          <TouchableOpacity style={[styles.saveSupplierBtn, { backgroundColor: '#F3F4F6' }]} onPress={() => Alert.alert('Info', 'This is a draft.')}>
+            <Text style={[styles.saveSupplierBtnText, { color: '#374151' }]}>DRAFT RECORD</Text>
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]} onPress={handleDelete}>
-            <Trash2 size={18} color="#EF4444" style={{marginRight: 8}} />
+            <Trash2 size={18} color="#EF4444" style={{ marginRight: 8 }} />
             <Text style={[styles.saveSupplierBtnText, { color: '#EF4444' }]}>Delete Record</Text>
           </TouchableOpacity>
         )}
