@@ -134,7 +134,7 @@ module.exports.getServiceById = async (id) => {
     const service = await Service.findById(id)
       .populate({
         path: "image",
-        select: ["-_id", "filePath", "fileType"],
+        select: ["_id", "filePath", "fileType"],
       })
       .select(["-isDeleted", "-deletedAt", "-__v"]);
 
@@ -154,6 +154,7 @@ module.exports.getServiceById = async (id) => {
  * @returns {Promise<Object>} - Updated service
  */
 module.exports.updateService = async (id, payload) => {
+  let imageChanged = false;
   if (!id) throw new AppError("Service id is required", 400);
 
   // Prevent users from manually altering soft-delete statuses during standard updates
@@ -173,16 +174,24 @@ module.exports.updateService = async (id, payload) => {
         await deleteFileById(payload.image);
         throw new AppError("Uploaded file must be an image", 400);
       }
+      imageChanged = true;
     }
 
     if (payload.name) {
       const existingService = await Service.findOne({
         name: payload.name,
         _id: { $ne: id },
-        isDeleted: false, 
+        isDeleted: false,
       });
       if (existingService) {
         throw new AppError("Service name already in use", 400);
+      }
+    }
+
+    if (imageChanged) {
+      const oldImage = await Service.findById(id);
+      if (oldImage.image) {
+        await deleteFileById(oldImage.image);
       }
     }
 
@@ -216,6 +225,9 @@ module.exports.deleteService = async (id) => {
     );
     if (!deletedService.modifiedCount) {
       throw new AppError("Service not found", 404);
+    }
+    if (deletedService.image) {
+      await deleteFileById(deletedService.image);
     }
     return "Service deleted successfully.";
   } catch (error) {

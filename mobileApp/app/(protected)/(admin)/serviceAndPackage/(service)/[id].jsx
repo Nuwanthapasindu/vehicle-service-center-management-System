@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,42 +8,83 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Image,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
+import Toast from "react-native-toast-message";
+
 import DropdownInput from "../../../../../components/DropdownInput";
+import CustomImagePicker from "../../../../../components/CustomImagePicker";
 import colors from "../../../../../constants/colors";
+import enums from "../../../../../constants/enums";
+import getImageFullUrl from "../../../../../utils/getImageFullUrl";
+
+const VEHICLE_TYPES = Object.values(enums.VEHICLE_TYPES);
 
 export default function EditService() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
-  // MOCK initial data load matching design
-  const [serviceName, setServiceName] = useState("Ceramic Coating");
-  const [description, setDescription] = useState(
-    "High-durability nano-ceramic protective layer providing hydrophobic properties and long-lasting gloss enhancement for automotive paint.",
-  );
-  const [category, setCategory] = useState("CutPolish");
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
-  // Dynamic Pricing Mapping setup to match `add.jsx`
+  const [serviceName, setServiceName] = useState("");
+  const [description, setDescription] = useState("");
   const [pricingOptions, setPricingOptions] = useState([
-    { id: "1", name: "Base", price: "499.00" },
+    { id: "1", model: VEHICLE_TYPES[0], price: "" },
   ]);
 
-  // Use a placeholder URI or null for standard blank view, but we'll supply a random image string mock so it renders full screen on load if needed
-  const [imageUri, setImageUri] = useState(
-    "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?auto=format&fit=crop&q=80&w=800",
-  );
+  const [imageUri, setImageUri] = useState(null);
+  const [uploadedImageId, setUploadedImageId] = useState(null);
 
-  const CATEGORIES = ["CutPolish", "Sanitation", "Protection", "Maintenance"];
+  useEffect(() => {
+    if (id) fetchService();
+  }, [id]);
+
+  const fetchService = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`/service/${id}`);
+      const data = res.data.payload.service;
+      setServiceName(data.name);
+      setDescription(data.description || "");
+
+      if (data.image) {
+        setUploadedImageId(data.image._id || data.image);
+        if (data.image.filePath) {
+         
+          setImageUri(getImageFullUrl(data.image.filePath));
+        }
+      }
+
+      if (data.prices && data.prices.length > 0) {
+        setPricingOptions(
+          data.prices.map((p, i) => ({
+            id: i.toString(),
+            model: p.model,
+            price: p.price.toString(),
+          })),
+        );
+      }
+    } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to fetch service details",
+      });
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addPricingOption = () => {
     setPricingOptions([
       ...pricingOptions,
-      { id: Date.now().toString(), name: "", price: "" },
+      { id: Date.now().toString(), model: VEHICLE_TYPES[0], price: "" },
     ]);
   };
 
@@ -56,49 +97,100 @@ export default function EditService() {
   };
 
   const removePricingOption = (id) => {
-    if (pricingOptions.length === 1) return; // Must have at least one price
+    if (pricingOptions.length === 1) return;
     setPricingOptions(pricingOptions.filter((item) => item.id !== id));
   };
 
-  const pickImage = async () => {
+  const handleUpdate = async () => {
+    if (!serviceName.trim()) {
+      return Toast.show({
+        type: "error",
+        text1: "Validation Error",
+        text2: "Service name is required.",
+      });
+    }
+
+    setUpdating(true);
     try {
-      const currentPermission =
-        await ImagePicker.getMediaLibraryPermissionsAsync();
-      let hasPermission = currentPermission.granted;
+      const payload = {
+        name: serviceName.trim(),
+        description: description ? description.trim() : undefined,
+        prices: pricingOptions.map((p) => ({
+          model: p.model,
+          price: Number(p.price),
+        })),
+      };
 
-      if (!hasPermission) {
-        const requestPermission =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        hasPermission = requestPermission.granted;
+      if (uploadedImageId && typeof uploadedImageId === "string") {
+        payload.image = uploadedImageId;
       }
 
-      if (!hasPermission) {
-        Alert.alert(
-          "Permission Required",
-          "Please allow access to your photo library in your device settings to select a service image.",
-          [{ text: "OK" }],
-        );
-        return;
-      }
+      await axios.put(`/service/${id}`, payload);
 
-      const pickerResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [16, 9],
-        quality: 1,
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Service updated successfully",
       });
 
-      if (!pickerResult.canceled) {
-        setImageUri(pickerResult.assets[0].uri);
-      }
+      router.back();
     } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert(
-        "Error",
-        "Something went wrong while trying to select an image.",
-      );
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.response?.data?.message || "Failed to update service",
+      });
+    } finally {
+      setUpdating(false);
     }
   };
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this service? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setUpdating(true);
+              await axios.delete(`/service/${id}`);
+              Toast.show({
+                type: "success",
+                text1: "Deleted",
+                text2: "Service has been deleted",
+              });
+              router.back();
+            } catch (error) {
+              Toast.show({
+                type: "error",
+                text1: "Error",
+                text2:
+                  error.response?.data?.message || "Failed to delete service",
+              });
+              setUpdating(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color={colors.PRIMARY} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -106,33 +198,14 @@ export default function EditService() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header Hero Image */}
-        <View style={styles.imageContainer}>
-          {imageUri ? (
-            <Image
-              source={{ uri: imageUri }}
-              style={styles.heroImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={[styles.heroImage, styles.heroPlaceholder]}>
-              <Ionicons
-                name="image-outline"
-                size={40}
-                color={colors.SECONDARY}
-              />
-            </View>
-          )}
-
-          <TouchableOpacity
-            style={styles.editImageBtn}
-            onPress={pickImage}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="pencil" size={14} color={colors.LIGHT} />
-            <Text style={styles.editImageText}>Edit Image</Text>
-          </TouchableOpacity>
-        </View>
+        <CustomImagePicker
+          imageUri={imageUri}
+          onImageSelected={setImageUri}
+          onUploadSuccess={setUploadedImageId}
+          title="Tap to change service image"
+          subtitle="Upload a new high-quality photo"
+          isMultiple={false}
+        />
 
         {/* Form Fields Section */}
         <View style={styles.formSection}>
@@ -175,11 +248,11 @@ export default function EditService() {
                   },
                 ]}
               >
-                VARIANT PRICE (LKR)
+                PRICE (LKR)
               </Text>
               <TextInput
                 style={styles.input}
-                placeholder={index === 0 ? "499.00" : "0.00"}
+                placeholder="0.00"
                 placeholderTextColor={colors.SECONDARY + "80"}
                 keyboardType="numeric"
                 value={item.price}
@@ -200,39 +273,30 @@ export default function EditService() {
                   },
                 ]}
               >
-                {index === 0 ? "CATEGORY" : "VARIANT NAME"}
+                VEHICLE MODEL
               </Text>
 
-              {index === 0 ? (
-                /* The Category Dropdown stays locked to index 0 */
-                <DropdownInput
-                  value={category}
-                  options={CATEGORIES}
-                  onSelect={setCategory}
-                  modalTitle="Select Category"
-                />
-              ) : (
-                /* Subsequent dynamic pricing variants */
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-                >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <View style={{ flex: 1 }}>
                   <DropdownInput
-                    placeholder="e.g. SUV"
-                    placeholderTextColor={colors.SECONDARY + "80"}
-                    value={item.name}
-                    options={CATEGORIES}
+                    value={item.model}
+                    options={VEHICLE_TYPES}
                     onSelect={(value) =>
-                      updatePricingOption(item.id, "name", value)
+                      updatePricingOption(item.id, "model", value)
                     }
-                    modalTitle="Select Variant Category"
+                    modalTitle="Select Model"
                   />
+                </View>
+                {pricingOptions.length > 1 && (
                   <TouchableOpacity
                     onPress={() => removePricingOption(item.id)}
                   >
                     <Ionicons name="trash-outline" size={24} color="#EF4444" />
                   </TouchableOpacity>
-                </View>
-              )}
+                )}
+              </View>
             </View>
           </View>
         ))}
@@ -246,12 +310,28 @@ export default function EditService() {
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.updateButton} activeOpacity={0.8}>
-            <Ionicons name="save-outline" size={20} color={colors.DARK} />
-            <Text style={styles.updateButtonText}>Update Service</Text>
+          <TouchableOpacity
+            style={styles.updateButton}
+            activeOpacity={0.8}
+            onPress={handleUpdate}
+            disabled={updating}
+          >
+            {updating ? (
+              <ActivityIndicator color={colors.DARK} />
+            ) : (
+              <>
+                <Ionicons name="save-outline" size={20} color={colors.DARK} />
+                <Text style={styles.updateButtonText}>Update Service</Text>
+              </>
+            )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.deleteButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            activeOpacity={0.8}
+            onPress={handleDelete}
+            disabled={updating}
+          >
             <Ionicons name="trash-outline" size={20} color="#EF4444" />
             <Text style={styles.deleteButtonText}>Delete Service</Text>
           </TouchableOpacity>
@@ -267,48 +347,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.BACKGROUND_COLOR,
   },
   scrollContent: {
+    paddingTop: 16,
     paddingBottom: 50, // Extra padding for the bottom buttons
-  },
-  imageContainer: {
-    width: "100%",
-    height: 220,
-    position: "relative",
-    marginBottom: 24,
-  },
-  heroImage: {
-    width: "100%",
-    height: "100%",
-  },
-  heroPlaceholder: {
-    backgroundColor: "#E2E8F0",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  editImageBtn: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.DARK,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
-    gap: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  editImageText: {
-    color: colors.LIGHT,
-    fontSize: 13,
-    fontWeight: "600",
   },
   formSection: {
     paddingHorizontal: 24,
     gap: 20,
+    marginTop: 0,
   },
   inputGroup: {
     gap: 8,
