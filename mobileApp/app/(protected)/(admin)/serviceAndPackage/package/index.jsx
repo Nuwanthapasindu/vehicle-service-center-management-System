@@ -1,77 +1,178 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   Image,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
+import axios from "axios";
 import colors from "../../../../../constants/colors";
-
-const DUMMY_PACKAGES = [
-  {
-    id: 1,
-    name: "Premium Detailing Bundle",
-    vehicles: "Sedan, SUV, Truck",
-    servicesCount: 5,
-    updatedAt: "Updated 2d ago",
-    image:
-      "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?auto=format&fit=crop&q=80&w=200",
-    active: true,
-  },
-  {
-    id: 2,
-    name: "Ceramic Coating Gold",
-    vehicles: "Sedan, SUV",
-    servicesCount: 3,
-    updatedAt: "Updated 1w ago",
-    image:
-      "https://images.unsplash.com/photo-1620288627223-53302f4e8c74?auto=format&fit=crop&q=80&w=200",
-    active: true,
-  },
-  {
-    id: 3,
-    name: "Interior Deep Clean",
-    vehicles: "All Models",
-    servicesCount: 8,
-    updatedAt: "Updated 3h ago",
-    image:
-      "https://images.unsplash.com/photo-1550524458-75c6020c6ae2?auto=format&fit=crop&q=80&w=200",
-    active: true,
-  },
-  {
-    id: 4,
-    name: "Wheel & Tire Protection",
-    vehicles: "Sedan, SUV, Truck, Van",
-    servicesCount: 2,
-    updatedAt: "Updated 1mo ago",
-    image:
-      "https://images.unsplash.com/photo-1594246672323-017e8845fc86?auto=format&fit=crop&q=80&w=200",
-    active: true,
-  },
-  {
-    id: 5,
-    name: "Showroom Gloss Finish",
-    vehicles: "Sedan, Sports",
-    servicesCount: 4,
-    updatedAt: "Updated 5d ago",
-    image:
-      "https://images.unsplash.com/photo-1616423640778-28d1b53229bd?auto=format&fit=crop&q=80&w=200",
-    active: true,
-  },
-];
+import  getImageFullUrl  from "../../../../../utils/getImageFullUrl";
 
 export default function PackageCatalog() {
   const router = useRouter();
-  const [filter, setFilter] = useState("Active");
+
+  const [packages, setPackages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hasMore, setHasMore] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [totalPackages, setTotalPackages] = useState(0);
+
+  // Filter state for active/inactive (if we support it later)
+  const [filter, setFilter] = useState("All Packages");
+
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setPage(1);
+      fetchPackages(1, debouncedSearch);
+    }, [debouncedSearch]),
+  );
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchPackages(page, debouncedSearch);
+    }
+  }, [page]);
+
+  const fetchPackages = async (pageNumber, search) => {
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.get("/package", {
+        params: {
+          page: pageNumber,
+          limit: 10,
+          name: search || undefined,
+        },
+      });
+
+      const targetPayload = response.data.payload || {};
+      const newPackages = targetPayload.packages || [];
+      const total = targetPayload.total || 0;
+      const pages = targetPayload.pages || 1;
+
+      setTotalPackages(total);
+
+      if (pageNumber === 1) {
+        setPackages(newPackages);
+      } else {
+        setPackages((prev) => [...prev, ...newPackages]);
+      }
+
+      if (pageNumber >= pages) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+    setPage(1);
+    setHasMore(true);
+    if (text === "") {
+      setDebouncedSearch("");
+    }
+  };
+
+  const loadMorePackages = () => {
+    if (hasMore && !loading) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const renderFooter = () => {
+    if (!loading) return <View style={{ height: 100 }} />;
+    return (
+      <View style={{ paddingVertical: 20, height: 100 }}>
+        <ActivityIndicator size="small" color={colors.PRIMARY} />
+      </View>
+    );
+  };
+
+  const renderItem = ({ item }) => {
+    const isActive = !item.isDeleted; // Adjust if schema has actual 'active' field
+    const imageUrl =
+      item.image && item.image.filePath
+        ? getImageFullUrl(item.image.filePath)
+        : "https://via.placeholder.com/200?text=No+Image";
+
+    const servicesCount = item.servicesIncluded?.length || 0;
+    const modelsStr = item.applicableVehicalModels?.join(", ") || "";
+
+    // Show date formatted
+    const dateUpdated = new Date(item.updatedAt);
+    const dateFormatted = `${dateUpdated.getDate()} ${dateUpdated.toLocaleString("default", { month: "short" })}`;
+
+    return (
+      <TouchableOpacity
+        style={[styles.card, !isActive && styles.cardInactive]}
+        activeOpacity={0.7}
+        onPress={() =>
+          router.push(
+            `/(protected)/(admin)/serviceAndPackage/package/${item._id}`,
+          )
+        }
+      >
+        <View style={styles.cardImageWrapper}>
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+        </View>
+
+        <View style={styles.cardContent}>
+          <Text style={styles.pkgName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text style={styles.pkgVehicles} numberOfLines={1}>
+            {modelsStr}
+          </Text>
+
+          <View style={styles.metaRow}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{servicesCount} SERVICES</Text>
+            </View>
+            <Text style={styles.updatedText}>• Updated {dateFormatted}</Text>
+          </View>
+        </View>
+
+        <Ionicons
+          name="chevron-forward"
+          size={20}
+          color={colors.BORDER_COLOR}
+          style={styles.chevron}
+        />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/* Header & Search Section */}
+      {/* Search Section */}
       <View style={styles.headerSection}>
         <View style={styles.searchBox}>
           <Ionicons
@@ -84,84 +185,27 @@ export default function PackageCatalog() {
             placeholder="Search packages (e.g. Interior, Ceramic)"
             placeholderTextColor={colors.SECONDARY + "80"}
             style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={handleSearch}
           />
         </View>
-
-        {/* Filter Tabs */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterTabsContainer}
-        >
-          {["Active", "All Packages", "Deactivated"].map((tab) => {
-            const isActive = filter === tab;
-            return (
-              <TouchableOpacity
-                key={tab}
-                style={[styles.filterTab, isActive && styles.filterTabActive]}
-                activeOpacity={0.7}
-                onPress={() => setFilter(tab)}
-              >
-                <Text
-                  style={[
-                    styles.filterTabText,
-                    isActive && styles.filterTabTextActive,
-                  ]}
-                >
-                  {tab}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* List */}
-        <View style={styles.listContainer}>
-          {DUMMY_PACKAGES.map((pkg) => (
-            <TouchableOpacity
-              key={pkg.id}
-              style={[styles.card, !pkg.active && styles.cardInactive]}
-              activeOpacity={0.7}
-              onPress={() =>
-                router.push(
-                  `/(protected)/(admin)/serviceAndPackage/package/${pkg.id}`,
-                )
-              }
-            >
-              <View style={styles.cardImageWrapper}>
-                <Image
-                  source={{ uri: pkg.image }}
-                  style={styles.cardImage}
-                  resizeMode="cover"
-                />
-              </View>
-
-              <View style={styles.cardContent}>
-                <Text style={styles.pkgName}>{pkg.name}</Text>
-                <Text style={styles.pkgVehicles}>{pkg.vehicles}</Text>
-
-                <View style={styles.metaRow}>
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>
-                      {pkg.servicesCount} SERVICES
-                    </Text>
-                  </View>
-                  <Text style={styles.updatedText}>• {pkg.updatedAt}</Text>
-                </View>
-              </View>
-
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.BORDER_COLOR}
-                style={styles.chevron}
-              />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+      <FlatList
+        data={packages}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.scrollContent}
+        ListHeaderComponent={() => (
+          <Text style={styles.sectionTitle}>
+            ALL PACKAGES ({totalPackages})
+          </Text>
+        )}
+        onEndReached={loadMorePackages}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={renderFooter}
+        showsVerticalScrollIndicator={false}
+      />
 
       {/* Floating Action Button */}
       <TouchableOpacity
@@ -185,7 +229,7 @@ const styles = StyleSheet.create({
   headerSection: {
     backgroundColor: colors.BACKGROUND_COLOR,
     paddingTop: 16,
-    paddingBottom: 4,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.BORDER_COLOR + "40",
   },
@@ -208,39 +252,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.DARK,
   },
-  filterTabsContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    gap: 12,
-  },
-  filterTab: {
-    backgroundColor: colors.LIGHT,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-  },
-  filterTabActive: {
-    backgroundColor: colors.PRIMARY,
-    borderColor: colors.PRIMARY,
-  },
-  filterTabText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.DARK,
-  },
-  filterTabTextActive: {
-    color: colors.DARK,
-  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 100, // Leave room for FAB
   },
-  listContainer: {
-    gap: 16,
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.SECONDARY,
+    letterSpacing: 1,
+    marginBottom: 16,
   },
   card: {
     flexDirection: "row",
@@ -255,6 +277,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 5,
     elevation: 2,
+    marginBottom: 16,
   },
   cardInactive: {
     opacity: 0.6,
@@ -290,7 +313,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   badge: {
-    backgroundColor: "#E4F7D4", // Light pastel green matching the screenshot
+    backgroundColor: "#E4F7D4",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -298,7 +321,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     fontWeight: "800",
-    color: "#2C541A", // Dark green for contrast
+    color: "#2C541A",
   },
   updatedText: {
     fontSize: 12,
