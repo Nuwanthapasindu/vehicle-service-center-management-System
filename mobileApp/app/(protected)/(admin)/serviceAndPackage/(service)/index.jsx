@@ -53,9 +53,10 @@ export default function Service() {
         },
       });
 
-      const newServices = response.data.payload.services || [];
-      const total = response.data.payload.total || 0;
-      const pages = response.data.payload.pages || 1;
+      const targetPayload = response.data.payload.services || {};
+      const newServices = targetPayload.services || [];
+      const total = targetPayload.total || 0;
+      const pages = targetPayload.pages || 1;
 
       setTotalServices(total);
 
