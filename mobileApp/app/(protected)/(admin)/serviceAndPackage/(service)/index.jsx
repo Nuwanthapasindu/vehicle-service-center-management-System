@@ -147,7 +147,7 @@ export default function Service() {
           <Text
             style={[styles.priceText, !isActive && styles.textInactiveLight]}
           >
-            ${minPrice}
+            LKR {minPrice}
           </Text>
           <Ionicons
             name="chevron-forward"
