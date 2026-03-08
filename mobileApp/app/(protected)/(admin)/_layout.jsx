@@ -126,7 +126,7 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="(serviceAndPackage)"
+          name="serviceAndPackage"
           options={{
             drawerLabel: "Catalog & Packages",
             title: "Catalog & Packages",

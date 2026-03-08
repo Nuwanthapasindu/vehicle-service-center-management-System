@@ -126,7 +126,7 @@ export default function PackageCatalog() {
               activeOpacity={0.7}
               onPress={() =>
                 router.push(
-                  `/(protected)/(admin)/(serviceAndPackage)/(package)/${pkg.id}`,
+                  `/(protected)/(admin)/serviceAndPackage/(package)/${pkg.id}`,
                 )
               }
             >
@@ -168,7 +168,7 @@ export default function PackageCatalog() {
         style={styles.fab}
         activeOpacity={0.8}
         onPress={() =>
-          router.push("/(protected)/(admin)/(serviceAndPackage)/(package)/add")
+          router.push("/(protected)/(admin)/serviceAndPackage/(package)/add")
         }
       >
         <Ionicons name="add" size={32} color={colors.DARK} />
