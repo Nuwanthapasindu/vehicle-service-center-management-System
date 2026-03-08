@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import colors from "../../../../../constants/colors";
 import axios from "axios";
 
@@ -35,10 +35,18 @@ export default function Service() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fetch services when page or debouncedSearch changes
+  useFocusEffect(
+    useCallback(() => {
+      setPage(1);
+      fetchServices(1, debouncedSearch);
+    }, [debouncedSearch]),
+  );
+
   useEffect(() => {
-    fetchServices(page, debouncedSearch);
-  }, [page, debouncedSearch]);
+    if (page > 1) {
+      fetchServices(page, debouncedSearch);
+    }
+  }, [page]);
 
   const fetchServices = async (pageNumber, search) => {
     if (loading) return;
