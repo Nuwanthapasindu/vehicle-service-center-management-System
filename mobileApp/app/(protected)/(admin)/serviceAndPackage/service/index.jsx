@@ -126,7 +126,7 @@ export default function Service() {
         activeOpacity={0.7}
         onPress={() =>
           router.push(
-            `/(protected)/(admin)/serviceAndPackage/(service)/${item._id}`,
+            `/(protected)/(admin)/serviceAndPackage/service/${item._id}`,
           )
         }
         disabled={!isActive}
@@ -208,7 +208,7 @@ export default function Service() {
         style={styles.fab}
         activeOpacity={0.8}
         onPress={() =>
-          router.push("/(protected)/(admin)/serviceAndPackage/(service)/add")
+          router.push("/(protected)/(admin)/serviceAndPackage/service/add")
         }
       >
         <Ionicons name="add" size={32} color={colors.LIGHT} />
