@@ -16,6 +16,7 @@
     "axios": "^1.7.9",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
+    "expo-file-system": "~19.0.21",
     "expo-image-picker": "~17.0.10",
     "expo-linking": "~8.0.11",
     "expo-router": "~6.0.23",
@@ -38,7 +39,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@types/react": "~19.1.10"
+    "@types/react": "~19.1.10",
+    "babel-preset-expo": "^55.0.10"
   },
   "private": true
 }
