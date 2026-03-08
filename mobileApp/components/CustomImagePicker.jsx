@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import colors from "../constants/colors";
 import useSecureStorage from "../hooks/useSecureStorage";
 import storageKeys from "../constants/storageKeys";
+import axios from "axios";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const UPLOAD_DIR = FileSystem.documentDirectory + "uploads/";
@@ -29,10 +30,11 @@ export default function CustomImagePicker({
   aspect = [4, 3],
   quality = 1,
 }) {
-const { getItem } = useSecureStorage();
+  const { getItem } = useSecureStorage();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState(null); // "success" | "error" | null
+  const [currentFileId, setCurrentFileId] = useState(null);
 
   const copyToUploadDir = async (uri) => {
     // Copy picked image into our app's uploads/ dir before uploading
@@ -42,66 +44,84 @@ const { getItem } = useSecureStorage();
     return { destUri, filename };
   };
 
-const uploadImage = async (uri) => {
-  const personalAccessToken = await getItem(storageKeys.PERSONAL_ACCESS_TOKEN);
-  setUploading(true);
-  setProgress(0);
-  setUploadStatus(null);
-
-  try {
-    const { destUri, filename } = await copyToUploadDir(uri);
-    const ext = filename.split(".").pop().toLowerCase();
-    const mimeType = ext === "png" ? "image/png" : "image/jpeg";
-
-    console.log("=== UPLOAD DEBUG ===");
-    console.log("API_URL:", `${API_URL}/file`);
-    console.log("destUri:", destUri);
-    console.log("filename:", filename);
-    console.log("mimeType:", mimeType);
-
-    const uploadResult = await FileSystem.uploadAsync(
-      `${API_URL}/file`,
-      destUri,
-      {
-        httpMethod: "POST",
-        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-        fieldName: "file",
-        mimeType,
-        headers: { Accept: "application/json", Authorization: `Bearer ${personalAccessToken}` },
-        sessionType: FileSystem.FileSystemSessionType.BACKGROUND,
-        uploadProgressCallback: ({ totalBytesSent, totalBytesExpectedToSend }) => {
-          const percent = Math.round(
-            (totalBytesSent / totalBytesExpectedToSend) * 100
-          );
-          setProgress(percent);
-        },
-      }
+  const uploadImage = async (uri) => {
+    const personalAccessToken = await getItem(
+      storageKeys.PERSONAL_ACCESS_TOKEN,
     );
 
-    const data = JSON.parse(uploadResult.body);
-
-    if (uploadResult.status === 200 || uploadResult.status === 201) {
-      setUploadStatus("success");
-      onUploadSuccess?.(data?.payload?._id);
-    } else {
-      throw new Error(data.error || "Upload failed");
+    // If an image was already uploaded during this session, delete it first
+    if (currentFileId) {
+      try {
+        await axios.delete(`/file/${currentFileId}`);
+      } catch (err) {
+        Toast.show({
+          type: "error",
+        text1: "Upload Failed",
+        text2: err?.response?.data?.paylod?.message || "Could not upload image.",
+        })
+      }
     }
-  } catch (error) {
-    console.log("=== ERROR DETAILS ===");
-    console.log("message:", error.message);
-    console.log("full error:", JSON.stringify(error));
-    setUploadStatus("error");
+
+    setUploading(true);
     setProgress(0);
-    onUploadError?.(error.message);
-    Toast.show({
-      type: "error",
-      text1: "Upload Failed",
-      text2: error?.response?.data?.message || "Could not upload image.",
-    });
-  } finally {
-    setUploading(false);
-  }
-};
+    setUploadStatus(null);
+
+    try {
+      const { destUri, filename } = await copyToUploadDir(uri);
+      const ext = filename.split(".").pop().toLowerCase();
+      const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+
+      const uploadResult = await FileSystem.uploadAsync(
+        `${API_URL}/file`,
+        destUri,
+        {
+          httpMethod: "POST",
+          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          fieldName: "file",
+          mimeType,
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${personalAccessToken}`,
+          },
+          sessionType: FileSystem.FileSystemSessionType.BACKGROUND,
+          uploadProgressCallback: ({
+            totalBytesSent,
+            totalBytesExpectedToSend,
+          }) => {
+            const percent = Math.round(
+              (totalBytesSent / totalBytesExpectedToSend) * 100,
+            );
+            setProgress(percent);
+          },
+        },
+      );
+
+      const data = JSON.parse(uploadResult.body);
+
+      if (uploadResult.status === 200 || uploadResult.status === 201) {
+        setUploadStatus("success");
+        const newFileId =
+          data?.payload?.file?.id ||
+          data?.payload?._id ||
+          data?.payload?.file?._id;
+        setCurrentFileId(newFileId);
+        onUploadSuccess?.(newFileId);
+      } else {
+        throw new Error(data.error || "Upload failed");
+      }
+    } catch (error) {
+      setUploadStatus("error");
+      setProgress(0);
+      onUploadError?.(error.message);
+      Toast.show({
+        type: "error",
+        text1: "Upload Failed",
+        text2: error?.response?.data?.payload?.message || "Could not upload image.",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const pickImage = async () => {
     try {
