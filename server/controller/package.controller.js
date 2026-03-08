@@ -185,6 +185,7 @@ module.exports.getPackageById = async (id) => {
  * @returns {Promise<Object>} - Updated package message
  */
 module.exports.updatePackage = async (id, payload) => {
+  let imageChanged = false;
   if (!id) throw new AppError("Package id is required", 400);
   // check id is a valid object id
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -208,6 +209,7 @@ module.exports.updatePackage = async (id, payload) => {
         await deleteFileById(payload.image);
         throw new AppError("Uploaded file must be an image", 400);
       }
+      imageChanged = true;
     }
 
     if (payload.servicesIncluded && payload.servicesIncluded.length > 0) {
@@ -230,6 +232,13 @@ module.exports.updatePackage = async (id, payload) => {
       });
       if (existingPackage) {
         throw new AppError("Package name already in use", 400);
+      }
+    }
+
+    if (imageChanged) {
+      const oldPackage = await Package.findById(id);
+      if (oldPackage && oldPackage.image) {
+        await deleteFileById(oldPackage.image);
       }
     }
 
@@ -272,6 +281,10 @@ module.exports.deletePackage = async (id) => {
       isDeleted: true,
       deletedAt: Date.now(),
     });
+
+    if (pkg.image) {
+      await deleteFileById(pkg.image);
+    }
 
     return `${pkg.name} deleted successfully.`;
   } catch (error) {

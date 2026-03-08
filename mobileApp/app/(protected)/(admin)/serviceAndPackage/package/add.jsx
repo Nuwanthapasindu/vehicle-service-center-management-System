@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useRouter } from "expo-router";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,97 +8,100 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Switch,
-  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Formik } from "formik";
+import axios from "axios";
+import Toast from "react-native-toast-message";
+
 import CustomImagePicker from "../../../../../components/CustomImagePicker";
 import DropdownInput from "../../../../../components/DropdownInput";
-import AddPricingTierModal from "../../../../../components/AddPricingTierModal";
 import colors from "../../../../../constants/colors";
+import enums from "../../../../../constants/enums";
+import PackageSchema from "../../../../../schema/packageSchema";
+
+const VEHICLE_TYPES = Object.values(enums.VEHICLE_TYPES);
 
 export default function AddPackage() {
   const router = useRouter();
-
-  // Basic Form States
+  const [loading, setLoading] = useState(false);
+  const [fetchingServices, setFetchingServices] = useState(true);
   const [imageUri, setImageUri] = useState(null);
-  const [packageName, setPackageName] = useState("");
-  const [description, setDescription] = useState("");
+  const [uploadedImageId, setUploadedImageId] = useState(null);
 
-  // Included Services
-  const [selectedServices, setSelectedServices] = useState([
-    { id: "1", name: "Body Wash" },
-    { id: "2", name: "Oil Change" },
-    { id: "3", name: "Interior Cleaning" },
-  ]);
+  // Api Services for multi-select Dropdown
+  const [apiServices, setApiServices] = useState([]);
+
+  // Mapping state: value is the drop-down selected option
   const [serviceDropdown, setServiceDropdown] = useState("Select a Service");
-  const SERVICE_OPTIONS = [
-    "Select a Service",
-    "Waxing",
-    "Tire Shine",
-    "Engine Detail",
-  ];
+  const [modelInput, setModelInput] = useState("");
 
-  // Vehicle Models
-  const [selectedModels, setSelectedModels] = useState([
-    "Sedan",
-    "SUV",
-    "Truck",
-  ]);
-  const [vehicleDropdown, setVehicleDropdown] = useState(
-    "All Passenger Vehicles",
-  );
-  const VEHICLE_OPTIONS = [
-    "All Passenger Vehicles",
-    "Commercial Vehicles",
-    "Sports Models",
-  ];
+  useEffect(() => {
+    fetchServices();
+  }, []);
 
-  // Pricing Tiers State
-  const [pricingTiers, setPricingTiers] = useState([
-    { id: "t1", sizeName: "SMALL", price: "150", icon: "car-sport-outline" },
-    { id: "t2", sizeName: "MEDIUM", price: "185", icon: "car-outline" },
-    { id: "t3", sizeName: "LARGE / SUV", price: "225", icon: "bus-outline" },
-    {
-      id: "t4",
-      sizeName: "EXTRA LARGE",
-      price: "275",
-      icon: "car-sport-outline",
-    },
-  ]);
-
-  const [isVisibleToCustomers, setIsVisibleToCustomers] = useState(true);
-
-  // Modal States
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
-  const removeService = (id) => {
-    setSelectedServices(selectedServices.filter((s) => s.id !== id));
+  const fetchServices = async () => {
+    setFetchingServices(true);
+    try {
+      const response = await axios.get("/service", {
+        params: { limit: 100 },
+      });
+      const data = response.data.payload.services?.services || [];
+      setApiServices(data);
+    } catch (error) {
+      console.log("Error fetching services:", error);
+    } finally {
+      setFetchingServices(false);
+    }
   };
 
-  const removeModel = (modelToRemove) => {
-    setSelectedModels(selectedModels.filter((m) => m !== modelToRemove));
+  const initialValues = {
+    name: "",
+    description: "",
+    applicableVehicalModels: [],
+    servicesIncluded: [],
+    pricingTiers: [{ name: "Standard", price: "" }],
   };
 
-  const addCustomTier = (tier) => {
-    setPricingTiers([
-      ...pricingTiers,
-      {
-        id: Date.now().toString(),
-        sizeName: `${tier.name.toUpperCase()} (${tier.size})`,
-        price: tier.price,
-        icon: "pricetag-outline",
-      },
-    ]);
-    setIsModalVisible(false);
-  };
+  const handleCreatePackage = async (values, { resetForm }) => {
+    setLoading(true);
+    try {
+      const payload = {
+        name: values.name.trim(),
+        description: values.description ? values.description.trim() : undefined,
+        applicableVehicalModels: values.applicableVehicalModels,
+        servicesIncluded: values.servicesIncluded,
+        pricingTiers: values.pricingTiers.map((tier) => ({
+          name: tier.name.trim(),
+          price: Number(tier.price),
+        })),
+        ...(uploadedImageId && { image: uploadedImageId }),
+      };
 
-  const updateTierPrice = (id, newPrice) => {
-    setPricingTiers(
-      pricingTiers.map((tier) =>
-        tier.id === id ? { ...tier, price: newPrice } : tier,
-      ),
-    );
+      const response = await axios.post("/package", payload);
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: response.data.payload.message || "Package created successfully",
+      });
+
+      resetForm();
+      setImageUri(null);
+      setUploadedImageId(null);
+      router.back();
+    } catch (error) {
+      console.log(error.response?.data || error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.response?.data?.message || "Something went wrong",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,186 +110,370 @@ export default function AddPackage() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Photo Uploader */}
         <CustomImagePicker
           imageUri={imageUri}
           onImageSelected={setImageUri}
-          title="Tap to attach service image"
-          subtitle="Upload a high-quality photo of the service"
+          onUploadSuccess={setUploadedImageId}
+          title="Tap to attach package image"
+          subtitle="Upload a high-quality photo of the package"
+          isMultiple={false}
         />
 
-        <View style={styles.formSection}>
-          {/* PACKAGE NAME */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Package Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Full Exterior Detail"
-              placeholderTextColor={colors.SECONDARY + "80"}
-              value={packageName}
-              onChangeText={setPackageName}
-            />
-          </View>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={PackageSchema}
+          onSubmit={handleCreatePackage}
+        >
+          {({
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            setFieldValue,
+            values,
+            errors,
+            touched,
+          }) => (
+            <View style={styles.formSection}>
+              {/* PACKAGE NAME Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Package Name</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    touched.name && errors.name ? styles.inputError : null,
+                  ]}
+                  placeholder="e.g., Premium Detailing Bundle"
+                  placeholderTextColor={colors.SECONDARY + "80"}
+                  value={values.name}
+                  onChangeText={handleChange("name")}
+                  onBlur={handleBlur("name")}
+                />
+                {touched.name && errors.name && (
+                  <Text style={styles.errorText}>{errors.name}</Text>
+                )}
+              </View>
 
-          {/* DESCRIPTION */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Complete foam wash, clay bar treatment..."
-              placeholderTextColor={colors.SECONDARY + "80"}
-              multiline
-              textAlignVertical="top"
-              value={description}
-              onChangeText={setDescription}
-            />
-          </View>
+              {/* DESCRIPTION Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Description</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    styles.textArea,
+                    touched.description && errors.description
+                      ? styles.inputError
+                      : null,
+                  ]}
+                  placeholder="Enter package details..."
+                  placeholderTextColor={colors.SECONDARY + "80"}
+                  multiline
+                  textAlignVertical="top"
+                  value={values.description}
+                  onChangeText={handleChange("description")}
+                  onBlur={handleBlur("description")}
+                />
+                {touched.description && errors.description && (
+                  <Text style={styles.errorText}>{errors.description}</Text>
+                )}
+              </View>
 
-          {/* INCLUDED SERVICES */}
-          <View style={[styles.inputGroup, { marginTop: 8 }]}>
-            <Text style={styles.sectionTitle}>INCLUDED SERVICES</Text>
-            <DropdownInput
-              value={serviceDropdown}
-              options={SERVICE_OPTIONS}
-              onSelect={setServiceDropdown}
-              modalTitle="Add a Service"
-            />
-            {/* Render selected services */}
-            <View style={styles.chipListVertical}>
-              {selectedServices.map((service) => (
-                <View key={service.id} style={styles.serviceChipCard}>
-                  <Text style={styles.serviceChipText}>{service.name}</Text>
-                  <TouchableOpacity onPress={() => removeService(service.id)}>
-                    <Ionicons
-                      name="trash-outline"
-                      size={20}
-                      color={colors.DANGER_COLOR}
-                    />
+              {/* INCLUDED SERVICES Multi-Select Dropdown */}
+              <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                <Text style={styles.sectionTitle}>INCLUDED SERVICES</Text>
+                {!fetchingServices ? (
+                  <DropdownInput
+                    value={serviceDropdown}
+                    options={[
+                      "Select a Service",
+                      ...apiServices
+                        .filter(
+                          (srv) => !values.servicesIncluded.includes(srv._id),
+                        )
+                        .map((srv) => srv.name),
+                    ]}
+                    onSelect={(selectedName) => {
+                      setServiceDropdown("Select a Service");
+                      if (selectedName === "Select a Service") return;
+                      const selectedService = apiServices.find(
+                        (srv) => srv.name === selectedName,
+                      );
+                      if (selectedService) {
+                        setFieldValue("servicesIncluded", [
+                          ...values.servicesIncluded,
+                          selectedService._id,
+                        ]);
+                      }
+                    }}
+                    modalTitle="Add a Service"
+                  />
+                ) : (
+                  <ActivityIndicator color={colors.PRIMARY} size="small" />
+                )}
+
+                {/* Render Selected Services Chips */}
+                <View style={styles.chipListVertical}>
+                  {values.servicesIncluded.map((id) => {
+                    const mappedService = apiServices.find((s) => s._id === id);
+                    if (!mappedService) return null;
+                    return (
+                      <View key={id} style={styles.serviceChipCard}>
+                        <Text style={styles.serviceChipText}>
+                          {mappedService.name}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setFieldValue(
+                              "servicesIncluded",
+                              values.servicesIncluded.filter(
+                                (srvId) => srvId !== id,
+                              ),
+                            );
+                          }}
+                        >
+                          <Ionicons
+                            name="trash-outline"
+                            size={20}
+                            color={colors.DANGER_COLOR}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                {touched.servicesIncluded &&
+                  typeof errors.servicesIncluded === "string" && (
+                    <Text style={styles.errorText}>
+                      {errors.servicesIncluded}
+                    </Text>
+                  )}
+              </View>
+
+              {/* VEHICLE MODELS Multi-Select Dropdown */}
+              <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                <Text style={styles.sectionTitle}>
+                  APPLICABLE VEHICLE MODELS
+                </Text>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="e.g. Civic, Corolla 2024..."
+                    placeholderTextColor={colors.SECONDARY + "80"}
+                    value={modelInput}
+                    onChangeText={setModelInput}
+                    onSubmitEditing={() => {
+                      const trimmed = modelInput.trim();
+                      if (
+                        trimmed &&
+                        !values.applicableVehicalModels.includes(trimmed)
+                      ) {
+                        setFieldValue("applicableVehicalModels", [
+                          ...values.applicableVehicalModels,
+                          trimmed,
+                        ]);
+                        setModelInput("");
+                      }
+                    }}
+                  />
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: colors.PRIMARY,
+                      height: 48,
+                      paddingHorizontal: 16,
+                      borderRadius: 8,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={() => {
+                      const trimmed = modelInput.trim();
+                      if (
+                        trimmed &&
+                        !values.applicableVehicalModels.includes(trimmed)
+                      ) {
+                        setFieldValue("applicableVehicalModels", [
+                          ...values.applicableVehicalModels,
+                          trimmed,
+                        ]);
+                        setModelInput("");
+                      }
+                    }}
+                  >
+                    <Text style={{ fontWeight: "bold", color: colors.DARK }}>
+                      Add
+                    </Text>
                   </TouchableOpacity>
                 </View>
-              ))}
-            </View>
-          </View>
 
-          {/* VEHICLE MODELS */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Applicable Vehicle Models</Text>
-            <DropdownInput
-              value={vehicleDropdown}
-              options={VEHICLE_OPTIONS}
-              onSelect={setVehicleDropdown}
-              modalTitle="Select Models"
-            />
-            <View style={styles.chipsRowHorizontal}>
-              {selectedModels.map((model) => (
-                <View key={model} style={styles.modelChip}>
-                  <Text style={styles.modelChipText}>{model}</Text>
-                  <TouchableOpacity onPress={() => removeModel(model)}>
-                    <Ionicons
-                      name="close"
-                      size={14}
-                      color={colors.DARK}
-                      style={{ marginLeft: 4 }}
-                    />
-                  </TouchableOpacity>
+                <View style={styles.chipsRowHorizontal}>
+                  {values.applicableVehicalModels.map((model) => (
+                    <View key={model} style={styles.modelChip}>
+                      <Text style={styles.modelChipText}>{model}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setFieldValue(
+                            "applicableVehicalModels",
+                            values.applicableVehicalModels.filter(
+                              (m) => m !== model,
+                            ),
+                          );
+                        }}
+                      >
+                        <Ionicons
+                          name="close"
+                          size={14}
+                          color={colors.DARK}
+                          style={{ marginLeft: 4 }}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
                 </View>
-              ))}
-              <TouchableOpacity style={styles.addMoreChip}>
-                <Text style={styles.addMoreChipText}>+ Add More</Text>
+
+                {touched.applicableVehicalModels &&
+                  typeof errors.applicableVehicalModels === "string" && (
+                    <Text style={styles.errorText}>
+                      {errors.applicableVehicalModels}
+                    </Text>
+                  )}
+              </View>
+
+              {/* DYNAMIC PRICING TIERS */}
+              <View style={[styles.inputGroup, { marginTop: 12 }]}>
+                <Text style={styles.sectionTitle}>DYNAMIC PRICING TIERS</Text>
+
+                {typeof errors.pricingTiers === "string" && (
+                  <Text style={[styles.errorText, { marginBottom: 10 }]}>
+                    {errors.pricingTiers}
+                  </Text>
+                )}
+
+                {/* Iterate over pricing tiers */}
+                {values.pricingTiers.map((item, index) => {
+                  const priceError =
+                    touched.pricingTiers?.[index]?.price &&
+                    errors.pricingTiers?.[index]?.price;
+                  const nameError =
+                    touched.pricingTiers?.[index]?.name &&
+                    errors.pricingTiers?.[index]?.name;
+
+                  return (
+                    <View
+                      style={[
+                        styles.splitRow,
+                        index !== 0 && { marginTop: 10 },
+                      ]}
+                      key={index.toString()}
+                    >
+                      {/* Tier Name Column */}
+                      <View style={[styles.inputGroup, { flex: 1 }]}>
+                        <Text style={styles.subLabel}>TIER NAME</Text>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            nameError ? styles.inputError : null,
+                          ]}
+                          placeholder="e.g. STANDARD"
+                          placeholderTextColor={colors.SECONDARY + "80"}
+                          value={item.name}
+                          onChangeText={handleChange(
+                            `pricingTiers[${index}].name`,
+                          )}
+                          onBlur={handleBlur(`pricingTiers[${index}].name`)}
+                        />
+                        {nameError && (
+                          <Text style={styles.errorText}>
+                            {errors.pricingTiers[index].name}
+                          </Text>
+                        )}
+                      </View>
+
+                      {/* Tier Price Column */}
+                      <View style={[styles.inputGroup, { flex: 1 }]}>
+                        <Text style={styles.subLabel}>PRICE (LKR)</Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          <TextInput
+                            style={[
+                              styles.input,
+                              { flex: 1 },
+                              priceError ? styles.inputError : null,
+                            ]}
+                            placeholder="0.00"
+                            placeholderTextColor={colors.SECONDARY + "80"}
+                            keyboardType="numeric"
+                            value={item.price.toString()}
+                            onChangeText={handleChange(
+                              `pricingTiers[${index}].price`,
+                            )}
+                            onBlur={handleBlur(`pricingTiers[${index}].price`)}
+                          />
+                          {index !== 0 && (
+                            <TouchableOpacity
+                              onPress={() => {
+                                const newTiers = [...values.pricingTiers];
+                                newTiers.splice(index, 1);
+                                setFieldValue("pricingTiers", newTiers);
+                              }}
+                            >
+                              <Ionicons
+                                name="trash-outline"
+                                size={24}
+                                color="#EF4444"
+                              />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                        {priceError && (
+                          <Text style={styles.errorText}>
+                            {errors.pricingTiers[index].price}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })}
+
+                <TouchableOpacity
+                  style={styles.addVariantButton}
+                  onPress={() => {
+                    setFieldValue("pricingTiers", [
+                      ...values.pricingTiers,
+                      { name: "", price: "" },
+                    ]);
+                  }}
+                >
+                  <Text style={styles.addVariantText}>+ Add Tier logic</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.submitButton, loading && { opacity: 0.7 }]}
+                activeOpacity={0.8}
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={colors.DARK} />
+                ) : (
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={22}
+                    color={colors.DARK}
+                  />
+                )}
+                <Text style={styles.submitButtonText}>Create Package</Text>
               </TouchableOpacity>
             </View>
-          </View>
-
-          {/* DYNAMIC PRICING TIERS */}
-          <View style={[styles.inputGroup, { marginTop: 12 }]}>
-            <View style={styles.rowBetween}>
-              <Text style={styles.sectionTitle}>Dynamic Pricing Tiers</Text>
-              <Text style={styles.currencySubtitle}>USD ($)</Text>
-            </View>
-
-            <View style={styles.pricingGrid}>
-              {pricingTiers.map((tier) => (
-                <View key={tier.id} style={styles.pricingCard}>
-                  <View style={styles.pricingCardHeader}>
-                    <Ionicons
-                      name={tier.icon}
-                      size={16}
-                      color={colors.PRIMARY}
-                    />
-                    <Text style={styles.pricingCardTitle}>{tier.sizeName}</Text>
-                  </View>
-                  <View style={styles.pricingInputWrapper}>
-                    <Text style={styles.currencySymbol}>$</Text>
-                    <TextInput
-                      style={styles.pricingInput}
-                      value={tier.price}
-                      onChangeText={(val) => updateTierPrice(tier.id, val)}
-                      keyboardType="numeric"
-                      placeholder="0.00"
-                    />
-                  </View>
-                </View>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={styles.addCustomTierBtn}
-              activeOpacity={0.7}
-              onPress={() => setIsModalVisible(true)}
-            >
-              <Ionicons
-                name="add-circle-outline"
-                size={20}
-                color={colors.SECONDARY}
-              />
-              <Text style={styles.addCustomTierText}>Add Custom Tier</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* VISIBLE TO CUSTOMERS */}
-          <View style={styles.visibilityCard}>
-            <View style={styles.visibilityIconBg}>
-              <Ionicons name="eye-outline" size={20} color={colors.PRIMARY} />
-            </View>
-            <View style={styles.visibilityContent}>
-              <Text style={styles.visibilityTitle}>Visible to Customers</Text>
-              <Text style={styles.visibilitySub}>
-                Show this package on the booking site
-              </Text>
-            </View>
-            <Switch
-              trackColor={{ false: "#E2E8F0", true: colors.PRIMARY }}
-              thumbColor={colors.LIGHT}
-              ios_backgroundColor="#E2E8F0"
-              onValueChange={setIsVisibleToCustomers}
-              value={isVisibleToCustomers}
-            />
-          </View>
-        </View>
+          )}
+        </Formik>
       </ScrollView>
-
-      {/* STICKY SAVE BUTTON */}
-      <View style={styles.stickyFooter}>
-        <TouchableOpacity
-          style={styles.saveButton}
-          activeOpacity={0.8}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.saveButtonText}>Save Package</Text>
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={22}
-            color={colors.DARK}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Add Pricing Tier Modal */}
-      <AddPricingTierModal
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        onAddTier={addCustomTier}
-      />
     </KeyboardAvoidingView>
   );
 }
@@ -299,23 +485,26 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 120, // leave space for sticky footer
+    paddingBottom: 40,
   },
   formSection: {
     gap: 20,
+    marginTop: 20,
   },
   inputGroup: {
     gap: 8,
   },
-  rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
   label: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
-    color: "#475569",
+    color: "#334155",
+  },
+  subLabel: {
+    fontSize: 10,
+    letterSpacing: 1,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    color: "#334155",
   },
   sectionTitle: {
     fontSize: 12,
@@ -323,11 +512,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: "uppercase",
     color: "#64748B",
-  },
-  currencySubtitle: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.SECONDARY,
   },
   input: {
     backgroundColor: colors.LIGHT,
@@ -339,13 +523,53 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.DARK,
   },
+  inputError: {
+    borderColor: "#EF4444",
+    backgroundColor: "#FEF2F2",
+  },
+  errorText: {
+    color: "#EF4444",
+    fontSize: 12,
+  },
   textArea: {
-    height: 100,
+    height: 120,
     paddingVertical: 16,
+  },
+  splitRow: {
+    flexDirection: "row",
+    gap: 16,
+    marginTop: 20,
+  },
+  addVariantButton: {
+    alignSelf: "flex-start",
+    marginTop: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginLeft: -8,
+  },
+  addVariantText: {
+    color: colors.PRIMARY,
+    fontWeight: "bold",
+    fontSize: 13,
+  },
+  submitButton: {
+    backgroundColor: colors.PRIMARY,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 56,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 24,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: colors.DARK,
   },
   chipListVertical: {
     gap: 10,
-    marginTop: 4,
+    marginTop: 10,
   },
   serviceChipCard: {
     flexDirection: "row",
@@ -368,7 +592,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginTop: 4,
+    marginTop: 8,
   },
   modelChip: {
     flexDirection: "row",
@@ -383,142 +607,6 @@ const styles = StyleSheet.create({
   modelChipText: {
     fontSize: 12,
     fontWeight: "600",
-    color: colors.DARK,
-  },
-  addMoreChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  addMoreChipText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.DARK,
-  },
-  pricingGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  pricingCard: {
-    width: "48%",
-    backgroundColor: colors.LIGHT,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    borderRadius: 12,
-    padding: 12,
-  },
-  pricingCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 10,
-  },
-  pricingCardTitle: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: colors.SECONDARY,
-    textTransform: "uppercase",
-  },
-  pricingInputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.BACKGROUND_COLOR,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 40,
-  },
-  currencySymbol: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#94A3B8",
-    marginRight: 6,
-  },
-  pricingInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "800",
-    color: colors.DARK,
-  },
-  addCustomTierBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderWidth: 1.5,
-    borderColor: colors.BORDER_COLOR,
-    borderStyle: "dashed",
-    borderRadius: 12,
-    gap: 8,
-    marginTop: 4,
-  },
-  addCustomTierText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.SECONDARY,
-  },
-  visibilityCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.LIGHT,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    marginTop: 12,
-  },
-  visibilityIconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: "#E4F7D4",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  visibilityContent: {
-    flex: 1,
-  },
-  visibilityTitle: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: colors.DARK,
-  },
-  visibilitySub: {
-    fontSize: 12,
-    color: colors.SECONDARY,
-    marginTop: 2,
-  },
-  stickyFooter: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.LIGHT,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: Platform.OS === "ios" ? 34 : 24,
-    borderTopWidth: 1,
-    borderTopColor: colors.BORDER_COLOR,
-  },
-  saveButton: {
-    backgroundColor: colors.PRIMARY,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    height: 54,
-    borderRadius: 12,
-    gap: 8,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
     color: colors.DARK,
   },
 });

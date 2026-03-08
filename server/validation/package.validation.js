@@ -23,14 +23,16 @@ const createPackageValidationSchema = joi.object({
           "string.empty": "Applicable vehicle model cannot be empty",
           "string.trim":
             "Applicable vehicle model must not contain leading or trailing spaces",
-      "string.min": "Applicable vehicle model must be at least 1 character long",
-      "string.max": "Applicable vehicle model must be at most 100 characters long",
-    }))
+          "string.min": "Applicable vehicle model must be at least 1 character long",
+          "string.max": "Applicable vehicle model must be at most 100 characters long",
+        }))
+    .unique()
     .min(1)
     .required()
     .messages({
       "any.required": "At least one applicable vehicle model is required",
       "array.min": "At least one applicable vehicle model is required",
+      "array.unique": "Applicable vehicle models must be unique",
     }),
   description: joi.string().trim().max(1000).optional().messages({
     "string.max": "Description must be at most 1000 characters long",

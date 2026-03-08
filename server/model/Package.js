@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const { VEHICLE_TYPES } = require("../util/constants");
 
 const packageSchema = new Schema(
   {
