@@ -22,7 +22,7 @@ export default function ServiceAndPackageLayout() {
         }}
       />
       <Tabs.Screen
-        name="(package)"
+        name="package"
         options={{
           tabBarLabel: "PACKAGES",
           tabBarIcon: ({ color, size }) => (
