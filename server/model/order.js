@@ -1,0 +1,67 @@
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+
+// Order eke athule thiyena eka item ekak (sub-document)
+const orderItemSchema = new Schema({
+  inventoryId: {
+    type: Schema.Types.ObjectId,
+    ref: "Inventory",
+    required: false,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  qty: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  unitType: {
+    type: String,
+    default: "Nos",
+  },
+  price: {
+    type: Number, // Unit Price eka
+    required: true,
+  },
+  cost: {
+    type: Number, // Total cost eka (qty * price)
+    required: true,
+  },
+});
+
+// Main Order Schema eka
+const orderSchema = new Schema(
+  {
+    supplierId: {
+      type: Schema.Types.ObjectId,
+      ref: "Supplier",
+      required: true,
+    },
+    items: [orderItemSchema], // Kalin hadapu items array eka methanata danawa
+    totalCost: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: ["Draft", "Sent", "Received"],
+      default: "Draft",
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model("Order", orderSchema);

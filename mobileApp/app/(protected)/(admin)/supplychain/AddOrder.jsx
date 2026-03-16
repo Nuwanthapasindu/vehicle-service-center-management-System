@@ -17,14 +17,12 @@ export default function AddOrder({ onBack, API }) {
   const [activeDropdownId, setActiveDropdownId] = useState(null);
 
   useEffect(() => {
-    // Fetch suppliers so we can choose who to order from
     axios.get(`${API}/suppliers`).then(res => setSuppliers(res.data)).catch(err => console.log(err));
-    // Fetch inventory
     axios.get(`${API}/inventory`).then(res => setInventory(res.data)).catch(err => console.log(err));
   }, []);
 
   const handleAddNewItemLine = () => {
-    setItems([...items, { id: Date.now().toString(), name: '', qty: '1', price: '0' }]);
+    setItems([...items, { id: Date.now().toString(), name: '', qty: '1', price: '0', itemId: null }]);
   };
 
   const handleUpdateItem = (id, field, value) => {
@@ -40,22 +38,36 @@ export default function AddOrder({ onBack, API }) {
     if (!selectedSupplier) return Alert.alert("Error", "Please select a supplier.");
     if (items.length === 0) return Alert.alert("Error", "Add at least one item.");
 
-    const invalidItems = items.filter(i => !i.itemId);
-    if (invalidItems.length > 0) return Alert.alert("Error", "Please select an inventory item for all rows.");
+    const invalidItems = items.filter(i => !i.name);
+    if (invalidItems.length > 0) return Alert.alert("Error", "Please select an item for all rows.");
 
     setIsSubmitting(true);
 
-    const formattedItems = items.map(i => ({
-      itemId: i.itemId,
-      qty: parseFloat(i.qty) || 1,
-      unitType: i.unitType || 'Count', // Fallback
-      cost: parseFloat(i.price) || 0
-    }));
+    const formattedItems = items.map(i => {
+      const qty = parseFloat(i.qty) || 1;
+      const price = parseFloat(i.price) || 0;
+      
+      const isValidMongoId = /^[0-9a-fA-F]{24}$/.test(i.itemId);
 
-    const totalCost = formattedItems.reduce((sum, item) => sum + (item.qty * item.cost), 0);
+      const itemPayload = {
+        name: i.name,
+        qty: qty,
+        unitType: i.unitType || 'Nos',
+        price: price, 
+        cost: qty * price 
+      };
+
+      if (isValidMongoId) {
+        itemPayload.inventoryId = i.itemId;
+      }
+
+      return itemPayload;
+    });
+
+    const totalCost = formattedItems.reduce((sum, item) => sum + item.cost, 0);
 
     const orderData = {
-      supplier: selectedSupplier._id,
+      supplierId: selectedSupplier._id,
       items: formattedItems,
       totalCost: totalCost,
       status: status
@@ -63,7 +75,6 @@ export default function AddOrder({ onBack, API }) {
 
     try {
       const resp = await axios.post(`${API}/orders`, orderData);
-
       if (status === 'Draft') {
         generatePDF(orderData, resp.data._id);
       } else {
@@ -72,36 +83,107 @@ export default function AddOrder({ onBack, API }) {
       }
     } catch (error) {
       console.log('Order Error:', error?.response?.data || error.message);
-      const serverErr = error.response?.data?.error || error.response?.data?.message;
-      Alert.alert("Error", serverErr ? `Server: ${serverErr}` : "Could not place order.");
+      Alert.alert("Error", "Could not place order.");
       setIsSubmitting(false);
     }
   };
 
+  // METHANA THAMAI ALUTH PROFESSIONAL PDF TEMPLATE EKA THIYENNE
   const generatePDF = async (orderData, orderId) => {
     try {
+      const currentDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
       const htmlContent = `
+        <!DOCTYPE html>
         <html>
-          <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <h1 style="color: #84CC16;">Purchase Order Draft</h1>
-            <p><strong>Order ID:</strong> ${orderId}</p>
-            <p><strong>Supplier:</strong> ${selectedSupplier.companyName}</p>
-            <p><strong>Status:</strong> Draft</p>
-            <hr />
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-              <tr style="background-color: #f3f4f6; border-bottom: 2px solid #ddd;">
-                <th style="padding: 10px; text-align: left;">Item</th>
-                <th style="padding: 10px; text-align: left;">Qty</th>
-                <th style="padding: 10px; text-align: left;">Cost</th>
+        <head>
+          <style>
+            body { font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; padding: 40px; color: #333; }
+            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #84CC16; padding-bottom: 20px; margin-bottom: 30px; }
+            .title { font-size: 32px; font-weight: bold; color: #1F2937; margin: 0; letter-spacing: 1px; }
+            .draft-badge { display: inline-block; background-color: #FEF3C7; color: #D97706; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 14px; text-transform: uppercase; margin-top: 10px; border: 1px solid #FDE68A; }
+            .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
+            .info-block { width: 45%; }
+            .info-block h3 { margin-top: 0; color: #6B7280; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+            .info-text { font-size: 15px; color: #1F2937; margin: 4px 0; line-height: 1.5; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th { background-color: #F9FAFB; color: #4B5563; font-weight: 600; text-transform: uppercase; font-size: 12px; padding: 14px 12px; text-align: left; border-bottom: 2px solid #E5E7EB; border-top: 1px solid #E5E7EB; }
+            td { padding: 14px 12px; border-bottom: 1px solid #E5E7EB; font-size: 14px; color: #374151; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+            .total-section { display: flex; justify-content: flex-end; margin-top: 20px; }
+            .total-box { width: 350px; background-color: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB; }
+            .total-row { display: flex; justify-content: space-between; font-size: 15px; color: #4B5563; margin-bottom: 8px; }
+            .total-row.grand-total { font-weight: bold; font-size: 20px; color: #111827; border-top: 2px solid #D1D5DB; padding-top: 15px; margin-top: 10px; margin-bottom: 0; }
+            .footer { margin-top: 60px; text-align: center; color: #9CA3AF; font-size: 12px; border-top: 1px solid #E5E7EB; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <h1 class="title">PURCHASE ORDER</h1>
+              <div class="draft-badge">Document Draft</div>
+            </div>
+            <div class="text-right">
+              <p class="info-text"><strong>Order No:</strong> #${orderId.toString().slice(-6).toUpperCase()}</p>
+              <p class="info-text"><strong>Date:</strong> ${currentDate}</p>
+            </div>
+          </div>
+          
+          <div class="info-section">
+            <div class="info-block">
+              <h3>Supplier Information</h3>
+              <p class="info-text"><strong>${selectedSupplier.companyName}</strong></p>
+              ${selectedSupplier.email ? `<p class="info-text">${selectedSupplier.email}</p>` : ''}
+              ${selectedSupplier.phone || selectedSupplier.contactNumber ? `<p class="info-text">${selectedSupplier.phone || selectedSupplier.contactNumber}</p>` : ''}
+            </div>
+            <div class="info-block" style="text-align: right;">
+              <h3>Order Details</h3>
+              <p class="info-text"><strong>Status:</strong> Draft</p>
+              <p class="info-text"><strong>System ID:</strong> ${orderId}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th width="5%">#</th>
+                <th width="45%">Item Description</th>
+                <th width="15%" class="text-center">Quantity</th>
+                <th width="15%" class="text-right">Unit Price</th>
+                <th width="20%" class="text-right">Amount</th>
               </tr>
-              ${items.map(i => `<tr>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${i.name}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${i.qty}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">Rs. ${i.price}</td>
-              </tr>`).join('')}
-            </table>
-            <h3 style="text-align: right; margin-top: 20px;">Total: Rs. ${orderData.totalCost}</h3>
-          </body>
+            </thead>
+            <tbody>
+              ${items.map((i, index) => `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td><strong>${i.name}</strong></td>
+                  <td class="text-center">${i.qty} ${i.unitType || 'Nos'}</td>
+                  <td class="text-right">Rs. ${Number(i.price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                  <td class="text-right">Rs. ${(Number(i.qty) * Number(i.price)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="total-section">
+            <div class="total-box">
+              <div class="total-row grand-total">
+                <span>Grand Total</span>
+                <span>Rs. ${Number(orderData.totalCost).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>This is a system generated purchase order draft. Please review before final submission.</p>
+          </div>
+        </body>
         </html>
       `;
       const { uri } = await Print.printToFileAsync({ html: htmlContent });
@@ -114,6 +196,24 @@ export default function AddOrder({ onBack, API }) {
       onBack();
     }
   };
+
+  const getAvailableItemsForSupplier = () => {
+    if (!selectedSupplier) return [];
+
+    if (selectedSupplier.items && selectedSupplier.items.length > 0) {
+      return selectedSupplier.items;
+    }
+    if (selectedSupplier.suppliedItems && selectedSupplier.suppliedItems.length > 0) {
+      return selectedSupplier.suppliedItems;
+    }
+
+    return inventory.filter(inv => {
+      const invSupId = inv.supplierId?._id || inv.supplierId || inv.supplier?._id || inv.supplier;
+      return invSupId === selectedSupplier._id;
+    });
+  };
+
+  const availableItemsList = getAvailableItemsForSupplier();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -144,6 +244,7 @@ export default function AddOrder({ onBack, API }) {
                 onPress={() => {
                   setSelectedSupplier(sup);
                   setShowSupplierDropdown(false);
+                  setItems([]); 
                 }}
               >
                 <Text style={{ color: '#1F2937' }}>{sup.companyName}</Text>
@@ -163,7 +264,7 @@ export default function AddOrder({ onBack, API }) {
         {items.map(item => (
           <View key={item.id} style={styles.orderItemCard}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <Text style={styles.tinyLabel}>SELECT INVENTORY ITEM:</Text>
+              <Text style={styles.tinyLabel}>SELECT ITEM FROM SUPPLIER:</Text>
               <TouchableOpacity onPress={() => handleRemoveItem(item.id)}>
                 <Trash2 size={20} color="#EF4444" />
               </TouchableOpacity>
@@ -181,29 +282,46 @@ export default function AddOrder({ onBack, API }) {
 
             {activeDropdownId === item.id && (
               <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, marginBottom: 15, maxHeight: 150 }}>
-                <ScrollView nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
-                  {inventory.filter(inv => selectedSupplier ? (selectedSupplier.items || []).some(sItem => sItem?.toLowerCase() === inv.name?.toLowerCase()) : true).map(inv => (
-                    <TouchableOpacity
-                      key={inv._id}
-                      style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', backgroundColor: item.itemId === inv._id ? '#F4FCE3' : '#FFF' }}
-                      onPress={() => {
-                        const updatedItems = items.map(i => i.id === item.id ? {
-                          ...i,
-                          itemId: inv._id,
-                          name: inv.name,
-                          unitType: inv.unitType,
-                          price: inv.buyingPrice?.toString() || '0'
-                        } : i);
-                        setItems(updatedItems);
-                        setActiveDropdownId(null);
-                      }}
-                    >
-                      <Text style={{ color: '#1F2937', fontWeight: item.itemId === inv._id ? 'bold' : 'normal' }}>{inv.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                {!selectedSupplier ? (
+                  <Text style={{ padding: 12, color: '#EF4444', fontWeight: 'bold' }}>⚠️ Please select a supplier first!</Text>
+                ) : (
+                  <ScrollView nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+                    {availableItemsList.map((inv, index) => {
+                      const isString = typeof inv === 'string';
+                      const itemName = isString ? inv : (inv.itemName || inv.name || inv.item || inv.title || inv.productName || `Item ${index + 1}`);
+                      const itemPrice = isString ? '0' : (inv.unitPrice || inv.price || inv.buyingPrice || inv.cost || '0');
+                      const itemId = isString ? `string_item_${index}` : (inv._id || inv.itemId || inv.id || `no_id_item_${index}`);
+
+                      return (
+                        <TouchableOpacity
+                          key={itemId}
+                          style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', backgroundColor: item.itemId === itemId ? '#F4FCE3' : '#FFF' }}
+                          onPress={() => {
+                            const updatedItems = items.map(i => i.id === item.id ? {
+                              ...i,
+                              itemId: itemId,
+                              name: itemName,
+                              unitType: inv.unitType || 'Nos',
+                              price: itemPrice.toString()
+                            } : i);
+                            setItems(updatedItems);
+                            setActiveDropdownId(null);
+                          }}
+                        >
+                          <Text style={{ color: '#1F2937', fontWeight: item.itemId === itemId ? 'bold' : 'normal' }}>
+                            {itemName} {itemPrice !== '0' ? `- Rs. ${itemPrice}` : ''}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                    {availableItemsList.length === 0 && (
+                       <Text style={{ padding: 12, color: '#9CA3AF' }}>No items found for this supplier.</Text>
+                    )}
+                  </ScrollView>
+                )}
               </View>
             )}
+
             <View style={styles.inputRow}>
               <View style={{ flex: 1, marginRight: 10 }}>
                 <Text style={styles.tinyLabel}>QUANTITY</Text>

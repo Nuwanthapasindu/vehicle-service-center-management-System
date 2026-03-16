@@ -36,13 +36,14 @@ app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec,{
   
 }));
 }
+
 // ROUTES
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/file", fileRouter);
 
-// Add these with your other routes
+// === SUPPLY CHAIN ROUTES (Meka thama api add karapu tika) ===
 app.use('/api/suppliers', require('./routes/supplier.route'));
-app.use('/api/orders', require('./routes/purchaseOrder.route'));
+app.use('/api/orders', require('./routes/order.route')); // purchaseOrder.route eka wenata order.route kiyala haduwa
 app.use('/api/inventory', require('./routes/inventory.route'));
 
 // DEFAULT ROUTE

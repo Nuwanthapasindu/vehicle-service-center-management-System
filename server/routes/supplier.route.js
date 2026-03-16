@@ -1,10 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const ctrl = require('../controller/supplier.controller');
+const supplierCtrl = require('../controller/supplier.controller'); // Folder eka 'controller' hari 'controllers' hari kiyala sure karaganna
 
-router.get('/', ctrl.getAllSuppliers);
-router.post('/', ctrl.createSupplier);
-router.put('/:id', ctrl.updateSupplier);
-router.delete('/:id', ctrl.deleteSupplier);
+// GET: All suppliers ganna
+router.get('/', supplierCtrl.getAllSuppliers);
+
+// POST: Aluth supplier kenek add karanna
+router.post('/', supplierCtrl.createSupplier);
+
+// PUT: Supplier details update karanna
+router.put('/:id', supplierCtrl.updateSupplier);
+
+// DELETE: Supplier kenekwa remove karanna (Soft delete)
+router.delete('/:id', supplierCtrl.deleteSupplier);
 
 module.exports = router;
