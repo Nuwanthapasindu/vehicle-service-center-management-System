@@ -1,0 +1,209 @@
+.login-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--background-color, #F8F9FA);
+}
+
+.login-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1rem;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--light, #FFFFFF);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+}
+
+.login-card-header {
+    background-color: var(--dark, #1A1D23);
+    /* Fallback dark linear gradient to simulate the car image */
+    background-image:
+        linear-gradient(to bottom, rgba(26, 29, 35, 0.3), rgba(26, 29, 35, 1)),
+        url('https://images.unsplash.com/photo-1544883626-9f303f262145?auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center 25%;
+    color: var(--light, #FFFFFF);
+    padding: 3rem 2.5rem 2rem;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.login-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.login-subtitle {
+    font-size: 0.95rem;
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+.login-card-body {
+    padding: 2.5rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--dark, #1A1D23);
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: var(--light, #FFFFFF);
+    border: 1px solid var(--border-color, #E2E8F0);
+    border-radius: 8px;
+    padding: 0 1.25rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--primary-color, #8EDB00);
+    box-shadow: 0 0 0 3px rgba(142, 219, 0, 0.15);
+}
+
+.input-icon {
+    color: #A0AEC0;
+    font-size: 1.1rem;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.input-wrapper input {
+    flex: 1;
+    border: none;
+    padding: 0.875rem 0;
+    font-size: 0.95rem;
+    color: var(--dark, #1A1D23);
+    font-weight: 500;
+    outline: none;
+    background: transparent;
+}
+
+.input-wrapper input::placeholder {
+    color: #CBD5E1;
+    font-weight: 400;
+}
+
+.toggle-password {
+    background: none;
+    border: none;
+    color: #A0AEC0;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+    margin-left: 1rem;
+}
+
+.toggle-password:hover {
+    color: var(--dark, #1A1D23);
+}
+
+.forgot-password {
+    text-align: right;
+    margin-top: -0.5rem;
+}
+
+.forgot-password a {
+    font-size: 0.85rem;
+    color: var(--secondary, #64748B);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.forgot-password a:hover {
+    color: var(--dark, #1A1D23);
+}
+
+.login-submit-btn {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    border: none;
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 8px 16px rgba(142, 219, 0, 0.2);
+}
+
+.login-submit-btn:hover {
+    opacity: 0.9;
+}
+
+.login-submit-btn:active {
+    transform: scale(0.98);
+}
+
+.login-card-footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--secondary, #64748B);
+}
+
+.signup-link {
+    color: var(--primary-color, #8EDB00);
+    text-decoration: none;
+    font-weight: 700;
+    margin-left: 0.25rem;
+    transition: opacity 0.2s ease;
+}
+
+.signup-link:hover {
+    opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .login-card {
+        border-radius: 8px;
+    }
+
+    .login-card-body {
+        padding: 2rem 1.5rem;
+    }
+
+    .login-card-header {
+        padding: 2.5rem 1.5rem 1.5rem;
+    }
+}
