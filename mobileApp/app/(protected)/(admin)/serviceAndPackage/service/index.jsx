@@ -9,6 +9,7 @@ import {
   Platform,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,6 +27,7 @@ export default function Service() {
   const [hasMore, setHasMore] = useState(true);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [totalServices, setTotalServices] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Debounce search query
   useEffect(() => {
@@ -84,6 +86,15 @@ export default function Service() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    setServices([]);
+    await fetchServices(1, debouncedSearch);
+    setRefreshing(false);
   };
 
   const handleSearch = (text) => {
@@ -201,6 +212,14 @@ export default function Service() {
         onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.PRIMARY]}
+            tintColor={colors.PRIMARY}
+          />
+        }
       />
 
       {/* Floating Action Button */}

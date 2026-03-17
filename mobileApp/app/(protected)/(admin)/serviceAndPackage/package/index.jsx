@@ -9,6 +9,7 @@ import {
   FlatList,
   ActivityIndicator,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -26,6 +27,7 @@ export default function PackageCatalog() {
   const [hasMore, setHasMore] = useState(true);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [totalPackages, setTotalPackages] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Filter: 'all' | 'published' | 'unpublished'
   const [filter, setFilter] = useState("all");
@@ -98,6 +100,15 @@ export default function PackageCatalog() {
     setHasMore(true);
     setPackages([]);
     fetchPackages(1, debouncedSearch, newFilter);
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    setPackages([]);
+    await fetchPackages(1, debouncedSearch, filter);
+    setRefreshing(false);
   };
 
   const handleSearch = (text) => {
@@ -255,6 +266,14 @@ export default function PackageCatalog() {
         onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.PRIMARY]}
+            tintColor={colors.PRIMARY}
+          />
+        }
       />
 
       {/* Floating Action Button */}
