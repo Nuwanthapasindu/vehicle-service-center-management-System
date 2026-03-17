@@ -1,40 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
+import VehicleService from '../../../services/vehicle.service';
+import getImageUrl from '../../../util/getImageUrl';
 import './MyGarage.css';
 
 const MyGarage = () => {
     const navigate = useNavigate();
-    const vehicles = [
-        {
-            id: 1,
-            name: "BMW X5 m50i",
-            year: "2020",
-            plate: "DET-4556",
-            lastService: "5d ago",
-            status: "",
-            image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80"
-        },
-        {
-            id: 2,
-            name: "Porsche 911 Carrera",
-            year: "2023",
-            plate: "ABC-1234",
-            lastService: "Detained 2w ago",
-            status: "ACTIVE",
-            image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80"
-        },
-        {
-            id: 3,
-            name: "Toyota Camry SE",
-            year: "2021",
-            plate: "XYZ-9876",
-            lastService: "In shop now",
-            status: "IN SERVICE",
-            image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80"
+    const [vehicles, setVehicles] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState("");
+
+    const fetchVehicles = async () => {
+        setLoading(true);
+        setErrorMsg("");
+        try {
+            const res = await VehicleService.getMyVehicles();
+            setVehicles(res?.payload?.vehicles || []);
+        } catch (error) {
+            console.error("Failed to fetch vehicles:", error);
+            setErrorMsg("Failed to load your vehicles. Please try again later.");
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    useEffect(() => {
+        fetchVehicles();
+    }, []);
+
+    const handleDelete = async (vehicleId) => {
+        if (window.confirm("Are you sure you want to delete this vehicle?")) {
+            try {
+                await VehicleService.deleteVehicle(vehicleId);
+                setVehicles((prev) => prev.filter((v) => v._id !== vehicleId));
+                alert("Vehicle deleted successfully.");
+            } catch (error) {
+                console.error("Error deleting vehicle:", error);
+                alert(error?.message || "Failed to delete vehicle.");
+            }
+        }
+    };
 
     return (
         <div className="customer-portal-wrapper">
@@ -72,7 +79,7 @@ const MyGarage = () => {
                                 <i className="fa-solid fa-car"></i>
                             </div>
                             <div className="mini-stat-info">
-                                <h3 className="stat-num">4</h3>
+                                <h3 className="stat-num">{vehicles.length}</h3>
                                 <span className="stat-label">TOTAL VEHICLES</span>
                             </div>
                         </div>
@@ -82,64 +89,81 @@ const MyGarage = () => {
                                 <i className="fa-solid fa-clock-rotate-left"></i>
                             </div>
                             <div className="mini-stat-info">
-                                <h3 className="stat-num">24</h3>
+                                <h3 className="stat-num">0</h3>
                                 <span className="stat-label">SERVICE LOGS</span>
                             </div>
                         </div>
                     </div>
 
+                    {errorMsg && <div style={{ color: "red", marginTop: "1rem" }}>{errorMsg}</div>}
+
                     {/* Vehicle Grid */}
-                    <div className="vehicle-grid">
-                        {vehicles.map((vehicle) => (
-                            <div className="vehicle-card" key={vehicle.id}>
-                                <div className="card-image-wrapper">
-                                    <img src={vehicle.image} alt={vehicle.name} className="vehicle-card-img" />
-                                    {vehicle.status && (
-                                        <span className={`status-badge ${vehicle.status.toLowerCase().replace(' ', '-')}`}>
-                                            {vehicle.status}
+                    {loading ? (
+                        <div style={{ padding: "2rem", textAlign: "center", color: "#fff" }}>
+                            <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
+                            <p>Loading your garage...</p>
+                        </div>
+                    ) : (
+                        <div className="vehicle-grid">
+                            {vehicles.map((vehicle) => (
+                                <div className="vehicle-card" key={vehicle._id}>
+                                    <div className="card-image-wrapper">
+                                        <img 
+                                            src={vehicle.image && vehicle.image.fileName ? getImageUrl(vehicle.image.fileName) : "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80"} 
+                                            alt={vehicle.model} 
+                                            className="vehicle-card-img" 
+                                        />
+                                        {/* Dynamic status could be fetched from ongoing services later */}
+                                        <span className="status-badge active">
+                                            REGISTERED
                                         </span>
-                                    )}
-                                </div>
-                                <div className="card-content">
-                                    <div className="vehicle-basic-info">
-                                        <h4 className="vehicle-title">{vehicle.name}</h4>
-                                        <span className="vehicle-year">{vehicle.year}</span>
                                     </div>
-                                    <div className="vehicle-meta">
-                                        <div className="meta-item plate">
-                                            <span>{vehicle.plate}</span>
+                                    <div className="card-content">
+                                        <div className="vehicle-basic-info">
+                                            <h4 className="vehicle-title" style={{textTransform: "capitalize"}}>
+                                                {vehicle.make} {vehicle.model}
+                                            </h4>
+                                            <span className="vehicle-year">{vehicle.type}</span>
                                         </div>
-                                        <div className="meta-item time">
-                                            <i className="fa-regular fa-calendar-check"></i>
-                                            <span>{vehicle.lastService}</span>
+                                        <div className="vehicle-meta">
+                                            <div className="meta-item plate">
+                                                <span>{vehicle.licensePlate}</span>
+                                            </div>
+                                            <div className="meta-item time">
+                                                <i className="fa-regular fa-calendar-check"></i>
+                                                <span>Added {new Date(vehicle.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="card-footer">
+                                        <Link to={`/customer/my-garage/${vehicle._id}`} className="view-details-link">
+                                            <span>VIEW DETAILS</span>
+                                            <i className="fa-solid fa-arrow-right"></i>
+                                        </Link>
+                                        <div className="action-icons">
+                                            <button className="icon-btn edit" onClick={() => navigate(`/customer/my-garage/edit/${vehicle._id}`)}>
+                                                <i className="fa-regular fa-pen-to-square"></i>
+                                            </button>
+                                            <button className="icon-btn delete" onClick={() => handleDelete(vehicle._id)}>
+                                                <i className="fa-regular fa-trash-can"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="card-footer">
-                                    <Link to={`/customer/my-garage/${vehicle.id}`} className="view-details-link">
-                                        <span>VIEW DETAILS</span>
-                                        <i className="fa-solid fa-arrow-right"></i>
-                                    </Link>
-                                    <div className="action-icons">
-                                        <button className="icon-btn edit"><i className="fa-regular fa-pen-to-square"></i></button>
-                                        <button className="icon-btn delete"><i className="fa-regular fa-trash-can"></i></button>
+                            ))}
+
+                            {/* Add Another Vehicle Placeholder */}
+                            <Link to="/customer/my-garage/add" className="add-placeholder-card">
+                                <div className="placeholder-content">
+                                    <div className="plus-circle">
+                                        <i className="fa-solid fa-plus"></i>
                                     </div>
+                                    <h4 className="placeholder-title">Add Another Vehicle</h4>
+                                    <p className="placeholder-text">Track and manage more cars in your profile</p>
                                 </div>
-                            </div>
-                        ))}
-
-                        {/* Add Another Vehicle Placeholder */}
-                        <Link to="/customer/my-garage/add" className="add-placeholder-card">
-                            <div className="placeholder-content">
-                                <div className="plus-circle">
-                                    <i className="fa-solid fa-plus"></i>
-                                </div>
-                                <h4 className="placeholder-title">Add Another Vehicle</h4>
-                                <p className="placeholder-text">Track and manage more cars in your profile</p>
-                            </div>
-                        </Link>
-                    </div>
-
+                            </Link>
+                        </div>
+                    )}
                 </main>
             </div>
         </div>
