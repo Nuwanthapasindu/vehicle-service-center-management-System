@@ -128,50 +128,36 @@ export default function Service() {
         ? Math.min(...item.prices.map((p) => p.price)).toFixed(2)
         : "0.00";
 
-    // Using isDeleted to represent active status since it's the only relevant field in schema
-    const isActive = !item.isDeleted;
-
     return (
       <TouchableOpacity
-        style={[styles.card, !isActive && styles.cardInactive]}
+        style={styles.card}
         activeOpacity={0.7}
         onPress={() =>
           router.push(
             `/(protected)/(admin)/serviceAndPackage/service/${item._id}`,
           )
         }
-        disabled={!isActive}
       >
         <View style={styles.cardLeft}>
-          <View
-            style={[styles.tagWrapper, !isActive && styles.tagWrapperInactive]}
-          >
+          <View style={styles.tagWrapper}>
             <Text style={styles.tagText}>Service</Text>
           </View>
-          <Text
-            style={[styles.serviceName, !isActive && styles.textInactive]}
-            numberOfLines={1}
-          >
+          <Text style={styles.serviceName} numberOfLines={1}>
             {item.name}
           </Text>
-          <Text
-            style={[styles.durationText, !isActive && styles.subtextInactive]}
-            numberOfLines={1}
-          >
+          <Text style={styles.durationText} numberOfLines={1}>
             {item.description || "No description"}
           </Text>
         </View>
 
         <View style={styles.cardRight}>
-          <Text
-            style={[styles.priceText, !isActive && styles.textInactiveLight]}
-          >
+          <Text style={styles.priceText}>
             LKR {minPrice}
           </Text>
           <Ionicons
             name="chevron-forward"
             size={16}
-            color={isActive ? colors.SECONDARY : colors.BORDER_COLOR}
+            color={colors.SECONDARY}
             style={styles.chevron}
           />
         </View>

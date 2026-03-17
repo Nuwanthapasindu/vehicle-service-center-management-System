@@ -139,7 +139,7 @@ export default function PackageCatalog() {
     const imageUrl =
       item.image && item.image.filePath
         ? getImageFullUrl(item.image.filePath)
-        : "";
+        : "https://placehold.co/600x400@3x.png?text=No+Image";
 
     const servicesCount = item.servicesIncluded?.length || 0;
     const modelsStr = item.applicableVehicalModels?.join(", ") || "";
