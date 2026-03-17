@@ -91,12 +91,16 @@ const updatePackageValidationSchema = joi.object({
     .items(
       joi
         .string()
-        .valid(...Object.values(VEHICLE_TYPES))
+        .trim()
+        .min(1)
+        .max(100)
         .messages({
-          "any.only": `Vehicle model must be one of: ${Object.values(
-            VEHICLE_TYPES,
-          ).join(", ")}`,
-        }),
+          "string.empty": "Applicable vehicle model cannot be empty",
+          "string.trim":
+            "Applicable vehicle model must not contain leading or trailing spaces",
+          "string.min": "Applicable vehicle model must be at least 1 character long",
+          "string.max": "Applicable vehicle model must be at most 100 characters long",
+        })
     )
     .min(1)
     .optional()

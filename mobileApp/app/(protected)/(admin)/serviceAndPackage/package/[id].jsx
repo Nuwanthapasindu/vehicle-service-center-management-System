@@ -20,11 +20,8 @@ import Toast from "react-native-toast-message";
 import CustomImagePicker from "../../../../../components/CustomImagePicker";
 import DropdownInput from "../../../../../components/DropdownInput";
 import colors from "../../../../../constants/colors";
-import enums from "../../../../../constants/enums";
 import PackageSchema from "../../../../../schema/packageSchema";
 import getImageFullUrl from "../../../../../utils/getImageFullUrl";
-
-const VEHICLE_TYPES = Object.values(enums.VEHICLE_TYPES);
 
 export default function EditPackage() {
   const router = useRouter();
@@ -38,6 +35,7 @@ export default function EditPackage() {
   // Image states
   const [imageUri, setImageUri] = useState(null);
   const [uploadedImageId, setUploadedImageId] = useState(null);
+  const [imageChanged, setImageChanged] = useState(false);
 
   // Package Object State Native Defaults
   const [initialData, setInitialData] = useState(null);
@@ -116,8 +114,11 @@ export default function EditPackage() {
           name: tier.name.trim(),
           price: Number(tier.price),
         })),
-        ...(uploadedImageId && { image: uploadedImageId }),
       };
+
+      if (uploadedImageId && typeof uploadedImageId === "string" && imageChanged) {
+        payload.image = uploadedImageId;
+      }
 
       const response = await axios.put(`/package/${id}`, payload);
 
@@ -129,11 +130,10 @@ export default function EditPackage() {
 
       router.back();
     } catch (error) {
-      console.log(error.response?.data || error);
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: error.response?.data?.message || "Something went wrong",
+        text2: error.response?.data?.payload?.message || "Something went wrong",
       });
     } finally {
       setUpdating(false);
@@ -165,7 +165,7 @@ export default function EditPackage() {
               Toast.show({
                 type: "error",
                 text1: "Error",
-                text2: error.response?.data?.message || "Failed to delete",
+                text2: error.response?.data?.payload?.message || "Failed to delete",
               });
               setUpdating(false);
             }
@@ -191,7 +191,10 @@ export default function EditPackage() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <CustomImagePicker
           imageUri={imageUri}
-          onImageSelected={setImageUri}
+          onImageSelected={(uri) => {
+            setImageUri(uri);
+            setImageChanged(true);
+          }}
           onUploadSuccess={setUploadedImageId}
           currentFileId={uploadedImageId}
           title="Tap to change package image"
@@ -213,6 +216,7 @@ export default function EditPackage() {
               values,
               errors,
               touched,
+              dirty,
             }) => (
               <View style={styles.formSection}>
                 {/* PACKAGE NAME Input */}
@@ -544,10 +548,13 @@ export default function EditPackage() {
 
                 {/* Submissions logic block */}
                 <TouchableOpacity
-                  style={[styles.submitButton, updating && { opacity: 0.7 }]}
+                  style={[
+                    styles.submitButton,
+                    (updating || (!dirty && !imageChanged)) && { opacity: 0.5 },
+                  ]}
                   activeOpacity={0.8}
                   onPress={handleSubmit}
-                  disabled={updating}
+                  disabled={updating || (!dirty && !imageChanged)}
                 >
                   {updating ? (
                     <ActivityIndicator color={colors.DARK} />

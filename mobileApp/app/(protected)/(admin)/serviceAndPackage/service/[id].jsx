@@ -39,6 +39,9 @@ export default function EditService() {
 
   const [imageUri, setImageUri] = useState(null);
   const [uploadedImageId, setUploadedImageId] = useState(null);
+  const [imageChanged, setImageChanged] = useState(false);
+
+  const [originalData, setOriginalData] = useState(null);
 
   useEffect(() => {
     if (id) fetchService();
@@ -60,15 +63,23 @@ export default function EditService() {
         }
       }
 
-      if (data.prices && data.prices.length > 0) {
-        setPricingOptions(
-          data.prices.map((p, i) => ({
-            id: i.toString(),
-            model: p.model,
-            price: p.price.toString(),
-          })),
-        );
-      }
+      const prices =
+        data.prices && data.prices.length > 0
+          ? data.prices.map((p, i) => ({
+              id: i.toString(),
+              model: p.model,
+              price: p.price.toString(),
+            }))
+          : [{ id: "1", model: VEHICLE_TYPES[0], price: "" }];
+
+      setPricingOptions(prices);
+
+      // Store a snapshot for dirty-checking
+      setOriginalData({
+        name: data.name,
+        description: data.description || "",
+        pricingOptions: prices,
+      });
     } catch (err) {
       Toast.show({
         type: "error",
@@ -121,7 +132,7 @@ export default function EditService() {
         })),
       };
 
-      if (uploadedImageId && typeof uploadedImageId === "string") {
+      if (uploadedImageId && typeof uploadedImageId === "string" && imageChanged) {
         payload.image = uploadedImageId;
       }
 
@@ -144,6 +155,21 @@ export default function EditService() {
       setUpdating(false);
     }
   };
+
+  // Derive hasChanges based on comparison against original snapshot
+  const hasChanges = (() => {
+    if (imageChanged) return true;
+    if (!originalData) return false;
+    if (serviceName !== originalData.name) return true;
+    if (description !== originalData.description) return true;
+    if (pricingOptions.length !== originalData.pricingOptions.length) return true;
+    for (let i = 0; i < pricingOptions.length; i++) {
+      const cur = pricingOptions[i];
+      const orig = originalData.pricingOptions[i];
+      if (cur.model !== orig.model || cur.price !== orig.price) return true;
+    }
+    return false;
+  })();
 
   const handleDelete = () => {
     Alert.alert(
@@ -200,7 +226,10 @@ export default function EditService() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <CustomImagePicker
           imageUri={imageUri}
-          onImageSelected={setImageUri}
+          onImageSelected={(uri) => {
+            setImageUri(uri);
+            setImageChanged(true);
+          }}
           onUploadSuccess={setUploadedImageId}
           title="Tap to change service image"
           subtitle="Upload a new high-quality photo"
@@ -311,10 +340,13 @@ export default function EditService() {
         {/* Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.updateButton}
+            style={[
+              styles.updateButton,
+              (updating || !hasChanges) && { opacity: 0.5 },
+            ]}
             activeOpacity={0.8}
             onPress={handleUpdate}
-            disabled={updating}
+            disabled={updating || !hasChanges}
           >
             {updating ? (
               <ActivityIndicator color={colors.DARK} />

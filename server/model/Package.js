@@ -31,6 +31,10 @@ const packageSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "File",
     },
+    isPublished: {
+      type: Boolean,
+      default: true,
+    },
     isDeleted: {
       type: Boolean,
       default: false,
