@@ -241,3 +241,54 @@
         padding: 2.5rem 1.5rem 1.5rem;
     }
 }
+
+/* ── Validation: error border ─────────────────────────────────── */
+.input-wrapper.input-error {
+    border-color: #EF4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* ── Inline field error message ───────────────────────────────── */
+.field-error {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #EF4444;
+    margin-top: -0.2rem;
+}
+
+.field-error i {
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* ── Strength bar color variants ──────────────────────────────── */
+.strength-bar.weak   { background-color: #EF4444; }
+.strength-bar.fair   { background-color: #F97316; }
+.strength-bar.good   { background-color: #EAB308; }
+.strength-bar.strong { background-color: var(--primary-color, #8EDB00); }
+
+/* ── Strength value label colors ──────────────────────────────── */
+.strength-value.weak   { color: #EF4444; }
+.strength-value.fair   { color: #F97316; }
+.strength-value.good   { color: #EAB308; }
+/* .strength-value.strong is already defined above */
+
+/* ── Submit button: disabled state ───────────────────────────── */
+.register-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ── Spinner animation ────────────────────────────────────────── */
+@keyframes fa-spin {
+    0%   { transform: rotate(0deg);   }
+    100% { transform: rotate(360deg); }
+}
+.fa-spin {
+    animation: fa-spin 0.75s linear infinite;
+}
