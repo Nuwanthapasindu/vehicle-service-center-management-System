@@ -7,27 +7,8 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import { registerValidationSchema } from "../../schemas/auth";
 import { CONFIGURATION, enums } from "../../constants/enum";
+import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator/PasswordStrengthIndicator";
 import "./RegisterPage.css";
-
-function getPasswordStrength(password) {
-  if (!password) return { level: 0, label: "", color: "" };
-
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[@$!%*?&]/.test(password)) score++;
-
-  if (score === 1)
-    return { level: 1, label: enums.PASSWORD_LABELS.WEAK, color: "weak" };
-  if (score === 2)
-    return { level: 2, label: enums.PASSWORD_LABELS.FAIR, color: "fair" };
-  if (score === 3)
-    return { level: 3, label: enums.PASSWORD_LABELS.GOOD, color: "good" };
-  if (score === 4)
-    return { level: 4, label: enums.PASSWORD_LABELS.STRONG, color: "strong" };
-  return { level: 0, label: "", color: "" };
-}
 
 function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -94,7 +75,6 @@ function RegisterPage() {
                 isValid,
                 dirty,
               }) => {
-                const strength = getPasswordStrength(values.password);
                 const fieldClass = (name) =>
                   touched[name] && errors[name] ? "input-error" : "";
 
@@ -226,32 +206,7 @@ function RegisterPage() {
                     </div>
 
                     {/* Password Strength Indicator */}
-                    {values.password && (
-                      <div className="security-strength-container">
-                        <div className="security-strength-labels">
-                          <span className="strength-label">
-                            SECURITY STRENGTH
-                          </span>
-                          <span className={`strength-value ${strength.color}`}>
-                            {strength.label}
-                          </span>
-                        </div>
-                        <div className="security-strength-bars">
-                          <div
-                            className={`strength-bar ${strength.level >= 1 ? strength.color : "empty"}`}
-                          ></div>
-                          <div
-                            className={`strength-bar ${strength.level >= 2 ? strength.color : "empty"}`}
-                          ></div>
-                          <div
-                            className={`strength-bar ${strength.level >= 3 ? strength.color : "empty"}`}
-                          ></div>
-                          <div
-                            className={`strength-bar ${strength.level >= 4 ? strength.color : "empty"}`}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
+                    <PasswordStrengthIndicator password={values.password} />
 
                     {/* Submit */}
                     <button
