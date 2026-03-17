@@ -2,7 +2,6 @@ const Supplier = require('../model/Supplier');
 
 exports.getAllSuppliers = async (req, res) => {
   try {
-    // Delete wela nathi (isDeleted: false) ewun witharai list wenne
     const suppliers = await Supplier.find({ isDeleted: false }).sort({ createdAt: -1 });
     res.status(200).json(suppliers);
   } catch (error) { 
@@ -31,7 +30,6 @@ exports.updateSupplier = async (req, res) => {
 
 exports.deleteSupplier = async (req, res) => {
   try {
-    // Database eken delete karanne na, isDeleted eka true karanawa (Soft Delete)
     await Supplier.findByIdAndUpdate(req.params.id, { isDeleted: true, deletedAt: new Date() });
     res.status(200).json({ message: "Supplier deleted successfully" });
   } catch (error) { 

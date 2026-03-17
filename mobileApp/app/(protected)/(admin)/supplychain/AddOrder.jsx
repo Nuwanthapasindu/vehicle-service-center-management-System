@@ -88,7 +88,6 @@ export default function AddOrder({ onBack, API }) {
     }
   };
 
-  // METHANA THAMAI ALUTH PROFESSIONAL PDF TEMPLATE EKA THIYENNE
   const generatePDF = async (orderData, orderId) => {
     try {
       const currentDate = new Date().toLocaleDateString('en-US', {

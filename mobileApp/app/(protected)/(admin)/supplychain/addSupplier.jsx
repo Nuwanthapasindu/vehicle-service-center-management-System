@@ -15,7 +15,6 @@ export default function AddSupplier({ onBack, API }) {
   const handleSave = async () => {
     if (!companyName) return Alert.alert("Error", "Company Name is required");
 
-    // Clean up empty phone numbers and items
     const validPhones = phones.filter(p => p.trim() !== '');
     const validItems = selectedItems.filter(i => i.trim() !== '');
 

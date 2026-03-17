@@ -25,7 +25,7 @@ export default function SupplyChainApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [lowStockWarning, setLowStockWarning] = useState(false);
   const [lowStockItems, setLowStockItems] = useState([]);
-  const [isWarningDismissed, setIsWarningDismissed] = useState(false); // Warning close karanna
+  const [isWarningDismissed, setIsWarningDismissed] = useState(false); 
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -48,7 +48,7 @@ export default function SupplyChainApp() {
   useEffect(() => {
     if (currentView === 'LIST') {
       fetchData();
-      setIsWarningDismissed(false); // List ekata eddi aye warning eka reset wenawa
+      setIsWarningDismissed(false); 
     }
   }, [activeTab, currentView]);
 

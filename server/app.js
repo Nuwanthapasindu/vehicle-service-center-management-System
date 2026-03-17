@@ -8,17 +8,13 @@ const  swaggerSpec = require("./config/document.config");
 const AppError = require("./error/AppError");
 require("dotenv").config();
 
-// ROUTERS IMPORT
 const authRouter = require("./routes/auth.route");
 const log = require("./middleware/log");
 const fileRouter = require("./routes/file.route");
 
-// CONFIGURE EXPRESS APP
 const app = express();
-//  DATABASE CONNECTION ESTABLISHMENT
 connectDB();
 
-// TOP LEVEL MIDDLEWARE
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
@@ -29,7 +25,6 @@ app.use(
 );
 app.use(helmet());
 app.use(log);
-// Serve Swagger documentation
 if (process.env.NODE_ENV !== "production") {
 app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec,{
   explorer: true,
@@ -37,16 +32,14 @@ app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec,{
 }));
 }
 
-// ROUTES
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/file", fileRouter);
 
-// === SUPPLY CHAIN ROUTES (Meka thama api add karapu tika) ===
+//  SUPPLY CHAIN ROUTES 
 app.use('/api/suppliers', require('./routes/supplier.route'));
-app.use('/api/orders', require('./routes/order.route')); // purchaseOrder.route eka wenata order.route kiyala haduwa
+app.use('/api/orders', require('./routes/order.route')); 
 app.use('/api/inventory', require('./routes/inventory.route'));
 
-// DEFAULT ROUTE
 app.use((req, res, next) => {
   next(
     new AppError(
@@ -56,7 +49,6 @@ app.use((req, res, next) => {
   );
 });
 
-// LOW LEVEL MIDDLEWARE
 app.use(errorHandling);
 
 module.exports = app;

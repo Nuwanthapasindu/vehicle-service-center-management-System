@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-// Order eke athule thiyena eka item ekak (sub-document)
 const orderItemSchema = new Schema({
   inventoryId: {
     type: Schema.Types.ObjectId,
@@ -22,16 +21,16 @@ const orderItemSchema = new Schema({
     default: "Nos",
   },
   price: {
-    type: Number, // Unit Price eka
+    type: Number, 
     required: true,
   },
   cost: {
-    type: Number, // Total cost eka (qty * price)
+    type: Number,
     required: true,
   },
 });
 
-// Main Order Schema eka
+// Main Order Schema
 const orderSchema = new Schema(
   {
     supplierId: {
@@ -39,7 +38,7 @@ const orderSchema = new Schema(
       ref: "Supplier",
       required: true,
     },
-    items: [orderItemSchema], // Kalin hadapu items array eka methanata danawa
+    items: [orderItemSchema], 
     totalCost: {
       type: Number,
       required: true,

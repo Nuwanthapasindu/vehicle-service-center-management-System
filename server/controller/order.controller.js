@@ -1,10 +1,10 @@
 const Order = require('../model/order');
-const { adjustStockHelper } = require('./inventory.controller'); // Malki ge file eken gannawa
+const { adjustStockHelper } = require('./inventory.controller'); 
 
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({ isDeleted: false })
-      .populate('supplierId', 'companyName agentName companyMobile') // Supplier ge details gannawa
+      .populate('supplierId', 'companyName agentName companyMobile') 
       .sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) { 
@@ -31,7 +31,6 @@ exports.deleteOrder = async (req, res) => {
   }
 };
 
-// Meka thama most important function eka!
 exports.receiveOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -43,13 +42,10 @@ exports.receiveOrder = async (req, res) => {
       return res.status(400).json({ message: "Order is already marked as received" });
     }
 
-    // Order eke thiyena items tika ekkin eka inventory ekata add karanawa Malki ge function eken
     for (let item of order.items) {
-       // inventoryId, quantity, actionType ('PO_RECEIVE' kiyala thamai Malki ge constants wala thiyenne)
        await adjustStockHelper(item.inventoryId, item.qty, 'PO_RECEIVE'); 
     }
 
-    // Inventory eka update unata passe, Order eke status eka 'Received' karanawa
     order.status = 'Received';
     await order.save();
     
