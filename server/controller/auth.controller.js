@@ -46,6 +46,11 @@ module.exports.register = async (payload) => {
     try {
       await sendSms(savedUser.mobile, `Your verification code is: ${otp}`);
     } catch (smsError) {
+      // role back auth and user
+      await Promise.all([
+        Auth.findByIdAndDelete(newAuth._id),
+        User.findByIdAndDelete(savedUser._id),
+      ]);
       throw new AppError("Failed to send verification SMS", 500);
     }
 
@@ -211,6 +216,10 @@ module.exports.forgotPassword = async (payload) => {
     try {
       await sendSms(user.mobile, `Your password reset code is: ${otp}`);
     } catch (smsError) {
+      // role back auth and user
+      auth.verificationOtp = null;
+      user.isActive = true;
+      await Promise.resolve([auth.save(), user.save()]);
       throw smsError;
     }
 
@@ -248,6 +257,7 @@ module.exports.resetPassword = async (payload) => {
         "Your password has been reset successfully.",
       );
     } catch (smsError) {
+      // Handle SMS notification failure
       console.error("SMS notification failed:", smsError);
     }
 
