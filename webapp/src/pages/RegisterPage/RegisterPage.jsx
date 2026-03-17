@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import { registerValidationSchema } from "../../schemas/auth";
-import { enums } from "../../constants/enum";
+import { CONFIGURATION, enums } from "../../constants/enum";
 import "./RegisterPage.css";
 
 function getPasswordStrength(password) {
@@ -55,7 +55,7 @@ function RegisterPage() {
 
       // Redirect to OTP verification page
       navigate("/verify-otp");
-      localStorage.setItem(enums.CONFIGURATION.MOBILE_NUMBER_KEY, values.mobile);
+      localStorage.setItem(CONFIGURATION.MOBILE_NUMBER_KEY, values.mobile);
     } catch (error) {
       const message =
         error?.response?.data?.payload?.message || enums.DEFAULT_ERROR_MESSAGE;

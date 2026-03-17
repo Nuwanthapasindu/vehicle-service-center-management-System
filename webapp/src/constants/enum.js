@@ -54,4 +54,5 @@ export const enums = Object.freeze({
 export const CONFIGURATION = Object.freeze({
   ACCESS_TOKEN_KEY: "ACCESS_TOKEN",
   REFRESH_TOKEN_KEY: "REFRESH_TOKEN",
+  MOBILE_NUMBER_KEY: "MOBILE_NUMBER",
 });
