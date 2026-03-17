@@ -76,6 +76,9 @@ const createPackageValidationSchema = joi.object({
     "string.hex": "Image ID must be a valid hexadecimal string",
     "string.length": "Image ID must be exactly 24 characters long",
   }),
+  isPublished: joi.boolean().optional().default(true).messages({
+    "boolean.base": "isPublished must be a boolean value",
+  }),
 });
 
 // Validation schema for updating a package
@@ -148,6 +151,9 @@ const updatePackageValidationSchema = joi.object({
     "string.hex": "Image ID must be a valid hexadecimal string",
     "string.length": "Image ID must be exactly 24 characters long",
   }),
+  isPublished: joi.boolean().optional().messages({
+    "boolean.base": "isPublished must be a boolean value",
+  }),
 });
 
 // Validation schema for querying packages with filters
@@ -215,6 +221,9 @@ const queryPackageValidationSchema = joi
       .messages({
         "any.only": "Sort order must be either 'asc' or 'desc'",
       }),
+    isPublished: joi.boolean().optional().messages({
+      "boolean.base": "isPublished must be a boolean value",
+    }),
   })
   .custom((value, helpers) => {
     // Validate that minPrice is not greater than maxPrice overall

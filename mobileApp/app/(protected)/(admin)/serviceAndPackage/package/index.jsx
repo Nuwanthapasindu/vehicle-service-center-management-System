@@ -8,6 +8,7 @@ import {
   Image,
   FlatList,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -26,8 +27,8 @@ export default function PackageCatalog() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [totalPackages, setTotalPackages] = useState(0);
 
-  // Filter state for active/inactive (if we support it later)
-  const [filter, setFilter] = useState("All Packages");
+  // Filter: 'all' | 'published' | 'unpublished'
+  const [filter, setFilter] = useState("all");
 
   // Debounce search query
   useEffect(() => {
@@ -40,28 +41,31 @@ export default function PackageCatalog() {
   useFocusEffect(
     useCallback(() => {
       setPage(1);
-      fetchPackages(1, debouncedSearch);
-    }, [debouncedSearch]),
+      fetchPackages(1, debouncedSearch, filter);
+    }, [debouncedSearch, filter]),
   );
 
   useEffect(() => {
     if (page > 1) {
-      fetchPackages(page, debouncedSearch);
+      fetchPackages(page, debouncedSearch, filter);
     }
   }, [page]);
 
-  const fetchPackages = async (pageNumber, search) => {
+  const fetchPackages = async (pageNumber, search, activeFilter) => {
     if (loading) return;
 
     setLoading(true);
     try {
-      const response = await axios.get("/package", {
-        params: {
-          page: pageNumber,
-          limit: 10,
-          name: search || undefined,
-        },
-      });
+      const params = {
+        page: pageNumber,
+        limit: 10,
+        name: search || undefined,
+      };
+
+      if (activeFilter === "published") params.isPublished = true;
+      if (activeFilter === "unpublished") params.isPublished = false;
+
+      const response = await axios.get("/package", { params });
 
       const targetPayload = response.data.payload || {};
       const newPackages = targetPayload.packages || [];
@@ -86,6 +90,14 @@ export default function PackageCatalog() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setPage(1);
+    setHasMore(true);
+    setPackages([]);
+    fetchPackages(1, debouncedSearch, newFilter);
   };
 
   const handleSearch = (text) => {
@@ -113,22 +125,19 @@ export default function PackageCatalog() {
   };
 
   const renderItem = ({ item }) => {
-    const isActive = !item.isDeleted; // Adjust if schema has actual 'active' field
     const imageUrl =
       item.image && item.image.filePath
         ? getImageFullUrl(item.image.filePath)
-        : "https://via.placeholder.com/200?text=No+Image";
+        : "";
 
     const servicesCount = item.servicesIncluded?.length || 0;
     const modelsStr = item.applicableVehicalModels?.join(", ") || "";
-
-    // Show date formatted
     const dateUpdated = new Date(item.updatedAt);
     const dateFormatted = `${dateUpdated.getDate()} ${dateUpdated.toLocaleString("default", { month: "short" })}`;
 
     return (
       <TouchableOpacity
-        style={[styles.card, !isActive && styles.cardInactive]}
+        style={styles.card}
         activeOpacity={0.7}
         onPress={() =>
           router.push(
@@ -145,9 +154,17 @@ export default function PackageCatalog() {
         </View>
 
         <View style={styles.cardContent}>
-          <Text style={styles.pkgName} numberOfLines={1}>
-            {item.name}
-          </Text>
+          <View style={styles.cardNameRow}>
+            <Text style={styles.pkgName} numberOfLines={1}>
+              {item.name}
+            </Text>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: item.isPublished ? "#22C55E" : "#EF4444" },
+              ]}
+            />
+          </View>
           <Text style={styles.pkgVehicles} numberOfLines={1}>
             {modelsStr}
           </Text>
@@ -172,7 +189,7 @@ export default function PackageCatalog() {
 
   return (
     <View style={styles.container}>
-      {/* Search Section */}
+      {/* Search + Filter Section */}
       <View style={styles.headerSection}>
         <View style={styles.searchBox}>
           <Ionicons
@@ -189,6 +206,37 @@ export default function PackageCatalog() {
             onChangeText={handleSearch}
           />
         </View>
+
+        {/* Filter Pills */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}
+        >
+          {[
+            { key: "all", label: "All" },
+            { key: "published", label: "Published" },
+            { key: "unpublished", label: "Unpublished" },
+          ].map((tab) => (
+            <TouchableOpacity
+              key={tab.key}
+              style={[
+                styles.filterPill,
+                filter === tab.key && styles.filterPillActive,
+              ]}
+              onPress={() => handleFilterChange(tab.key)}
+            >
+              <Text
+                style={[
+                  styles.filterPillText,
+                  filter === tab.key && styles.filterPillTextActive,
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
       <FlatList
@@ -198,7 +246,9 @@ export default function PackageCatalog() {
         contentContainerStyle={styles.scrollContent}
         ListHeaderComponent={() => (
           <Text style={styles.sectionTitle}>
-            ALL PACKAGES ({totalPackages})
+            {filter === "all" && `ALL PACKAGES (${totalPackages})`}
+            {filter === "published" && `PUBLISHED (${totalPackages})`}
+            {filter === "unpublished" && `UNPUBLISHED (${totalPackages})`}
           </Text>
         )}
         onEndReached={loadMorePackages}
@@ -229,9 +279,35 @@ const styles = StyleSheet.create({
   headerSection: {
     backgroundColor: colors.BACKGROUND_COLOR,
     paddingTop: 16,
-    paddingBottom: 16,
+    paddingBottom: 0,
     borderBottomWidth: 1,
     borderBottomColor: colors.BORDER_COLOR + "40",
+  },
+  filterRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    backgroundColor: colors.LIGHT,
+  },
+  filterPillActive: {
+    backgroundColor: colors.PRIMARY,
+    borderColor: colors.PRIMARY,
+  },
+  filterPillText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.SECONDARY,
+  },
+  filterPillTextActive: {
+    color: colors.DARK,
   },
   searchBox: {
     flexDirection: "row",
@@ -298,10 +374,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   pkgName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "bold",
     color: colors.DARK,
+    flex: 1,
+    marginRight: 8,
+  },
+  cardNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 4,
+  },
+  statusDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    flexShrink: 0,
   },
   pkgVehicles: {
     fontSize: 13,

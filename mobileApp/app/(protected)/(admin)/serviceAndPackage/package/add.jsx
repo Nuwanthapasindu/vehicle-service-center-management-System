@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Switch,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -63,6 +64,7 @@ export default function AddPackage() {
     applicableVehicalModels: [],
     servicesIncluded: [],
     pricingTiers: [{ name: "Standard", price: "" }],
+    isPublished: true,
   };
 
   const handleCreatePackage = async (values, { resetForm }) => {
@@ -77,6 +79,7 @@ export default function AddPackage() {
           name: tier.name.trim(),
           price: Number(tier.price),
         })),
+        isPublished: values.isPublished,
         ...(uploadedImageId && { image: uploadedImageId }),
       };
 
@@ -453,6 +456,24 @@ export default function AddPackage() {
                 </TouchableOpacity>
               </View>
 
+              {/* PUBLISHED TOGGLE */}
+              <View style={styles.toggleRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>Publish Package</Text>
+                  <Text style={styles.toggleSubtext}>
+                    {values.isPublished
+                      ? "Visible to customers"
+                      : "Hidden from customers"}
+                  </Text>
+                </View>
+                <Switch
+                  value={values.isPublished}
+                  onValueChange={(val) => setFieldValue("isPublished", val)}
+                  trackColor={{ false: colors.BORDER_COLOR, true: colors.PRIMARY }}
+                  thumbColor={colors.LIGHT}
+                />
+              </View>
+
               <TouchableOpacity
                 style={[styles.submitButton, loading && { opacity: 0.7 }]}
                 activeOpacity={0.8}
@@ -566,6 +587,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: colors.DARK,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.LIGHT,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  toggleSubtext: {
+    fontSize: 12,
+    color: colors.SECONDARY,
+    marginTop: 2,
   },
   chipListVertical: {
     gap: 10,

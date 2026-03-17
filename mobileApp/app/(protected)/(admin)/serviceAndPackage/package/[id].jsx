@@ -11,6 +11,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Switch,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
@@ -84,6 +85,7 @@ export default function EditPackage() {
           pkg.pricingTiers?.length > 0
             ? pkg.pricingTiers
             : [{ name: "Standard", price: "" }],
+        isPublished: pkg.isPublished ?? true,
       });
 
       if (pkg.image) {
@@ -114,6 +116,7 @@ export default function EditPackage() {
           name: tier.name.trim(),
           price: Number(tier.price),
         })),
+        isPublished: values.isPublished,
       };
 
       if (uploadedImageId && typeof uploadedImageId === "string" && imageChanged) {
@@ -546,6 +549,24 @@ export default function EditPackage() {
                   </TouchableOpacity>
                 </View>
 
+                {/* PUBLISHED TOGGLE */}
+                <View style={styles.toggleRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.label}>Publish Package</Text>
+                    <Text style={styles.toggleSubtext}>
+                      {values.isPublished
+                        ? "Visible to customers"
+                        : "Hidden from customers"}
+                    </Text>
+                  </View>
+                  <Switch
+                    value={values.isPublished}
+                    onValueChange={(val) => setFieldValue("isPublished", val)}
+                    trackColor={{ false: colors.BORDER_COLOR, true: colors.PRIMARY }}
+                    thumbColor={colors.LIGHT}
+                  />
+                </View>
+
                 {/* Submissions logic block */}
                 <TouchableOpacity
                   style={[
@@ -682,6 +703,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: colors.DARK,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.LIGHT,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginTop: 8,
+  },
+  toggleSubtext: {
+    fontSize: 12,
+    color: colors.SECONDARY,
+    marginTop: 2,
   },
   deleteButton: {
     flexDirection: "row",

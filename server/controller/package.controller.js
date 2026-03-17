@@ -79,9 +79,14 @@ module.exports.getPackages = async (queryPayload) => {
       limit = 10,
       sortBy = "createdAt",
       sortOrder = "desc",
+      isPublished,
     } = queryPayload;
 
     const query = { isDeleted: false };
+
+    if (isPublished !== undefined) {
+      query.isPublished = isPublished;
+    }
 
     if (name) {
       query.name = { $regex: name, $options: "i" };
@@ -253,6 +258,7 @@ module.exports.updatePackage = async (id, payload) => {
 
     return `${updatedPackage.name} updated successfully.`;
   } catch (error) {
+    console.log(error);
     throw new AppError(error.message, error.statusCode || 500);
   }
 };
