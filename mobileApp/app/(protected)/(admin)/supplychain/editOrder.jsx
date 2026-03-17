@@ -10,20 +10,32 @@ export default function EditOrder({ order, onBack, API }) {
   const isDraft = order?.status === 'Draft';
 
   const handleMarkAsReceived = () => {
-    Alert.alert("Confirm Receipt", "This will add items to your inventory. Continue?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Confirm", onPress: async () => {
-          try {
-            await axios.put(`${API}/orders/${order._id}/receive`);
-            Alert.alert("Success", "Inventory updated successfully!");
-            onBack();
-          } catch (error) {
-            Alert.alert("Error", error.response?.data?.message || "Could not mark as received.");
-          }
+    Alert.alert(
+      "Confirm Receipt",
+      "This will add items to your inventory. Continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Confirm",
+          onPress: () => confirmReceiveOrder()
         }
-      }
-    ]);
+      ]
+    );
+  };
+
+  const confirmReceiveOrder = async () => {
+    try {
+      const response = await axios.put(`${API}/orders/${order._id}/receive`, {});
+      
+      Alert.alert("Success", "Inventory updated successfully!");
+      onBack();
+    } catch (error) {
+      console.log("Receive Error:", error.response?.data || error.message);
+      Alert.alert(
+        "Error", 
+        error.response?.data?.message || "Could not mark as received. Check console."
+      );
+    }
   };
 
   const handleDelete = () => {

@@ -46,8 +46,6 @@ export default function AddOrder({ onBack, API }) {
     const formattedItems = items.map(i => {
       const qty = parseFloat(i.qty) || 1;
       const price = parseFloat(i.price) || 0;
-      
-      const isValidMongoId = /^[0-9a-fA-F]{24}$/.test(i.itemId);
 
       const itemPayload = {
         name: i.name,
@@ -57,8 +55,33 @@ export default function AddOrder({ onBack, API }) {
         cost: qty * price 
       };
 
-      if (isValidMongoId) {
-        itemPayload.inventoryId = i.itemId;
+      let rawId = i.itemId;
+
+      if (rawId && typeof rawId === 'string' && rawId.startsWith('string_item_')) {
+          const searchName = i.name ? i.name.trim().toLowerCase() : '';
+          
+          const matchedInv = inventory.find(inv => {
+              const invName = (inv.itemName || inv.name || inv.item || inv.title || inv.productName || '').trim().toLowerCase();
+              return invName === searchName;
+          });
+          
+          if (matchedInv) {
+              rawId = matchedInv._id || matchedInv.id;
+              console.log(`✅ MATCH FOUND FOR: ${i.name} -> ID:`, rawId); 
+          } else {
+              console.log(`❌ MATCH NOT FOUND FOR: ${i.name}`);
+          }
+      }
+
+      if (rawId && typeof rawId === 'object') {
+          rawId = rawId.$oid || rawId._id || rawId.toString();
+      }
+      
+      if (rawId && typeof rawId === 'string') {
+          const cleanId = rawId.trim();
+          if (/^[0-9a-fA-F]{24}$/.test(cleanId)) {
+              itemPayload.inventoryId = cleanId;
+          }
       }
 
       return itemPayload;
@@ -314,7 +337,7 @@ export default function AddOrder({ onBack, API }) {
                       )
                     })}
                     {availableItemsList.length === 0 && (
-                       <Text style={{ padding: 12, color: '#9CA3AF' }}>No items found for this supplier.</Text>
+                        <Text style={{ padding: 12, color: '#9CA3AF' }}>No items found for this supplier.</Text>
                     )}
                   </ScrollView>
                 )}

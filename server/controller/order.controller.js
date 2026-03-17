@@ -1,5 +1,5 @@
 const Order = require('../model/order');
-const { adjustStockHelper } = require('./inventory.controller'); 
+const { adjustStockHelper } = require('./inventory.controller');
 
 exports.getAllOrders = async (req, res) => {
   try {
@@ -18,6 +18,7 @@ exports.createOrder = async (req, res) => {
     await newOrder.save();
     res.status(201).json(newOrder);
   } catch (error) { 
+    console.log("ORDER CREATE ERROR:", error);
     res.status(400).json({ error: error.message }); 
   }
 };
@@ -43,7 +44,9 @@ exports.receiveOrder = async (req, res) => {
     }
 
     for (let item of order.items) {
-       await adjustStockHelper(item.inventoryId, item.qty, 'PO_RECEIVE'); 
+       if (item.inventoryId) {
+         await adjustStockHelper(item.inventoryId, item.qty, 'PO_RECEIVE');
+       }
     }
 
     order.status = 'Received';
@@ -51,6 +54,7 @@ exports.receiveOrder = async (req, res) => {
     
     res.status(200).json({ message: "Order received and inventory updated automatically!", order });
   } catch (error) {
+    console.error("Receive Order Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
