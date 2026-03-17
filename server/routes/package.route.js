@@ -7,36 +7,45 @@
  *       scheme: bearer
  *       bearerFormat: JWT
  *   schemas:
- *     PriceEntry:
+ *     PricingTier:
  *       type: object
  *       required:
- *         - model
+ *         - name
  *         - price
  *       properties:
- *         model:
+ *         name:
  *           type: string
- *           enum: [CAR, VAN, SUV, JEEP]
- *           description: Vehicle model
+ *           description: Pricing tier logic mapping like 'Standard' or 'Premium'
  *         price:
  *           type: number
  *           format: float
- *           description: Price for the specific vehicle model
- *     Service:
+ *           description: Price for the associated tier
+ *     Package:
  *       type: object
  *       properties:
  *         _id:
  *           type: string
  *         name:
  *           type: string
- *         description:
- *           type: string
- *         image:
- *           type: string
- *           description: ID of the uploaded file
- *         prices:
+ *         applicableVehicalModels:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/PriceEntry'
+ *             type: string
+ *             enum: [CAR, VAN, SUV, JEEP]
+ *         description:
+ *           type: string
+ *         pricingTiers:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/PricingTier'
+ *         servicesIncluded:
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: ID references to Service entities
+ *         image:
+ *           type: string
+ *           description: Hex ID reference to File uploads
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -47,22 +56,21 @@
 
 const router = require("express").Router();
 const {
-  createService,
-  getServices,
-  getServiceById,
-  updateService,
-  deleteService,
-  bulkPriceUpdate,
-} = require("../controller/service.controller");
+  createPackage,
+  getPackages,
+  getPackageById,
+  updatePackage,
+  deletePackage,
+} = require("../controller/package.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
 
 /**
  * @swagger
- * /api/v1/service:
+ * /api/v1/package:
  *   post:
- *     summary: Create a new service
- *     tags: [Service]
+ *     summary: Create a new package
+ *     tags: [Package]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -73,26 +81,38 @@ const responseBuild = require("../util/responseBuilder");
  *             type: object
  *             required:
  *               - name
- *               - prices
+ *               - applicableVehicalModels
+ *               - pricingTiers
  *             properties:
  *               name:
  *                 type: string
  *                 minLength: 2
  *                 maxLength: 100
- *               description:
- *                 type: string
- *                 maxLength: 500
- *               image:
- *                 type: string
- *                 description: Hex ID of the uploaded File document
- *               prices:
+ *               applicableVehicalModels:
  *                 type: array
  *                 minItems: 1
  *                 items:
- *                   $ref: '#/components/schemas/PriceEntry'
+ *                   type: string
+ *                   enum: [CAR, VAN, SUV, JEEP]
+ *               description:
+ *                 type: string
+ *                 maxLength: 1000
+ *               pricingTiers:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   $ref: '#/components/schemas/PricingTier'
+ *               servicesIncluded:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   description: 24 character hex object ID representing a Service
+ *               image:
+ *                 type: string
+ *                 description: Hex ID of the uploaded File document
  *     responses:
  *       201:
- *         description: Service created successfully
+ *         description: Package created successfully
  *       400:
  *         description: Bad request / validation error
  *       401:
@@ -102,7 +122,7 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
 
-  createService(payload)
+  createPackage(payload)
     .then((message) => {
       responseBuilder.setStatus(201);
       responseBuilder.buildResponse({ message });
@@ -112,22 +132,22 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
 
 /**
  * @swagger
- * /api/v1/service:
+ * /api/v1/package:
  *   get:
- *     summary: Get all services with pagination and filtering
- *     tags: [Service]
+ *     summary: Get all packages with pagination and filtering
+ *     tags: [Package]
  *     parameters:
  *       - in: query
  *         name: name
  *         schema:
  *           type: string
- *         description: Search by service name
+ *         description: Search by package name
  *       - in: query
  *         name: model
  *         schema:
  *           type: string
  *           enum: [CAR, VAN, SUV, JEEP]
- *         description: Filter services by vehicle model availability
+ *         description: Filter packages by vehicle model
  *       - in: query
  *         name: minPrice
  *         schema:
@@ -168,10 +188,10 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
  *             schema:
  *               type: object
  *               properties:
- *                 services:
+ *                 packages:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Service'
+ *                     $ref: '#/components/schemas/Package'
  *                 total:
  *                   type: integer
  *                 page:
@@ -183,55 +203,55 @@ router.get("/", (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const query = req.query;
 
-  getServices(query)
-    .then((services) => {
+  getPackages(query)
+    .then((packages) => {
       responseBuilder.setStatus(200);
-      responseBuilder.buildResponse({ services });
+      responseBuilder.buildResponse(packages); // Direct passing as output includes pagination properties wrapper natively
     })
     .catch((error) => next(error));
 });
 
 /**
  * @swagger
- * /api/v1/service/{id}:
+ * /api/v1/package/{id}:
  *   get:
- *     summary: Get service by ID
- *     tags: [Service]
+ *     summary: Get package by ID
+ *     tags: [Package]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
- *         description: Service ID
+ *         description: Package ID
  *     responses:
  *       200:
  *         description: Successful retrieval
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Service'
+ *               $ref: '#/components/schemas/Package'
  *       404:
- *         description: Service not found
+ *         description: Package not found
  */
 router.get("/:id", (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { id } = req.params;
 
-  getServiceById(id)
-    .then((service) => {
+  getPackageById(id)
+    .then((package) => {
       responseBuilder.setStatus(200);
-      responseBuilder.buildResponse({ service });
+      responseBuilder.buildResponse({ package });
     })
     .catch((error) => next(error));
 });
 
 /**
  * @swagger
- * /api/v1/service/{id}:
+ * /api/v1/package/{id}:
  *   put:
- *     summary: Update an existing service
- *     tags: [Service]
+ *     summary: Update an existing package
+ *     tags: [Package]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -240,7 +260,7 @@ router.get("/:id", (req, res, next) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: Service ID
+ *         description: Package ID
  *     requestBody:
  *       required: true
  *       content:
@@ -252,36 +272,49 @@ router.get("/:id", (req, res, next) => {
  *                 type: string
  *                 minLength: 2
  *                 maxLength: 100
- *               description:
- *                 type: string
- *                 maxLength: 500
- *               image:
- *                 type: string
- *               prices:
+ *               applicableVehicalModels:
  *                 type: array
  *                 minItems: 1
  *                 items:
- *                   $ref: '#/components/schemas/PriceEntry'
+ *                   type: string
+ *                   enum: [CAR, VAN, SUV, JEEP]
+ *               description:
+ *                 type: string
+ *                 maxLength: 1000
+ *               pricingTiers:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   $ref: '#/components/schemas/PricingTier'
+ *               servicesIncluded:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               image:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Service updated successfully
+ *         description: Package updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Service'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       400:
  *         description: Bad request / validation error
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Service not found
+ *         description: Package not found
  */
 router.put("/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
   const { id } = req.params;
 
-  updateService(id, payload)
+  updatePackage(id, payload)
     .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({ message });
@@ -291,10 +324,10 @@ router.put("/:id", authTokenMiddleware, (req, res, next) => {
 
 /**
  * @swagger
- * /api/v1/service/{id}:
+ * /api/v1/package/{id}:
  *   delete:
- *     summary: Delete a service
- *     tags: [Service]
+ *     summary: Delete a package
+ *     tags: [Package]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -303,20 +336,20 @@ router.put("/:id", authTokenMiddleware, (req, res, next) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: Service ID
+ *         description: Package ID
  *     responses:
  *       200:
- *         description: Service deleted successfully
+ *         description: Package deleted successfully
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Service not found
+ *         description: Package not found
  */
 router.delete("/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { id } = req.params;
 
-  deleteService(id)
+  deletePackage(id)
     .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({ message });

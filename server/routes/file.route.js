@@ -11,7 +11,7 @@ const router = require("express").Router();
 const { fileUploader } = require("../middleware/filUploader");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
-const { singleFileUpload, multipleFileUpload, getFileById, delete: deleteFile } = require("../controller/file.controller");
+const { singleFileUpload, multipleFileUpload, getFileById, deleteFileById } = require("../controller/file.controller");
 
 /**
  * @swagger
@@ -391,7 +391,7 @@ router.get("/:id", authTokenMiddleware, async (req, res, next) => {
 router.delete("/:id", authTokenMiddleware, async (req, res, next) => {
     const responseBuilder = new responseBuild(res);
     try {
-        const message = await deleteFile(req.params.id);
+        const message = await deleteFileById(req.params.id);
         responseBuilder.setStatus(200);
         responseBuilder.buildResponse({ message });
     } catch (error) {
