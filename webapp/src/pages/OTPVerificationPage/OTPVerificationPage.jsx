@@ -91,6 +91,7 @@ function OTPVerificationPage() {
       });
 
       toast.success(response?.data?.payload?.message || "Account verified!");
+      localStorage.removeItem(CONFIGURATION.MOBILE_NUMBER_KEY);
       navigate("/login");
     } catch (error) {
       const message =
