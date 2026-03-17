@@ -27,7 +27,7 @@ export default function CustomImagePicker({
   onUploadError,
   title = "Tap to attach image",
   subtitle = "Upload a high-quality photo",
-  aspect = [4, 3],
+  aspect = [9, 16],
   quality = 1,
 }) {
   const { getItem } = useSecureStorage();
@@ -146,7 +146,7 @@ export default function CustomImagePicker({
 
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
-        allowsEditing: true,
+        allowsEditing: false,
         aspect,
         quality,
       });
