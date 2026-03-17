@@ -26,16 +26,13 @@ module.exports.register = async (payload) => {
   const existingUser = await User.findOne({ mobile: payload.mobile });
   if (existingUser) throw new AppError("Mobile number already registered", 400);
 
-  // CREATE NEW USER & AUTH
-  const session = await User.startSession();
-  session.startTransaction();
   try {
     const newUser = new User({
       name: payload.name,
       mobile: payload.mobile,
       address: payload.address,
     });
-    const savedUser = await newUser.save({ session });
+    const savedUser = await newUser.save();
 
     const newAuth = new Auth({
       user: savedUser._id,
@@ -43,25 +40,18 @@ module.exports.register = async (payload) => {
       password: hashPassword(payload.password),
       verificationOtp: otp,
     });
-    await newAuth.save({ session });
-
-    await session.commitTransaction();
+    await newAuth.save();
 
     // Send OTP via SMS
     try {
       await sendSms(savedUser.mobile, `Your verification code is: ${otp}`);
     } catch (smsError) {
-      console.error("SMS sending failed:", smsError);
-      // Optional: rollback or just log error? For now, we proceed as user is created.
-      // throw new AppError("Failed to send verification SMS", 500);
+      throw new AppError("Failed to send verification SMS", 500);
     }
 
     return "User registration success. Please verify your mobile number.";
   } catch (error) {
-    await session.abortTransaction();
     throw new AppError(error.message, error.statusCode || 500);
-  } finally {
-    session.endSession();
   }
 };
 module.exports.login = async (payload) => {
@@ -102,7 +92,7 @@ module.exports.login = async (payload) => {
       { algorithm: "HS512", expiresIn: "30d" },
     );
 
-    return { accessToken, refreshToken};
+    return { accessToken, refreshToken };
   } catch (error) {
     throw new AppError(error.message, error.statusCode);
   }
@@ -195,11 +185,8 @@ module.exports.authenticatedUser = async (authUser) => {
   return authUser;
 };
 module.exports.forgotPassword = async (payload) => {
-  let session;
+
   try {
-    // START SESSION
-    session = await User.startSession();
-    session.startTransaction();
     const otp = otpGenerator();
     // VALIDATE PAYLOAD (Reusing resendAccountVerification as it accepts mobile)
     const { error } = validatedResendAccountVerification(payload);
@@ -215,12 +202,10 @@ module.exports.forgotPassword = async (payload) => {
 
     // UPDATE OTP IN AUTH (Reusing verificationOtp for password reset verification)
     auth.verificationOtp = otp;
-    await auth.save({ session });
+    await auth.save();
 
     user.isActive = false;
-    await user.save({ session });
-
-    session.commitTransaction();
+    await user.save();
 
     // SEND SMS
     try {
@@ -231,14 +216,7 @@ module.exports.forgotPassword = async (payload) => {
 
     return "Password reset OTP sent successfully";
   } catch (error) {
-    if (session) {
-      await session.abortTransaction();
-    }
     throw new AppError(error.message, error.statusCode || 500);
-  } finally {
-    if (session) {
-      session.endSession();
-    }
   }
 };
 module.exports.resetPassword = async (payload) => {
