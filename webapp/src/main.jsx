@@ -14,14 +14,23 @@ import "./assets/css/variable.css";
 
 import "./services/axios.defaults.js";
 
+// Import Localized Font and Icons
+import "@fontsource/poppins/300.css";
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
+import "@fontsource/poppins/800.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 storeSubscribe();
 tokenRefresh();
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-      <AuthProvider>
-        <Router />
+        <AuthProvider>
+          <Router />
         </AuthProvider>
       </BrowserRouter>
     </Provider>
