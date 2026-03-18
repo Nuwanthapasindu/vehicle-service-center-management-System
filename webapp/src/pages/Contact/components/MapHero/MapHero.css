@@ -1,0 +1,97 @@
+.map-hero-section {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    /* Adjust height as needed */
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.map-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Using a static map image from unsplash as a placeholder */
+    background: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+    z-index: 1;
+    /* Optional: add a slight overlay to make the map look a bit muted */
+    filter: grayscale(80%) brightness(1.2);
+}
+
+.map-overlay-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 900px;
+    padding: 0 2rem;
+    transform: translateY(30%);
+    /* Push it down to overlap the next section */
+}
+
+.service-center-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.card-left h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #111;
+    margin-bottom: 0.25rem;
+}
+
+.card-left p {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.card-right {
+    text-align: right;
+}
+
+.hours-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #66DF1B;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+}
+
+.hours-time {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .map-hero-section {
+        height: 300px;
+    }
+
+    .service-center-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.5rem;
+    }
+
+    .card-right {
+        text-align: left;
+    }
+
+    .map-overlay-container {
+        transform: translateY(20%);
+    }
+}

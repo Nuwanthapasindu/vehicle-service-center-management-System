@@ -1,0 +1,11 @@
+.reviews-page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    /* Applying background color from hero sections so there's no sharp gap cuts */
+    background-color: #fafcf8;
+}
+
+.reviews-page-container main {
+    flex-grow: 1;
+}

@@ -1,0 +1,234 @@
+.hero-section {
+    position: relative;
+    width: 100%;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* Add a dark background color as fallback */
+    background-color: #1a1a1a;
+    /* Add image background later or expect one from a parent / global class for the page */
+    /* For now, generic dark gradient */
+    background: linear-gradient(rgba(26, 26, 26, 0.7), rgba(26, 26, 26, 0.9)), url('https://images.unsplash.com/photo-1601362840469-51e4d8d587ce?auto=format&fit=crop&q=80&w=2070') center/cover no-repeat;
+    color: white;
+    padding: 8rem 2rem 10rem 2rem;
+    text-align: center;
+    overflow: hidden;
+}
+
+.hero-background-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4) 0%, #111 100%);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(102, 223, 27, 0.1);
+    border: 1px solid rgba(102, 223, 27, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #66DF1B;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+}
+
+.status-badge .dot {
+    width: 6px;
+    height: 6px;
+    background-color: #66DF1B;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #66DF1B;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.hero-headline {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.text-highlight {
+    color: #a8df1b;
+    /* #9df41b */
+    background: linear-gradient(90deg, #66DF1B, #9df41b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 600;
+}
+
+.hero-subheadline {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    color: #a0a0a0;
+    max-width: 600px;
+    line-height: 1.6;
+    margin-top: 0.5rem;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #9df41b;
+    color: #111;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.btn-primary:hover {
+    background: #8ae408;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(157, 244, 27, 0.3);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(40, 40, 40, 0.6);
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid #444;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(60, 60, 60, 0.8);
+    border-color: #666;
+    transform: translateY(-2px);
+}
+
+/* Stats Bar */
+.stats-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    color: #111;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    padding: 1.5rem 2rem;
+    z-index: 3;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    color: #66DF1B;
+    /* Not strictly applying to emojis but reserved for SVG alternatives */
+}
+
+.stat-text {
+    text-align: left;
+}
+
+.stat-text h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.stat-text p {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #888;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .stats-bar {
+        gap: 1.5rem;
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero-section {
+        padding: 6rem 1rem 12rem 1rem;
+    }
+
+    .stats-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .stat-item {
+        justify-content: flex-start;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}

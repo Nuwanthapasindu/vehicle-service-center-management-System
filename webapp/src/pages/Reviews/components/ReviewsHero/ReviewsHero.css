@@ -1,0 +1,125 @@
+.reviews-hero-section {
+    padding: 4rem 2rem 3rem;
+    background-color: #fafcf8;
+    /* offwhite tinted slightly with green to match the design */
+    display: flex;
+    justify-content: center;
+}
+
+.reviews-hero-container {
+    max-width: 800px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #e5fbe4;
+    color: #66DF1B;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+}
+
+.reviews-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    color: #111;
+    letter-spacing: -0.02em;
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+.reviews-summary-block {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.overall-rating {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.rating-score {
+    font-size: 4.5rem;
+    font-weight: 800;
+    color: #111;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.rating-stars-large {
+    color: #8be013;
+    /* Green stars to match design */
+    font-size: 1.8rem;
+    letter-spacing: 0.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.rating-count {
+    font-size: 0.95rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.rating-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    max-width: 300px;
+}
+
+.rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.star-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #111;
+    width: 10px;
+}
+
+.bar-container {
+    flex-grow: 1;
+    height: 6px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 4px;
+}
+
+.percentage-label {
+    font-size: 0.85rem;
+    color: #888;
+    width: 25px;
+    text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .reviews-summary-block {
+        flex-direction: column;
+        gap: 2.5rem;
+    }
+}

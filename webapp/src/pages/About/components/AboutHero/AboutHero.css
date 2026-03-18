@@ -1,0 +1,106 @@
+.about-hero-section {
+    padding: 6rem 2rem;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+}
+
+.about-hero-container {
+    max-width: 1200px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+}
+
+.about-hero-content {
+    flex: 1;
+}
+
+.since-badge {
+    display: inline-block;
+    color: #111;
+    background-color: rgba(102, 223, 27, 0.2);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+}
+
+.about-hero-title {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: #111;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+.text-highlight {
+    color: #66DF1B;
+}
+
+.about-hero-description {
+    font-size: 1.05rem;
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    max-width: 500px;
+}
+
+.about-hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.stat h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 0.2rem;
+}
+
+.stat p {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 40px;
+    background-color: #e0e0e0;
+}
+
+.about-hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.about-hero-image img {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 900px) {
+    .about-hero-container {
+        flex-direction: column-reverse;
+        /* Usually better to put image first or after, up to design */
+        gap: 3rem;
+    }
+
+    .about-hero-image img {
+        max-width: 100%;
+    }
+}
