@@ -1,15 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
+import useAuthentication from '../../../hooks/auth';
 import './Dashboard.css';
 
 const Dashboard = () => {
+
+    const { profile } = useAuthentication();
+    const userName = profile?.name || 'Customer';
+
     return (
         <CustomerLayout title="Customer Dashboard">
             {/* Welcome Section */}
             <section className="welcome-greeting">
                 <div className="greeting-text">
-                    <h2 className="greeting">Good morning, Alex!</h2>
+                    <h2 className="greeting">Good morning, {userName}</h2>
                     <p className="greeting-msg">
                         Your <span className="highlight">Porsche 911 GT3</span> is due for a ceramic coating refresh.
                     </p>

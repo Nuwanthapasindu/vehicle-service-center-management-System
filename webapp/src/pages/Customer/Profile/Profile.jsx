@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import './Profile.css';
+import useAuthentication from '../../../hooks/auth';
+
 
 const Profile = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+
+    const { profile } = useAuthentication();
+    console.log(profile)
+    const userName = profile?.name || 'Customer';
+    const userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=8EDB00&color=1A1D23`;
 
     return (
         <div className="customer-portal-wrapper">
@@ -37,11 +44,11 @@ const Profile = () => {
                         {/* User Summary Header */}
                         <div className="user-profile-summary">
                             <div className="avatar-placeholder">
-                                <img src="https://ui-avatars.com/api/?name=Alex+Johnson&background=F1F5F9&color=64748B&size=128" alt="Alex Johnson" />
+                                <img src={userAvatar} alt="User Avatar" />
                             </div>
                             <div className="user-meta-info">
-                                <h3 className="user-name">Alex Johnson</h3>
-                                <p className="user-role">Senior Detailer & Shop Manager</p>
+                                <h3 className="user-name">{userName}</h3>
+                                <p className="user-role">{profile.role}</p>
                             </div>
                             <div className="update-status">
                                 <span className="status-dot"></span>
@@ -62,7 +69,7 @@ const Profile = () => {
                                         <input
                                             type="text"
                                             id="fullName"
-                                            defaultValue="Alex Johnson"
+                                            defaultValue={profile.name}
                                             placeholder="Enter your full name"
                                         />
                                     </div>
@@ -71,7 +78,7 @@ const Profile = () => {
                                         <input
                                             type="text"
                                             id="phoneNumber"
-                                            defaultValue="+1 (555) 123-4567"
+                                            defaultValue={profile.mobile}
                                             placeholder="Enter your phone number"
                                         />
                                     </div>
@@ -80,7 +87,7 @@ const Profile = () => {
                                         <textarea
                                             id="address"
                                             placeholder="Enter your address"
-                                            defaultValue="N0 23, address Line 01, Line 02, City"
+                                            defaultValue={profile.address}
                                         ></textarea>
                                     </div>
                                 </div>
