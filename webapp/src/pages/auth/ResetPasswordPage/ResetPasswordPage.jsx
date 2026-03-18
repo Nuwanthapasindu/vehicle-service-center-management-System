@@ -3,11 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Form, Formik } from "formik";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Header from "../../components/Header/Header";
-import Footer from "../../components/Footer/Footer";
-import { enums, CONFIGURATION } from "../../constants/enum";
-import { resetPasswordValidationSchema } from "../../schemas/auth";
-import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator/PasswordStrengthIndicator";
+import Header from "../../../components/Header/Header";
+import Footer from "../../../components/Footer/Footer";
+import { enums, CONFIGURATION } from "../../../constants/enum";
+import { resetPasswordValidationSchema } from "../../../schemas/auth";
+import PasswordStrengthIndicator from "../../../components/PasswordStrengthIndicator/PasswordStrengthIndicator";
 import "./ResetPasswordPage.css";
 
 function ResetPasswordPage() {
@@ -29,7 +29,7 @@ function ResetPasswordPage() {
       });
 
       toast.success(
-        response?.data?.payload?.message || "Password updated successfully!"
+        response?.data?.payload?.message || "Password updated successfully!",
       );
       localStorage.removeItem(CONFIGURATION.MOBILE_NUMBER_KEY);
       navigate("/login");
@@ -47,7 +47,9 @@ function ResetPasswordPage() {
   const handleResendOtp = async () => {
     const mobile = localStorage.getItem(CONFIGURATION.MOBILE_NUMBER_KEY);
     if (!mobile) {
-      toast.error("Mobile number not found. Please try again from forgot password.");
+      toast.error(
+        "Mobile number not found. Please try again from forgot password.",
+      );
       navigate("/forgot-password");
       return;
     }
@@ -58,7 +60,9 @@ function ResetPasswordPage() {
         mobile: mobile,
       });
 
-      toast.success(response?.data?.payload?.message || "OTP resent successfully!");
+      toast.success(
+        response?.data?.payload?.message || "OTP resent successfully!",
+      );
     } catch (error) {
       const message =
         error?.response?.data?.payload?.message ||
@@ -146,7 +150,9 @@ function ResetPasswordPage() {
 
                     <div className="form-group">
                       <label htmlFor="password">NEW PASSWORD</label>
-                      <div className={`input-wrapper ${fieldClass("password")}`}>
+                      <div
+                        className={`input-wrapper ${fieldClass("password")}`}
+                      >
                         <i className="fa-solid fa-lock input-icon"></i>
                         <input
                           type={showPassword ? "text" : "password"}
@@ -178,11 +184,16 @@ function ResetPasswordPage() {
                     </div>
 
                     {/* Security Score Box */}
-                    <PasswordStrengthIndicator password={values.password} detailed={true} />
+                    <PasswordStrengthIndicator
+                      password={values.password}
+                      detailed={true}
+                    />
 
                     <div className="form-group">
                       <label htmlFor="confirmPassword">CONFIRM PASSWORD</label>
-                      <div className={`input-wrapper ${fieldClass("confirmPassword")}`}>
+                      <div
+                        className={`input-wrapper ${fieldClass("confirmPassword")}`}
+                      >
                         <i className="fa-solid fa-lock input-icon"></i>
                         <input
                           type={showPassword ? "text" : "password"}

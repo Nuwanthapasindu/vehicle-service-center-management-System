@@ -4,11 +4,11 @@ import { Formik, Form } from "formik";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
-import Header from "../../components/Header/Header";
-import Footer from "../../components/Footer/Footer";
-import { fetchUser } from "../../store/slices/authSlice";
-import { loginValidationSchema } from "../../schemas/auth";
-import { CONFIGURATION } from "../../constants/enum";
+import Header from "../../../components/Header/Header";
+import Footer from "../../../components/Footer/Footer";
+import { fetchUser } from "../../../store/slices/authSlice";
+import { loginValidationSchema } from "../../../schemas/auth";
+import { CONFIGURATION } from "../../../constants/enum";
 import "./LoginPage.css";
 
 function LoginPage() {

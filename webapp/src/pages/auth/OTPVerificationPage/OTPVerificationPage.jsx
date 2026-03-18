@@ -2,9 +2,9 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Header from "../../components/Header/Header";
-import Footer from "../../components/Footer/Footer";
-import { enums, CONFIGURATION } from "../../constants/enum";
+import Header from "../../../components/Header/Header";
+import Footer from "../../../components/Footer/Footer";
+import { enums, CONFIGURATION } from "../../../constants/enum";
 import "./OTPVerificationPage.css";
 
 function OTPVerificationPage() {

@@ -1,10 +1,10 @@
 import { Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage/LoginPage";
-import RegisterPage from "./pages/RegisterPage/RegisterPage";
-import OTPVerificationPage from "./pages/OTPVerificationPage/OTPVerificationPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
+import LoginPage from "./pages/auth/LoginPage/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage/RegisterPage";
+import OTPVerificationPage from "./pages/auth/OTPVerificationPage/OTPVerificationPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage/ResetPasswordPage";
 import CustomerDashboard from "./pages/Customer/Dashboard/Dashboard";
 import MyGarage from "./pages/Customer/MyGarage/MyGarage";
 import AddVehicle from "./pages/Customer/MyGarage/AddVehicle";

@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { Form, Formik } from "formik";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Header from "../../components/Header/Header";
-import Footer from "../../components/Footer/Footer";
-import { CONFIGURATION, enums } from "../../constants/enum";
-import { forgotPasswordValidationSchema } from "../../schemas/auth";
+import Header from "../../../components/Header/Header";
+import Footer from "../../../components/Footer/Footer";
+import { CONFIGURATION, enums } from "../../../constants/enum";
+import { forgotPasswordValidationSchema } from "../../../schemas/auth";
 import "./ForgotPasswordPage.css";
 
 function ForgotPasswordPage() {
@@ -23,7 +23,7 @@ function ForgotPasswordPage() {
       });
 
       toast.success(
-        response?.data?.payload?.message || "Recovery code sent via SMS!"
+        response?.data?.payload?.message || "Recovery code sent via SMS!",
       );
 
       localStorage.setItem(CONFIGURATION.MOBILE_NUMBER_KEY, values.mobile);

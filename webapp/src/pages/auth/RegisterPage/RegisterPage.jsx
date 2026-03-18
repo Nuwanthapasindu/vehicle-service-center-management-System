@@ -3,11 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Form, Formik } from "formik";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Header from "../../components/Header/Header";
-import Footer from "../../components/Footer/Footer";
-import { registerValidationSchema } from "../../schemas/auth";
-import { CONFIGURATION, enums } from "../../constants/enum";
-import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator/PasswordStrengthIndicator";
+import Header from "../../../components/Header/Header";
+import Footer from "../../../components/Footer/Footer";
+import { registerValidationSchema } from "../../../schemas/auth";
+import { CONFIGURATION, enums } from "../../../constants/enum";
+import PasswordStrengthIndicator from "../../../components/PasswordStrengthIndicator/PasswordStrengthIndicator";
 import "./RegisterPage.css";
 
 function RegisterPage() {
@@ -152,7 +152,9 @@ function RegisterPage() {
                     {/* Username */}
                     <div className="form-group">
                       <label htmlFor="userName">Username</label>
-                      <div className={`input-wrapper ${fieldClass("userName")}`}>
+                      <div
+                        className={`input-wrapper ${fieldClass("userName")}`}
+                      >
                         <i className="fa-solid fa-at input-icon"></i>
                         <input
                           type="text"
@@ -175,7 +177,9 @@ function RegisterPage() {
                     {/* Password */}
                     <div className="form-group">
                       <label htmlFor="password">Password</label>
-                      <div className={`input-wrapper ${fieldClass("password")}`}>
+                      <div
+                        className={`input-wrapper ${fieldClass("password")}`}
+                      >
                         <i className="fa-solid fa-lock input-icon"></i>
                         <input
                           type={showPassword ? "text" : "password"}
