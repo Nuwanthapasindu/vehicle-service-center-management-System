@@ -16,35 +16,50 @@ import Profile from "./pages/Customer/Profile/Profile";
 import AuthGuard from "./guards/AuthGuard";
 import PublicAuthGuard from "./guards/PublicAuthGuard";
 
-
 function Router() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={
-        <PublicAuthGuard>
-          <LoginPage />
-        </PublicAuthGuard>
-      } />
-      <Route path="/register" element={
-        <PublicAuthGuard>
-          <RegisterPage />
-        </PublicAuthGuard>
-      } />
-      <Route path="/verify-otp" element={
-        <PublicAuthGuard>
-          <OTPVerificationPage />
-        </PublicAuthGuard>
-      } />
-      <Route path="/forgot-password" element={
-        <PublicAuthGuard>
-          <ForgotPasswordPage />
-        </PublicAuthGuard>
-      } />
-      <Route path="/reset-password" element={
-        <ForgotPasswordPage />} />
-      <Route path="/reset-password" element={
-        <ResetPasswordPage />} />
+      <Route
+        path="/login"
+        element={
+          <PublicAuthGuard>
+            <LoginPage />
+          </PublicAuthGuard>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicAuthGuard>
+            <RegisterPage />
+          </PublicAuthGuard>
+        }
+      />
+      <Route
+        path="/verify-otp"
+        element={
+          <PublicAuthGuard>
+            <OTPVerificationPage />
+          </PublicAuthGuard>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicAuthGuard>
+            <ForgotPasswordPage />
+          </PublicAuthGuard>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <PublicAuthGuard>
+            <ResetPasswordPage />
+          </PublicAuthGuard>
+        }
+      />
 
       {/* Customer Routes */}
       <Route

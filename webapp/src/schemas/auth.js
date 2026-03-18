@@ -40,4 +40,41 @@ const registerValidationSchema = Yup.object().shape({
     ),
 });
 
-export { loginValidationSchema, registerValidationSchema };
+const resetPasswordValidationSchema = Yup.object().shape({
+  otp: Yup.string()
+    .trim()
+    .required("OTP is required")
+    .length(6, "OTP must be exactly 6 digits")
+    .matches(/^\d+$/, "OTP must contain only numbers"),
+
+  password: Yup.string()
+    .required("New password is required")
+    .min(8, "Password must be at least 8 characters")
+    .max(30, "Password must be at most 30 characters")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
+    ),
+
+  confirmPassword: Yup.string()
+    .required("Confirm password is required")
+    .oneOf([Yup.ref("password"), null], "Passwords must match"),
+});
+
+const forgotPasswordValidationSchema = Yup.object().shape({
+  mobile: Yup.string()
+    .trim()
+    .required("Mobile number is required")
+    .matches(
+      /^(?:\+94|94|0)?7[0-8]\d{7}$/,
+      "Please provide a valid Sri Lankan mobile number (e.g. 0771234567)",
+    ),
+});
+
+export {
+  loginValidationSchema,
+  registerValidationSchema,
+  resetPasswordValidationSchema,
+  forgotPasswordValidationSchema,
+};
+
