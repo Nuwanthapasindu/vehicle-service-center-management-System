@@ -2,10 +2,13 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import './CustomerSidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onToggle }) => {
     return (
-        <aside className="customer-sidebar">
+        <aside className={`customer-sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-brand">
+                <button className={`mobile-toggle-btn ${isOpen ? 'close-mode' : 'menu-mode'}`} onClick={onToggle}>
+                    <i className={`fa-solid ${isOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
+                </button>
                 <img src="/logo.jpeg" alt="Shine Depot Logo" className="brand-logo-img" />
                 <div className="brand-text">
                     <span className="brand-name">SHINE DEPOT</span>

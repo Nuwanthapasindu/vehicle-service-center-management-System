@@ -5,6 +5,30 @@
     align-items: center;
     padding: 0 2.5rem;
     background-color: transparent;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: #1A1D23;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .header-left .header-title {
@@ -55,11 +79,23 @@
 /* Responsive adjustment */
 @media (max-width: 768px) {
     .customer-header {
-        padding: 0 1.5rem;
+        padding: 0 1.25rem;
         height: 70px;
+    }
+
+    .mobile-menu-btn {
+        display: flex;
     }
 
     .header-center {
         display: none;
+    }
+
+    .user-name {
+        display: none;
+    }
+
+    .header-title {
+        font-size: 1.1rem;
     }
 }
