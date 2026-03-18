@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const { VEHICLE_TYPES } = require("../util/constants");
 
 const packageSchema = new Schema(
   {
@@ -31,6 +30,10 @@ const packageSchema = new Schema(
     image: {
       type: Schema.Types.ObjectId,
       ref: "File",
+    },
+    isPublished: {
+      type: Boolean,
+      default: true,
     },
     isDeleted: {
       type: Boolean,
