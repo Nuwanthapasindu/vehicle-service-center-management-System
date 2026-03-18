@@ -1,8 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import useAuthentication from '../../../hooks/auth';
 import './CustomerSidebar.css';
 
 const Sidebar = ({ isOpen, onToggle }) => {
+    const { logout } = useAuthentication();
+
     return (
         <aside className={`customer-sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-brand">
@@ -67,7 +70,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
                     <p className="attention-text">
                         In the event of non-use, please log out of the system to ensure data security.
                     </p>
-                    <button className="logout-btn">LOG OUT</button>
+                    <button className="logout-btn" onClick={logout}>LOG OUT</button>
                 </div>
             </div>
         </aside>
