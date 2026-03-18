@@ -1,0 +1,134 @@
+.navbar-container {
+    width: 100%;
+    background-color: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.navbar-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.logo-text span {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #1a1a1a;
+    letter-spacing: 0.05em;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.navbar-links a {
+    text-decoration: none;
+    color: #1a1a1a;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.navbar-links a:hover {
+    color: #66DF1B;
+}
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.login-link {
+    text-decoration: none;
+    color: #1a1a1a;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.login-link:hover {
+    color: #66DF1B;
+}
+
+.book-btn {
+    text-decoration: none;
+    background-color: #a8df1b;
+    /* #9af21b from design approx, let's use a nice volt green */
+    background: linear-gradient(90deg, #9df41b, #86d216);
+    color: #131313;
+    padding: 0.5rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.book-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(157, 244, 27, 0.4);
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+/* responsive */
+@media (max-width: 900px) {
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .navbar-links,
+    .navbar-actions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        flex-direction: column;
+        padding: 1rem 0;
+        gap: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        display: none;
+        /* hidden by default */
+    }
+
+    .navbar-links.active {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+    }
+
+    .navbar-actions.active {
+        display: flex;
+        top: calc(100% + 180px);
+        /* rough positioning after links */
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.05);
+    }
+}
