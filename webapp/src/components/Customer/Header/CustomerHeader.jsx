@@ -1,7 +1,20 @@
 import React from 'react';
+import useAuthentication from '../../../hooks/auth';
 import './CustomerHeader.css';
 
 const CustomerHeader = ({ title }) => {
+    const { profile } = useAuthentication();
+
+    // Get current date in a readable format
+    const currentDate = new Date().toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+    });
+
+    const userName = profile?.name || 'Customer';
+    const userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=8EDB00&color=1A1D23`;
+
     return (
         <header className="customer-header">
             <div className="header-left">
@@ -11,15 +24,15 @@ const CustomerHeader = ({ title }) => {
             <div className="header-center">
                 <div className="date-info">
                     <i className="fa-regular fa-calendar"></i>
-                    <span>October 24, 2023</span>
+                    <span>{currentDate}</span>
                 </div>
             </div>
 
             <div className="header-right">
                 <div className="user-profile">
-                    <span className="user-name">Alex Henderson</span>
+                    <span className="user-name">{userName}</span>
                     <div className="user-avatar">
-                        <img src="https://ui-avatars.com/api/?name=Alex+Henderson&background=8EDB00&color=1A1D23" alt="User Avatar" />
+                        <img src={userAvatar} alt="User Avatar" />
                     </div>
                 </div>
             </div>

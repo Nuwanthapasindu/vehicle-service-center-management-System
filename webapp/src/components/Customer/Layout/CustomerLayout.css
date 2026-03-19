@@ -1,0 +1,49 @@
+.customer-portal-wrapper {
+    display: block;
+    min-height: 100vh;
+    background-color: #F8F9FA;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.customer-content-area {
+    margin-left: 250px;
+    padding-bottom: 3rem;
+    transition: all 0.2s ease;
+    min-height: 100vh;
+    width: auto;
+}
+
+.dashboard-main-content {
+    padding: 0 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+    .customer-content-area {
+        margin-left: 80px;
+    }
+
+    .dashboard-main-content {
+        padding: 0 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .customer-content-area {
+        margin-left: 0;
+    }
+
+    .dashboard-main-content {
+        padding: 0 1.25rem;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .customer-content-area {
+        margin-left: 0;
+    }
+}

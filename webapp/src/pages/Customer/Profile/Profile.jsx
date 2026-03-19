@@ -1,11 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import './Profile.css';
+import useAuthentication from '../../../hooks/auth';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../../store/slices/authSlice';
+import axios from 'axios';
 
 const Profile = () => {
+    const { profile } = useAuthentication();
+    const dispatch = useDispatch();
+
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+
+    const [formData, setFormData] = useState({
+        fullName: '',
+        phoneNumber: '',
+        address: '',
+        currentPassword: '',
+        newPassword: ''
+    });
+
+    const [status, setStatus] = useState({ type: '', message: '' });
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (profile) {
+            setFormData(prev => ({
+                ...prev,
+                fullName: profile.name || '',
+                phoneNumber: profile.mobile || '',
+                address: profile.address || ''
+            }));
+        }
+    }, [profile]);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setStatus({ type: '', message: '' });
+        setIsLoading(true);
+
+        try {
+            const response = await axios.put('/user/profile', formData);
+            setStatus({ type: 'success', message: 'Profile updated successfully!' });
+            dispatch(setUser(response.data.payload.user));
+
+            // clear passwords
+            setFormData(prev => ({
+                ...prev,
+                currentPassword: '',
+                newPassword: ''
+            }));
+        } catch (error) {
+            setStatus({ type: 'error', message: error.response?.data?.message || 'Failed to update profile' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const userName = profile?.name || 'Customer';
+    const userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=8EDB00&color=1A1D23`;
 
     return (
         <div className="customer-portal-wrapper">
@@ -37,19 +96,21 @@ const Profile = () => {
                         {/* User Summary Header */}
                         <div className="user-profile-summary">
                             <div className="avatar-placeholder">
-                                <img src="https://ui-avatars.com/api/?name=Alex+Johnson&background=F1F5F9&color=64748B&size=128" alt="Alex Johnson" />
+                                <img src={userAvatar} alt="User Avatar" />
                             </div>
                             <div className="user-meta-info">
-                                <h3 className="user-name">Alex Johnson</h3>
-                                <p className="user-role">Senior Detailer & Shop Manager</p>
-                            </div>
-                            <div className="update-status">
-                                <span className="status-dot"></span>
-                                <span className="status-text">Last updated: 2 days ago</span>
+                                <h3 className="user-name">{userName}</h3>
+                                <p className="user-role">{profile?.role || 'Customer'}</p>
                             </div>
                         </div>
 
-                        <form className="settings-form">
+                        <form className="settings-form" onSubmit={handleSubmit}>
+                            {status.message && (
+                                <div className={`status-message ${status.type}`} style={{ padding: '10px', marginBottom: '15px', borderRadius: '4px', backgroundColor: status.type === 'error' ? '#f8d7da' : '#d4edda', color: status.type === 'error' ? '#721c24' : '#155724' }}>
+                                    {status.message}
+                                </div>
+                            )}
+
                             {/* Personal Information Section */}
                             <div className="form-section">
                                 <h4 className="section-title">
@@ -62,8 +123,10 @@ const Profile = () => {
                                         <input
                                             type="text"
                                             id="fullName"
-                                            defaultValue="Alex Johnson"
+                                            value={formData.fullName}
+                                            onChange={handleChange}
                                             placeholder="Enter your full name"
+                                            required
                                         />
                                     </div>
                                     <div className="form-group">
@@ -71,8 +134,10 @@ const Profile = () => {
                                         <input
                                             type="text"
                                             id="phoneNumber"
-                                            defaultValue="+1 (555) 123-4567"
+                                            value={formData.phoneNumber}
+                                            onChange={handleChange}
                                             placeholder="Enter your phone number"
+                                            required
                                         />
                                     </div>
                                     <div className="form-group full-width">
@@ -80,7 +145,9 @@ const Profile = () => {
                                         <textarea
                                             id="address"
                                             placeholder="Enter your address"
-                                            defaultValue="N0 23, address Line 01, Line 02, City"
+                                            value={formData.address}
+                                            onChange={handleChange}
+                                            required
                                         ></textarea>
                                     </div>
                                 </div>
@@ -99,7 +166,9 @@ const Profile = () => {
                                             <input
                                                 type={showCurrentPassword ? "text" : "password"}
                                                 id="currentPassword"
-                                                defaultValue="********"
+                                                value={formData.currentPassword}
+                                                onChange={handleChange}
+                                                placeholder="Leave blank to keep current"
                                             />
                                             <button
                                                 type="button"
@@ -116,6 +185,8 @@ const Profile = () => {
                                             <input
                                                 type={showNewPassword ? "text" : "password"}
                                                 id="newPassword"
+                                                value={formData.newPassword}
+                                                onChange={handleChange}
                                                 placeholder="At least 8 characters"
                                             />
                                             <button
@@ -132,7 +203,9 @@ const Profile = () => {
                             </div>
 
                             <div className="form-actions">
-                                <button type="submit" className="save-btn">SAVE CHANGES</button>
+                                <button type="submit" className="save-btn" disabled={isLoading}>
+                                    {isLoading ? 'SAVING...' : 'SAVE CHANGES'}
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -144,3 +217,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
