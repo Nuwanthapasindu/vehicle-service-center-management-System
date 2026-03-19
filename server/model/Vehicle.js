@@ -31,6 +31,14 @@ const vehicleSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "File",
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
