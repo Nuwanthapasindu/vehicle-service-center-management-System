@@ -1,10 +1,9 @@
 const router = require("express").Router();
 const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle } = require("../controller/vehicle.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
-const { validatedVehicleAdd, validatedVehicleUpdate } = require("../validation/vehicle.validation");
 const responseBuild = require("../util/responseBuilder");
 
-router.post("/add", authTokenMiddleware, validatedVehicleAdd, (req, res, next) => {
+router.post("/add", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
   const mobile = req.user.mobile;
@@ -55,7 +54,7 @@ router.delete("/:id", authTokenMiddleware, (req, res, next) => {
     .catch((error) => next(error));
 });
 
-router.put("/:id", authTokenMiddleware, validatedVehicleUpdate, (req, res, next) => {
+router.put("/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const mobile = req.user.mobile;
   const vehicleId = req.params.id;

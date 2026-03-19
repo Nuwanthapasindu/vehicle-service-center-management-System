@@ -47,7 +47,7 @@ module.exports.deleteVehicle = async (vehicleId, mobile) => {
 
   vehicle.isDeleted = true;
   vehicle.deletedAt = new Date();
-  
+
   await vehicle.save();
   return "Vehicle deleted successfully";
 };
@@ -63,6 +63,10 @@ module.exports.getVehicleById = async (vehicleId, mobile) => {
 };
 
 module.exports.updateVehicle = async (vehicleId, mobile, payload) => {
+  const { validatedVehicleUpdate } = require("../validation/vehicle.validation");
+  const { error } = validatedVehicleUpdate(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
+
   const owner = await User.findOne({ mobile });
   if (!owner) throw new AppError("Owner not found", 404);
 
