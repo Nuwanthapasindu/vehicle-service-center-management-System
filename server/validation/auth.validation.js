@@ -106,6 +106,44 @@ const resetPasswordValidationSchema = joi.object({
     }),
 });
 
+const updateProfileValidationSchema = joi.object({
+  name: joi.string().required().trim().messages({
+    "any.required": "Name is required",
+    "string.empty": "Name is required",
+  }),
+  mobile: joi
+    .string()
+    .required()
+    .trim()
+    .pattern(/^(?:\+94|94|0)?7[0-8]\d{7}$/)
+    .messages({
+      "any.required": "Mobile number is required",
+      "string.empty": "Mobile number cannot be empty",
+      "string.pattern.base": "Please provide a valid mobile number",
+    }),
+  address: joi.string().required().trim().messages({
+    "any.required": "Address is required",
+    "string.empty": "Address is required",
+  }),
+  currentPassword: joi.string().allow("").optional(),
+  newPassword: joi
+    .string()
+    .allow("")
+    .optional()
+    .min(8)
+    .max(30)
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/
+    )
+    .trim()
+    .messages({
+      "string.min": "Password must be at least 8 characters",
+      "string.max": "Password must be at most 30 characters",
+      "string.pattern.base":
+        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+    }),
+});
+
 module.exports.validatedAccountVerification = validator(
   accountVerificationValidationSchema,
 );
@@ -116,4 +154,7 @@ module.exports.validatedResetPassword = validator(
 );
 module.exports.validatedResendAccountVerification = validator(
   resendAccountVerificationValidationSchema,
+);
+module.exports.validatedUpdateProfile = validator(
+  updateProfileValidationSchema,
 );

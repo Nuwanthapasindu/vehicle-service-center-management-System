@@ -17,6 +17,7 @@ const {
   resendAccountVerification,
   forgotPassword,
   resetPassword,
+  updateProfile,
 } = require("../controller/auth.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
@@ -319,6 +320,56 @@ router.put("/reset-password", (req, res, next) => {
   resetPassword(payload)
     .then((message) => responseBuilder.buildResponse({ message }))
     .catch((e) => next(e));
+});
+
+/**
+ * @swagger
+ * /api/v1/auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - mobile
+ *               - address
+ *             properties:
+ *               name:
+ *                 type: string
+ *               mobile:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: User not found
+ */
+router.put("/profile", authTokenMiddleware, (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const payload = req.body;
+  const userId = req.user._id;
+
+  updateProfile(userId, payload)
+    .then((message) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ message: "Profile updated successfully.", user: message });
+    })
+    .catch((error) => next(error));
 });
 
 module.exports = router;

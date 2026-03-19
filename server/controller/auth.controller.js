@@ -9,6 +9,7 @@ const {
   validatedAccountVerification,
   validatedResendAccountVerification,
   validatedResetPassword,
+  validatedUpdateProfile,
 } = require("../validation/auth.validation");
 const { sendSms } = require("../util/smsSender");
 const otpGenerator = require("../util/otp");
@@ -264,5 +265,47 @@ module.exports.resetPassword = async (payload) => {
     return "Password reset successfully";
   } catch (error) {
     throw new AppError(error.message, error.statusCode);
+  }
+};
+
+module.exports.updateProfile = async (userId, payload) => {
+  // Validate Payload
+  const { error } = validatedUpdateProfile(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
+
+  try {
+    // 1. Update User info
+    const user = await User.findById(userId);
+    if (!user) throw new AppError("User not found", 404);
+
+    // If mobile is being changed, check if it's already used
+    if (payload.mobile !== user.mobile) {
+      const mobileExists = await User.findOne({ mobile: payload.mobile });
+      if (mobileExists) throw new AppError("Mobile number already registered", 400);
+    }
+
+    user.name = payload.name;
+    user.mobile = payload.mobile;
+    user.address = payload.address;
+
+    const savedUser = await user.save();
+
+    // 2. Handle Password update if provided
+    if (payload.currentPassword && payload.newPassword) {
+      const auth = await Auth.findOne({ user: userId });
+      if (!auth) throw new AppError("Auth record not found", 404);
+
+      const passwordCheck = comparePassword(payload.currentPassword, auth.password);
+      if (!passwordCheck) throw new AppError("Incorrect current password", 400);
+
+      auth.password = hashPassword(payload.newPassword);
+      await auth.save();
+    } else if (payload.newPassword && !payload.currentPassword) {
+      throw new AppError("Current password is required to set a new password", 400);
+    }
+
+    return savedUser;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
   }
 };
