@@ -12,12 +12,17 @@
     z-index: 1000;
 }
 
+.mobile-toggle-btn {
+    display: none;
+}
+
 .sidebar-brand {
     padding: 0 1.5rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 2.5rem;
+    position: relative;
 }
 
 .brand-logo-img {
@@ -138,6 +143,10 @@
         padding: 2rem 0;
     }
 
+    .mobile-close-btn {
+        display: none;
+    }
+
     .brand-text,
     .nav-item span,
     .attention-label,
@@ -180,5 +189,77 @@
         font-family: "Font Awesome 6 Free";
         font-size: 1rem;
         font-weight: 900;
+    }
+}
+
+@media (max-width: 768px) {
+    .customer-sidebar {
+        width: 280px;
+        left: -280px;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 2rem 0;
+    }
+
+    .customer-sidebar.open {
+        left: 0;
+    }
+
+    .brand-text,
+    .nav-item span,
+    .attention-label,
+    .attention-text {
+        display: flex;
+    }
+
+    .mobile-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        right: -40px; /* Position it outside the sidebar */
+        top: 0rem;
+        background: var(--dark, #1A1D23);
+        border: none;
+        color: var(--primary-color, #8EDB00);
+        width: 40px;
+        height: 40px;
+        border-radius: 0 10px 10px 0; /* Rounded right corners */
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+        z-index: 1001; /* Above sidebar */
+    }
+
+    .sidebar-brand {
+        padding: 0 1.5rem;
+        justify-content: flex-start;
+        position: relative;
+    }
+
+    .sidebar-nav {
+        padding: 0 1rem;
+    }
+
+    .nav-item {
+        justify-content: flex-start;
+        padding: 0.85rem 1rem;
+    }
+
+    .sidebar-footer {
+        padding: 1.5rem;
+    }
+
+    .attention-box {
+        padding: 1.25rem;
+    }
+
+    .logout-btn {
+        font-size: 0.85rem;
+        padding: 0.85rem;
+    }
+
+    .logout-btn::after {
+        display: none;
     }
 }

@@ -1,11 +1,17 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import useAuthentication from '../../../hooks/auth';
 import './CustomerSidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onToggle }) => {
+    const { logout } = useAuthentication();
+
     return (
-        <aside className="customer-sidebar">
+        <aside className={`customer-sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-brand">
+                <button className={`mobile-toggle-btn ${isOpen ? 'close-mode' : 'menu-mode'}`} onClick={onToggle}>
+                    <i className={`fa-solid ${isOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
+                </button>
                 <img src="/logo.jpeg" alt="Shine Depot Logo" className="brand-logo-img" />
                 <div className="brand-text">
                     <span className="brand-name">SHINE DEPOT</span>
@@ -64,7 +70,7 @@ const Sidebar = () => {
                     <p className="attention-text">
                         In the event of non-use, please log out of the system to ensure data security.
                     </p>
-                    <button className="logout-btn">LOG OUT</button>
+                    <button className="logout-btn" onClick={logout}>LOG OUT</button>
                 </div>
             </div>
         </aside>

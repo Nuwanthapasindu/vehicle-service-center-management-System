@@ -6,7 +6,7 @@ function PublicAuthGuard({ children }) {
   const { isAuthenticated } = useAuthentication();
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/customer/dashboard" />;
   } else {
     return children;
   }

@@ -97,7 +97,7 @@ module.exports.getFileById = async (fileId) => {
  * @throws {AppError} - If file not found
  * @throws {AppError} - If there is an internal server error
  */
-module.exports.delete = async (fileId) => {
+module.exports.deleteFileById = async (fileId) => {
     try {
         const fileExists = await File.findById(fileId);
         if (!fileExists) {

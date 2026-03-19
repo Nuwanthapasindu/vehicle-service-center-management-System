@@ -177,7 +177,7 @@
 .password-input-wrapper input {
     width: 100%;
     padding: 1rem 1.25rem;
-    border: 1px solid var(--border-color, #E2E8F0);
+    /* border: 1px solid var(--border-color, #E2E8F0); */
     border-radius: 12px;
     background-color: var(--light, #FFFFFF);
     font-size: 0.95rem;
@@ -187,12 +187,12 @@
     transition: all 0.2s ease;
 }
 
-.form-group input:focus,
+/* .form-group input:focus,
 .form-group textarea:focus,
 .password-input-wrapper:focus-within {
     border-color: var(--primary-color, #8EDB00);
     box-shadow: 0 0 0 4px rgba(142, 219, 0, 0.1);
-}
+} */
 
 .form-group textarea {
     min-height: 120px;
