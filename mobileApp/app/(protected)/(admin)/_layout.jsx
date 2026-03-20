@@ -103,7 +103,6 @@ export default function AdminDrawerLayout() {
         screenOptions={{
           headerShown: true,
           headerStyle: {
-            backgroundColor: colors.BACKGROUND_COLOR,
             elevation: 0,
             shadowOpacity: 0,
             borderBottomWidth: 0,
@@ -128,6 +127,18 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
+        <Drawer.Screen
+          name="serviceAndPackage"
+          options={{
+            drawerLabel: "Catalog & Packages",
+            title: "Catalog & Packages",
+            headerShown: false,
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="cube-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
         <Drawer.Screen
           name="Profile"
           options={{
