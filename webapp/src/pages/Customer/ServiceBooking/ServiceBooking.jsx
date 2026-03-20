@@ -43,7 +43,7 @@ const ServiceBooking = () => {
                 const dd = String(selectedDate.getDate()).padStart(2, '0');
                 const dateStr = `${yyyy}-${mm}-${dd}`;
 
-                const response = await axios.get(`/booking/timeslots?date=${dateStr}`);
+                const response = await axios.get(`/timeslot?date=${dateStr}`);
                 setTimeSlots(response.data.payload.slots || []);
                 setSelectedSlot(null);
             } catch (error) {
