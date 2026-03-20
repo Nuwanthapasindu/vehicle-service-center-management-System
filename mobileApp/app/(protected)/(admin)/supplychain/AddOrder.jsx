@@ -106,7 +106,10 @@ export default function AddOrder({ onBack, API }) {
       }
     } catch (error) {
       console.log('Order Error:', error?.response?.data || error.message);
-      Alert.alert("Error", "Could not place order.");
+      
+      const errorMessage = error.response?.data?.message || "Could not place order.";
+      
+      Alert.alert("Validation Error", errorMessage);
       setIsSubmitting(false);
     }
   };

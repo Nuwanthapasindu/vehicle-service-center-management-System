@@ -1,5 +1,22 @@
-const Order = require('../model/order');
 const { adjustStockHelper } = require('./inventory.controller');
+const Order = require('../model/order');
+const { validateOrder } = require('../validation/order.validation'); 
+
+exports.createOrder = async (req, res) => {
+  try {
+    const { error } = validateOrder(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const newOrder = new Order(req.body);
+    await newOrder.save();
+    res.status(201).json(newOrder);
+  } catch (error) { 
+    console.log("ORDER CREATE ERROR:", error);
+    res.status(400).json({ error: error.message }); 
+  }
+};
 
 exports.getAllOrders = async (req, res) => {
   try {

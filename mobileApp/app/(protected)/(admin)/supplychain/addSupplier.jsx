@@ -18,6 +18,11 @@ export default function AddSupplier({ onBack, API }) {
     const validPhones = phones.filter(p => p.trim() !== '');
     const validItems = selectedItems.filter(i => i.trim() !== '');
 
+    const invalidPhones = validPhones.filter(p => p.length !== 10);
+    if (invalidPhones.length > 0) {
+      return Alert.alert("Validation Error", "Mobile numbers must be exactly 10 digits.");
+    }
+
     setIsSubmitting(true);
     try {
       await axios.post(`${API}/suppliers`, {
@@ -29,7 +34,9 @@ export default function AddSupplier({ onBack, API }) {
       Alert.alert("Success", "Supplier saved successfully!");
       onBack();
     } catch (error) {
-      Alert.alert("Error", error.response?.data?.error || "Failed to save supplier");
+      const errorMessage = error.response?.data?.message || "Failed to save supplier";
+      Alert.alert("Validation Error", errorMessage);
+      console.log("Error details:", error.response?.data);
     } finally {
       setIsSubmitting(false);
     }

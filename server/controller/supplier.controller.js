@@ -1,4 +1,20 @@
 const Supplier = require('../model/Supplier');
+const { validateSupplier } = require('../validation/supplier.validation'); 
+
+exports.createSupplier = async (req, res) => {
+  try {
+    const { error } = validateSupplier(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const newSupplier = new Supplier(req.body);
+    await newSupplier.save();
+    res.status(201).json(newSupplier);
+  } catch (error) { 
+    res.status(400).json({ error: error.message }); 
+  }
+};
 
 exports.getAllSuppliers = async (req, res) => {
   try {
