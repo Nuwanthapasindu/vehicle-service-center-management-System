@@ -18,6 +18,7 @@ const serviceRouter = require("./routes/service.route");
 const packageRouter = require("./routes/package.route");
 const userRouter = require("./routes/user.route");
 const vehicleRouter = require("./routes/vehicle.route");
+const bookingRouter = require("./routes/booking.route");
 
 // CONFIGURE EXPRESS APP
 const app = express();
@@ -53,8 +54,7 @@ app.use("/api/v1/file", fileRouter);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/package", packageRouter);
 app.use("/api/v1/vehicle", vehicleRouter);
-
-
+app.use("/api/v1/booking", bookingRouter);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {
