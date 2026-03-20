@@ -38,9 +38,9 @@ const MyGarage = () => {
         }
     };
 
-    const getImageUrl = (imageObj) => {
-        if (imageObj && imageObj.fileName) {
-            return `${import.meta.env.VITE_SERVER_URL}/storage/uploads/${imageObj.fileName}`;
+    const getImageUrl = (fileName) => {
+        if (fileName) {
+            return `${import.meta.env.VITE_SERVER_URL}/storage/uploads/${fileName}`;
         }
         // return a fallback dummy image
         return "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80";
@@ -109,7 +109,7 @@ const MyGarage = () => {
                         {vehicles.map((vehicle) => (
                             <div className="vehicle-card" key={vehicle._id}>
                                 <div className="card-image-wrapper">
-                                    <img src={getImageUrl(vehicle.image)} alt={vehicle.model} className="vehicle-card-img" />
+                                    <img src={getImageUrl(vehicle.image?.fileName)} alt={vehicle.model} className="vehicle-card-img" />
                                     {/* For now, just assuming ACTIVE status */}
                                     <span className="status-badge active">
                                         ACTIVE

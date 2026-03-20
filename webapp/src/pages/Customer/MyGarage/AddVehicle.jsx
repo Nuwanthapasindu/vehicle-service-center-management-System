@@ -2,65 +2,69 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
+import DragDropUpload from '../../../components/Upload/DragDropUpload';
 import './AddVehicle.css';
 
 const AddVehicle = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [licensePlate, setLicensePlate] = useState('');
-    const [type, setType] = useState('');
-    const [make, setMake] = useState('');
-    const [model, setModel] = useState('');
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
+    const validationSchema = Yup.object({
+        licensePlate: Yup.string().required("License plate is required"),
+        type: Yup.string().required("Vehicle type is required"),
+        make: Yup.string().required("Make is required"),
+        model: Yup.string().required("Model is required"),
+    });
+
+    const formik = useFormik({
+        initialValues: {
+            licensePlate: '',
+            type: '',
+            make: '',
+            model: ''
+        },
+        validationSchema,
+        onSubmit: async (values) => {
+            try {
+                setLoading(true);
+                let imageId = null;
+
+                if (imageFile) {
+                    const formData = new FormData();
+                    formData.append('file', imageFile);
+                    const uploadRes = await axios.post('/file', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    imageId = uploadRes.data?.payload?.file?._id || uploadRes.data?.payload?.file?.id;
+                }
+
+                const payload = {
+                    ...values,
+                    image: imageId
+                };
+
+                const response = await axios.post('/vehicle/add', payload);
+                toast.success(response.data.payload.message || "Vehicle added successfully!");
+                navigate(-1);
+            } catch (error) {
+                console.error(error);
+                toast.error(error.response?.data?.payload?.message || "Something went wrong. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        }
+    });
+
+    const handleFileChange = (file) => {
         if (file) {
             setImageFile(file);
             setImagePreview(URL.createObjectURL(file));
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!licensePlate || !type || !make || !model) {
-            toast.error("Please fill all required fields");
-            return;
-        }
-
-        try {
-            setLoading(true);
-            let imageId = null;
-
-            if (imageFile) {
-                const formData = new FormData();
-                formData.append('file', imageFile);
-                const uploadRes = await axios.post('/file', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
-                imageId = uploadRes.data?.payload?.file?._id || uploadRes.data?.payload?.file?.id;
-            }
-
-            const payload = {
-                licensePlate,
-                type,
-                make,
-                model,
-                ...(imageId && { image: imageId })
-            };
-
-            const response = await axios.post('/vehicle/add', payload);
-            toast.success(response.data.payload.message || "Vehicle added successfully!");
-            navigate(-1); // Go back to the previous page
-        } catch (error) {
-            console.error(error);
-            toast.error(error.response?.data?.payload?.message || "Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -97,30 +101,37 @@ const AddVehicle = () => {
                             <p className="card-subtitle">Provide your vehicle information to get started.</p>
                         </div>
 
-                        <form className="add-vehicle-form" onSubmit={handleSubmit}>
+                        <form className="add-vehicle-form" onSubmit={formik.handleSubmit}>
                             <div className="form-group">
                                 <label htmlFor="licensePlate">License Plate</label>
                                 <div className="input-with-icon">
                                     <input
                                         type="text"
                                         id="licensePlate"
+                                        name="licensePlate"
                                         placeholder="ENTER PLATE (Eg: ABC-1234)"
-                                        value={licensePlate}
-                                        onChange={(e) => setLicensePlate(e.target.value)}
-                                        required
+                                        value={formik.values.licensePlate}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className={formik.touched.licensePlate && formik.errors.licensePlate ? 'error' : ''}
                                     />
                                     <i className="fa-solid fa-id-card input-right-icon"></i>
                                 </div>
+                                {formik.touched.licensePlate && formik.errors.licensePlate && (
+                                    <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.licensePlate}</span>
+                                )}
                             </div>
 
                             <div className="form-group">
                                 <label htmlFor="vehicleType">Vehicle Type</label>
                                 <div className="select-wrapper">
                                     <select 
-                                        id="vehicleType" 
-                                        value={type}
-                                        onChange={(e) => setType(e.target.value)}
-                                        required
+                                        id="type"
+                                        name="type"
+                                        value={formik.values.type}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className={formik.touched.type && formik.errors.type ? 'error' : ''}
                                     >
                                         <option value="" disabled>Select type</option>
                                         <option value="CAR">Car</option>
@@ -130,6 +141,9 @@ const AddVehicle = () => {
                                     </select>
                                     <i className="fa-solid fa-chevron-down select-icon"></i>
                                 </div>
+                                {formik.touched.type && formik.errors.type && (
+                                    <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.type}</span>
+                                )}
                             </div>
 
                             <div className="form-row">
@@ -137,10 +151,12 @@ const AddVehicle = () => {
                                     <label htmlFor="make">Make</label>
                                     <div className="select-wrapper">
                                         <select 
-                                            id="make" 
-                                            value={make}
-                                            onChange={(e) => setMake(e.target.value)}
-                                            required
+                                            id="make"
+                                            name="make"
+                                            value={formik.values.make}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            className={formik.touched.make && formik.errors.make ? 'error' : ''}
                                         >
                                             <option value="" disabled>Select make</option>
                                             <option value="Toyota">Toyota</option>
@@ -158,6 +174,9 @@ const AddVehicle = () => {
                                         </select>
                                         <i className="fa-solid fa-chevron-down select-icon"></i>
                                     </div>
+                                    {formik.touched.make && formik.errors.make && (
+                                        <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.make}</span>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="model">Model</label>
@@ -165,10 +184,12 @@ const AddVehicle = () => {
                                         <input
                                             type="text"
                                             id="model"
+                                            name="model"
                                             placeholder="Enter Model (Eg: Corolla, X5)"
-                                            value={model}
-                                            onChange={(e) => setModel(e.target.value)}
-                                            required
+                                            value={formik.values.model}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            className={formik.touched.model && formik.errors.model ? 'error' : ''}
                                             style={{
                                                 width: '100%',
                                                 padding: '1rem 1.25rem',
@@ -182,37 +203,22 @@ const AddVehicle = () => {
                                         />
                                         <i className="fa-solid fa-car input-right-icon"></i>
                                     </div>
+                                    {formik.touched.model && formik.errors.model && (
+                                        <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.model}</span>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="form-group">
                                 <label>Upload Image</label>
-                                <div className="upload-dropzone" onClick={() => document.getElementById('vehicleImage').click()}>
-                                    <input 
-                                        type="file" 
-                                        id="vehicleImage" 
-                                        className="file-input" 
-                                        hidden 
-                                        accept="image/png, image/jpeg, image/jpg, image/webp"
-                                        onChange={handleImageChange}
-                                    />
-                                    {imagePreview ? (
-                                        <div style={{ textAlign: 'center' }}>
-                                            <img src={imagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', objectFit: 'contain' }} />
-                                            <p className="upload-text" style={{ marginTop: '0.5rem' }}>Click to change image</p>
-                                        </div>
-                                    ) : (
-                                        <div className="dropzone-label">
-                                            <i className="fa-solid fa-camera-retro upload-icon"></i>
-                                            <p className="upload-text">Click to upload or drag and drop</p>
-                                            <p className="upload-hint">PNG, JPG or WEBP (MAX. 5MB)</p>
-                                        </div>
-                                    )}
-                                </div>
+                                <DragDropUpload 
+                                    onFileChange={handleFileChange} 
+                                    previewUrl={imagePreview} 
+                                />
                             </div>
 
                             <div className="form-actions-row">
-                                <button type="submit" className="add-btn" disabled={loading}>
+                                <button type="submit" className="add-btn" disabled={loading || !formik.isValid}>
                                     <i className={loading ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-circle-plus"}></i>
                                     {loading ? 'Adding...' : 'Add to Garage'}
                                 </button>
