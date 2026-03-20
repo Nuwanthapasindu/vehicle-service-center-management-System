@@ -8,6 +8,7 @@ import { setUser } from '../../../store/slices/authSlice';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { profileValidationSchema } from '../../../schemas/user';
 
 const Profile = () => {
     const { profile } = useAuthentication();
@@ -17,26 +18,6 @@ const Profile = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [status, setStatus] = useState({ type: '', message: '' });
 
-    const passwordRules = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-    const validationSchema = Yup.object({
-        fullName: Yup.string().required("Full name is required"),
-        phoneNumber: Yup.string()
-            .matches(/^[0-9]{10}$/, "Phone number must be exactly 10 digits")
-            .required("Phone number is required"),
-        address: Yup.string().required("Address is required"),
-        currentPassword: Yup.string(),
-        newPassword: Yup.string()
-            .when('currentPassword', {
-                is: (val) => val && val.length > 0,
-                then: (schema) => schema
-                    .required("New password is required to change password")
-                    .min(8, "Password must be at least 8 characters")
-                    .matches(passwordRules, "Password must include uppercase, number and symbol"),
-                otherwise: (schema) => schema.notRequired()
-            })
-    });
-
     const formik = useFormik({
         initialValues: {
             fullName: '',
@@ -45,14 +26,14 @@ const Profile = () => {
             currentPassword: '',
             newPassword: ''
         },
-        validationSchema,
+        validationSchema: profileValidationSchema,
         onSubmit: async (values) => {
             setStatus({ type: '', message: '' });
             try {
                 const response = await axios.put('/user/profile', values);
                 setStatus({ type: 'success', message: 'Profile updated successfully!' });
                 dispatch(setUser(response.data.payload.user));
-                
+
                 formik.setFieldValue('currentPassword', '');
                 formik.setFieldValue('newPassword', '');
             } catch (error) {
@@ -141,7 +122,7 @@ const Profile = () => {
                                             className={formik.touched.fullName && formik.errors.fullName ? 'error' : ''}
                                         />
                                         {formik.touched.fullName && formik.errors.fullName && (
-                                            <span className="field-error" style={{color: 'red', fontSize: '12px', marginTop: '4px'}}>{formik.errors.fullName}</span>
+                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.fullName}</span>
                                         )}
                                     </div>
                                     <div className="form-group">
@@ -157,7 +138,7 @@ const Profile = () => {
                                             className={formik.touched.phoneNumber && formik.errors.phoneNumber ? 'error' : ''}
                                         />
                                         {formik.touched.phoneNumber && formik.errors.phoneNumber && (
-                                            <span className="field-error" style={{color: 'red', fontSize: '12px', marginTop: '4px'}}>{formik.errors.phoneNumber}</span>
+                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.phoneNumber}</span>
                                         )}
                                     </div>
                                     <div className="form-group full-width">
@@ -172,7 +153,7 @@ const Profile = () => {
                                             className={formik.touched.address && formik.errors.address ? 'error' : ''}
                                         ></textarea>
                                         {formik.touched.address && formik.errors.address && (
-                                            <span className="field-error" style={{color: 'red', fontSize: '12px', marginTop: '4px'}}>{formik.errors.address}</span>
+                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.address}</span>
                                         )}
                                     </div>
                                 </div>
@@ -206,7 +187,7 @@ const Profile = () => {
                                             </button>
                                         </div>
                                         {formik.touched.currentPassword && formik.errors.currentPassword && (
-                                            <span className="field-error" style={{color: 'red', fontSize: '12px', marginTop: '4px'}}>{formik.errors.currentPassword}</span>
+                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.currentPassword}</span>
                                         )}
                                     </div>
                                     <div className="form-group">
@@ -230,7 +211,7 @@ const Profile = () => {
                                             </button>
                                         </div>
                                         {formik.touched.newPassword && formik.errors.newPassword && (
-                                            <span className="field-error" style={{color: 'red', fontSize: '12px', marginTop: '4px'}}>{formik.errors.newPassword}</span>
+                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.newPassword}</span>
                                         )}
                                         <p className="password-hint">Must include uppercase, number and symbol.</p>
                                     </div>

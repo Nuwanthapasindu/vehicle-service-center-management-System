@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { vehicleValidationSchema } from '../../../schemas/vehicle';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import DragDropUpload from '../../../components/Upload/DragDropUpload';
@@ -15,12 +16,7 @@ const AddVehicle = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
-    const validationSchema = Yup.object({
-        licensePlate: Yup.string().required("License plate is required"),
-        type: Yup.string().required("Vehicle type is required"),
-        make: Yup.string().required("Make is required"),
-        model: Yup.string().required("Model is required"),
-    });
+
 
     const formik = useFormik({
         initialValues: {
@@ -29,7 +25,7 @@ const AddVehicle = () => {
             make: '',
             model: ''
         },
-        validationSchema,
+        validationSchema: vehicleValidationSchema,
         onSubmit: async (values) => {
             try {
                 setLoading(true);

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
+import getImageUrl from '../../../util/getImageUrl';
 import './MyGarage.css';
 
 const MyGarage = () => {
@@ -38,13 +39,7 @@ const MyGarage = () => {
         }
     };
 
-    const getImageUrl = (fileName) => {
-        if (fileName) {
-            return `${import.meta.env.VITE_SERVER_URL}/storage/uploads/${fileName}`;
-        }
-        // return a fallback dummy image
-        return "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80";
-    };
+
 
     // Calculate overall stats
     const totalVehicles = vehicles.length;

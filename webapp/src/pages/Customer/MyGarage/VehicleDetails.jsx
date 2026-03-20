@@ -4,9 +4,11 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { vehicleValidationSchema } from '../../../schemas/vehicle';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import DragDropUpload from '../../../components/Upload/DragDropUpload';
+import getImageUrl from '../../../util/getImageUrl';
 import './VehicleDetails.css';
 
 const VehicleDetails = () => {
@@ -21,12 +23,7 @@ const VehicleDetails = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
-    const validationSchema = Yup.object({
-        licensePlate: Yup.string().required("License plate is required"),
-        type: Yup.string().required("Vehicle type is required"),
-        make: Yup.string().required("Make is required"),
-        model: Yup.string().required("Model is required"),
-    });
+
 
     const formik = useFormik({
         initialValues: {
@@ -35,7 +32,7 @@ const VehicleDetails = () => {
             make: '',
             model: ''
         },
-        validationSchema,
+        validationSchema: vehicleValidationSchema,
         onSubmit: async (values) => {
             setIsUpdating(true);
             try {
@@ -89,12 +86,7 @@ const VehicleDetails = () => {
         }
     }, [id, navigate]);
 
-    const getImageUrl = (fileName) => {
-        if (fileName) {
-            return `${import.meta.env.VITE_SERVER_URL}/storage/uploads/${fileName}`;
-        }
-        return "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80";
-    };
+
 
     const handleDelete = async () => {
         if (window.confirm("Are you sure you want to completely remove this vehicle?")) {
