@@ -14,7 +14,7 @@ import './VehicleDetails.css';
 const VehicleDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    
+
     const [vehicle, setVehicle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -108,7 +108,7 @@ const VehicleDetails = () => {
             make: vehicle.make,
             model: vehicle.model
         });
-        setImagePreview(getImageUrl(vehicle.image?.fileName));
+        setImagePreview(getImageUrl(vehicle.image?.filePath));
         setImageFile(null);
         setShowModal(true);
     };
@@ -155,7 +155,7 @@ const VehicleDetails = () => {
                     <section className="vehicle-hero-card">
                         <div className="hero-image-overlay"></div>
                         <img
-                            src={getImageUrl(vehicle.image?.fileName)}
+                            src={getImageUrl(vehicle.image?.filePath)}
                             alt={`${vehicle.make} ${vehicle.model}`}
                             className="hero-bg-img"
                         />
@@ -232,7 +232,7 @@ const VehicleDetails = () => {
                                         <i className="fa-solid fa-arrows-rotate"></i>
                                     </div>
                                     <div className="service-entry-card">
-                                        <p style={{textAlign:"center", padding:"2rem", color:"var(--secondary)"}}>No service history logged yet.</p>
+                                        <p style={{ textAlign: "center", padding: "2rem", color: "var(--secondary)" }}>No service history logged yet.</p>
                                     </div>
                                 </div>
                             </div>
@@ -260,9 +260,9 @@ const VehicleDetails = () => {
                             <div className="modal-body">
                                 <div className="modal-form-group">
                                     <label>VEHICLE IMAGE</label>
-                                    <DragDropUpload 
-                                        onFileChange={handleFileChange} 
-                                        previewUrl={imagePreview} 
+                                    <DragDropUpload
+                                        onFileChange={handleFileChange}
+                                        previewUrl={imagePreview}
                                         hintText="PNG, JPG up to 10MB"
                                     />
                                 </div>
@@ -270,8 +270,8 @@ const VehicleDetails = () => {
                                 <div className="modal-form-row">
                                     <div className="modal-form-group">
                                         <label>LICENSE PLATE</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             name="licensePlate"
                                             value={formik.values.licensePlate}
                                             onChange={formik.handleChange}
@@ -279,15 +279,15 @@ const VehicleDetails = () => {
                                             className={formik.touched.licensePlate && formik.errors.licensePlate ? 'error' : ''}
                                         />
                                         {formik.touched.licensePlate && formik.errors.licensePlate && (
-                                            <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.licensePlate}</span>
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.licensePlate}</span>
                                         )}
                                     </div>
                                     <div className="modal-form-group">
                                         <label>VEHICLE TYPE</label>
                                         <div className="modal-select-wrapper">
-                                            <select 
-                                                name="type" 
-                                                value={formik.values.type} 
+                                            <select
+                                                name="type"
+                                                value={formik.values.type}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
                                                 className={formik.touched.type && formik.errors.type ? 'error' : ''}
@@ -300,7 +300,7 @@ const VehicleDetails = () => {
                                             <i className="fa-solid fa-chevron-down"></i>
                                         </div>
                                         {formik.touched.type && formik.errors.type && (
-                                            <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.type}</span>
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.type}</span>
                                         )}
                                     </div>
                                 </div>
@@ -308,8 +308,8 @@ const VehicleDetails = () => {
                                 <div className="modal-form-row">
                                     <div className="modal-form-group">
                                         <label>MAKE</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             name="make"
                                             value={formik.values.make}
                                             onChange={formik.handleChange}
@@ -317,13 +317,13 @@ const VehicleDetails = () => {
                                             className={formik.touched.make && formik.errors.make ? 'error' : ''}
                                         />
                                         {formik.touched.make && formik.errors.make && (
-                                            <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.make}</span>
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.make}</span>
                                         )}
                                     </div>
                                     <div className="modal-form-group">
                                         <label>MODEL</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             name="model"
                                             value={formik.values.model}
                                             onChange={formik.handleChange}
@@ -331,7 +331,7 @@ const VehicleDetails = () => {
                                             className={formik.touched.model && formik.errors.model ? 'error' : ''}
                                         />
                                         {formik.touched.model && formik.errors.model && (
-                                            <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.model}</span>
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.model}</span>
                                         )}
                                     </div>
                                 </div>

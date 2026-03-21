@@ -5,7 +5,6 @@ import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import getImageUrl from '../../../util/getImageUrl';
 import './MyGarage.css';
-import getImageUrl from '../../../util/getImageUrl';
 
 const MyGarage = () => {
     const [vehicles, setVehicles] = useState([]);
@@ -103,7 +102,7 @@ const MyGarage = () => {
                         {vehicles.map((vehicle) => (
                             <div className="vehicle-card" key={vehicle._id}>
                                 <div className="card-image-wrapper">
-                                    <img src={getImageUrl(vehicle.image?.fileName)} alt={vehicle.model} className="vehicle-card-img" />
+                                    <img src={getImageUrl(vehicle.image?.filePath)} alt={vehicle.model} className="vehicle-card-img" />
                                     {/* For now, just assuming ACTIVE status */}
                                     <span className="status-badge active">
                                         ACTIVE

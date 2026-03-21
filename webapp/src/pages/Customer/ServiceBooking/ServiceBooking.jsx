@@ -155,9 +155,9 @@ const ServiceBooking = () => {
                     {/* Pickers Row */}
                     <div className="picker-row">
                         {/* Calendar Section */}
-                        <BookingCalendar 
-                            selectedDate={selectedDate} 
-                            onDateSelect={(date) => setFieldValue('date', date)} 
+                        <BookingCalendar
+                            selectedDate={selectedDate}
+                            onDateSelect={(date) => setFieldValue('date', date)}
                         />
 
                         {/* Vehicle Picker Section */}
@@ -179,7 +179,7 @@ const ServiceBooking = () => {
                                             onClick={() => setFieldValue('vehicleId', v._id)}
                                         >
                                             <div className="vehicle-pick-img-wrapper">
-                                                <img src={getImageUrl(v.image?.fileName)} alt={v.model} />
+                                                <img src={getImageUrl(v.image?.filePath)} alt={v.model} />
                                             </div>
                                             <div className="vehicle-pick-info">
                                                 <h4>{v.make} {v.model}</h4>
