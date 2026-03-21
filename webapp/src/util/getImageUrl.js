@@ -5,6 +5,6 @@ export default function getImageUrl(path = "") {
   if (path.startsWith("http") || path.startsWith("https")) return path;
 
   const serverUrl = import.meta.env.VITE_SERVER_URL;
-  // Normalize backslashes from Windows paths to forward slashes for URLs
+
   return `${serverUrl}/${path}`;
 }
