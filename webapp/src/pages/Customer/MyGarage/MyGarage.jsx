@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
+import getImageUrl from '../../../util/getImageUrl';
 import './MyGarage.css';
 import getImageUrl from '../../../util/getImageUrl';
 
