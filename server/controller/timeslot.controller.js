@@ -5,41 +5,34 @@ const AppError = require("../error/AppError");
 module.exports.getAvailableTimeslots = async (dateStr) => {
     if (!dateStr) throw new AppError("Date is required", 400);
 
-    const checkDate = new Date(dateStr);
-    checkDate.setHours(0, 0, 0, 0);
+    try {
+        const checkDate = new Date(dateStr);
+        checkDate.setHours(0, 0, 0, 0);
 
-    const nextDay = new Date(checkDate);
-    nextDay.setDate(nextDay.getDate() + 1);
+        const nextDay = new Date(checkDate);
+        nextDay.setDate(nextDay.getDate() + 1);
 
-    // Initial seeding check
-    const count = await Timeslot.countDocuments();
-    if (count === 0) {
-        await Timeslot.insertMany([
-            { startTime: "09:00", endTime: "13:00", maxCapacity: 2 },
-            { startTime: "10:30", endTime: "14:30", maxCapacity: 2 },
-            { startTime: "13:00", endTime: "17:00", maxCapacity: 2 },
-            { startTime: "14:30", endTime: "18:30", maxCapacity: 2 }
-        ]);
+        const timeslots = await Timeslot.find({ isActive: true, isDeleted: false }).sort({ startTime: 1 });
+        const bookings = await Booking.find({
+            date: { $gte: checkDate, $lt: nextDay },
+            isDeleted: false
+        });
+
+        const slotAvailability = timeslots.map(slot => {
+            const bookingsForSlot = bookings.filter(b => b.slot.toString() === slot._id.toString());
+            return {
+                id: slot._id,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                time: `${slot.startTime} - ${slot.endTime}`,
+                maxCapacity: slot.maxCapacity,
+                booked: bookingsForSlot.length,
+                isFull: bookingsForSlot.length >= slot.maxCapacity
+            };
+        });
+
+        return slotAvailability;
+    } catch (error) {
+        throw new AppError(error.message, error.statusCode || 500);
     }
-
-    const timeslots = await Timeslot.find({ isActive: true, isDeleted: false }).sort({ startTime: 1 });
-    const bookings = await Booking.find({
-        date: { $gte: checkDate, $lt: nextDay },
-        isDeleted: false
-    });
-
-    const slotAvailability = timeslots.map(slot => {
-        const bookingsForSlot = bookings.filter(b => b.slot.toString() === slot._id.toString());
-        return {
-            id: slot._id,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            time: `${slot.startTime} - ${slot.endTime}`,
-            maxCapacity: slot.maxCapacity,
-            booked: bookingsForSlot.length,
-            isFull: bookingsForSlot.length >= slot.maxCapacity
-        };
-    });
-
-    return slotAvailability;
 };

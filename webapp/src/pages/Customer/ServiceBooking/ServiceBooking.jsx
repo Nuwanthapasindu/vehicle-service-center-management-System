@@ -5,13 +5,50 @@ import { toast } from 'react-toastify';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import './ServiceBooking.css';
+import getImageUrl from '../../../util/getImageUrl';
+import { useFormik } from 'formik';
+import { bookingSchema } from '../../../schemas/booking';
+import BookingCalendar from '../../../components/Customer/Calendar/BookingCalendar';
 
 const ServiceBooking = () => {
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedSlot, setSelectedSlot] = useState(1);
     const [vehicles, setVehicles] = useState([]);
-    const [selectedVehicle, setSelectedVehicle] = useState(null);
-    const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
+
+    const formik = useFormik({
+        initialValues: {
+            vehicleId: '',
+            slotId: '',
+            date: null
+        },
+        validationSchema: bookingSchema,
+        onSubmit: async (values, { resetForm }) => {
+            try {
+                const yyyy = values.date.getFullYear();
+                const mm = String(values.date.getMonth() + 1).padStart(2, '0');
+                const dd = String(values.date.getDate()).padStart(2, '0');
+                const dateStr = `${yyyy}-${mm}-${dd}`;
+
+                const slotDetails = timeSlots.find(s => s.id === values.slotId);
+
+                await axios.post('/booking', {
+                    vehicle: values.vehicleId,
+                    slot: values.slotId,
+                    date: dateStr
+                });
+
+                const vehicleDetails = vehicles.find(v => v._id === values.vehicleId);
+                toast.success(`Booking confirmed for ${vehicleDetails.make} ${vehicleDetails.model} on ${dateStr} at ${slotDetails?.time.split(' - ')[0]}`);
+
+                resetForm();
+            } catch (error) {
+                toast.error(error.response?.data?.payload?.message || "Failed to confirm booking.");
+            }
+        }
+    });
+
+    const { values, errors, setFieldValue, submitForm } = formik;
+    const selectedDate = values.date;
+    const selectedSlot = values.slotId;
+    const selectedVehicle = vehicles.find(v => v._id === values.vehicleId);
 
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [timeSlots, setTimeSlots] = useState([]);
@@ -23,7 +60,7 @@ const ServiceBooking = () => {
                 const response = await axios.get('/vehicle/my-vehicles');
                 setVehicles(response.data.payload.vehicles || []);
             } catch (error) {
-                console.error("Failed to fetch vehicles", error);
+                toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
             }
         };
         fetchVehicles();
@@ -32,6 +69,7 @@ const ServiceBooking = () => {
     useEffect(() => {
         if (!selectedDate) {
             setTimeSlots([]);
+            setFieldValue('slotId', ''); // Reset slot selection
             return;
         }
 
@@ -45,98 +83,18 @@ const ServiceBooking = () => {
 
                 const response = await axios.get(`/timeslot?date=${dateStr}`);
                 setTimeSlots(response.data.payload.slots || []);
-                setSelectedSlot(null);
+                setFieldValue('slotId', ''); // Reset slot selection when date changes
             } catch (error) {
-                console.error("Failed to fetch timeslots", error);
-                toast.error("Failed to fetch timeslots");
+                toast.error(error.response?.data?.payload?.message || "Failed to fetch timeslots.");
             } finally {
                 setLoadingSlots(false);
             }
         };
         fetchSlots();
-    }, [selectedDate]);
+    }, [selectedDate, setFieldValue]);
 
-    const handleConfirmBooking = async () => {
-        if (!selectedDate || !selectedVehicle || !selectedSlot) return;
+    const handleConfirmBooking = () => submitForm();
 
-        try {
-            const yyyy = selectedDate.getFullYear();
-            const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(selectedDate.getDate()).padStart(2, '0');
-            const dateStr = `${yyyy}-${mm}-${dd}`;
-
-            const slotDetails = timeSlots.find(s => s.id === selectedSlot);
-
-            await axios.post('/booking', {
-                vehicle: selectedVehicle._id,
-                slot: selectedSlot,
-                date: dateStr
-            });
-
-            toast.success(`Booking confirmed for ${selectedVehicle.make} ${selectedVehicle.model} on ${dateStr} at ${slotDetails?.time.split(' - ')[0]}`);
-
-            // Reset fields
-            setSelectedDate(null);
-            setSelectedSlot(null);
-            setSelectedVehicle(null);
-
-            // Navigate away if desired, or stay here with the fresh page
-            // navigate('/customer/dashboard'); 
-        } catch (error) {
-            console.error("Booking failed", error);
-            toast.error(error.response?.data?.payload?.message || "Failed to confirm booking.");
-        }
-    };
-
-    const getDaysInMonth = (year, month) => {
-        return new Date(year, month + 1, 0).getDate();
-    };
-
-    const getFirstDayOfMonth = (year, month) => {
-        return new Date(year, month, 1).getDay();
-    };
-
-    const daysInMonth = getDaysInMonth(currentMonthDate.getFullYear(), currentMonthDate.getMonth());
-    const firstDay = getFirstDayOfMonth(currentMonthDate.getFullYear(), currentMonthDate.getMonth());
-
-    const calendarDays = Array(firstDay).fill(null);
-    for (let i = 1; i <= daysInMonth; i++) {
-        calendarDays.push(i);
-    }
-
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    const isDateUnavailable = (day) => {
-        if (!day) return true;
-        const dateObj = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), day);
-        if (dateObj < todayStart) return true;
-        if (dateObj.getDay() === 1) return true; // Disabled Mondays
-        return false;
-    };
-
-    const handleDateSelection = (day) => {
-        if (isDateUnavailable(day)) return;
-        const selected = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), day);
-        setSelectedDate(selected);
-    };
-
-    const changeMonth = (offset) => {
-        setCurrentMonthDate(prev => {
-            const newDate = new Date(prev);
-            newDate.setMonth(newDate.getMonth() + offset);
-            return newDate;
-        });
-    };
-
-    const getImageUrl = (imageObj) => {
-        if (imageObj && imageObj.fileName) {
-            return `${import.meta.env.VITE_SERVER_URL}/storage/uploads/${imageObj.fileName}`;
-        }
-        return "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80";
-    };
-
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     return (
         <div className="customer-portal-wrapper">
@@ -197,63 +155,10 @@ const ServiceBooking = () => {
                     {/* Pickers Row */}
                     <div className="picker-row">
                         {/* Calendar Section */}
-                        <div className="calendar-card">
-                            <div className="calendar-header">
-                                <h3 className="month-year">
-                                    <i className="fa-regular fa-calendar-days"></i>
-                                    {monthNames[currentMonthDate.getMonth()]} {currentMonthDate.getFullYear()}
-                                </h3>
-                                <div className="calendar-nav">
-                                    <button className="nav-btn" onClick={() => changeMonth(-1)}><i className="fa-solid fa-chevron-left"></i></button>
-                                    <button className="nav-btn" onClick={() => changeMonth(1)}><i className="fa-solid fa-chevron-right"></i></button>
-                                </div>
-                            </div>
-
-                            <div className="calendar-grid">
-                                <div className="day-name">SUN</div>
-                                <div className="day-name">MON</div>
-                                <div className="day-name">TUE</div>
-                                <div className="day-name">WED</div>
-                                <div className="day-name">THU</div>
-                                <div className="day-name">FRI</div>
-                                <div className="day-name">SAT</div>
-
-                                {calendarDays.map((day, index) => {
-                                    const unavailable = isDateUnavailable(day);
-                                    let isSelected = false;
-                                    if (day && selectedDate) {
-                                        isSelected = selectedDate.getDate() === day &&
-                                            selectedDate.getMonth() === currentMonthDate.getMonth() &&
-                                            selectedDate.getFullYear() === currentMonthDate.getFullYear();
-                                    }
-
-                                    return (
-                                        <div
-                                            key={index}
-                                            className={`calendar-day ${day === null ? 'empty' : ''} ${isSelected ? 'selected' : ''} ${unavailable && day !== null ? 'unavailable' : ''}`}
-                                            onClick={() => handleDateSelection(day)}
-                                        >
-                                            {day}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="calendar-legend">
-                                <div className="legend-item">
-                                    <span className="dot selected"></span>
-                                    <span>Selected</span>
-                                </div>
-                                <div className="legend-item">
-                                    <span className="dot available"></span>
-                                    <span>Available</span>
-                                </div>
-                                <div className="legend-item">
-                                    <span className="dot unavailable"></span>
-                                    <span>Not Available</span>
-                                </div>
-                            </div>
-                        </div>
+                        <BookingCalendar 
+                            selectedDate={selectedDate} 
+                            onDateSelect={(date) => setFieldValue('date', date)} 
+                        />
 
                         {/* Vehicle Picker Section */}
                         <div className="vehicle-picker-card">
@@ -270,18 +175,18 @@ const ServiceBooking = () => {
                                     vehicles.map(v => (
                                         <div
                                             key={v._id}
-                                            className={`vehicle-pick-item ${selectedVehicle?._id === v._id ? 'selected' : ''}`}
-                                            onClick={() => setSelectedVehicle(v)}
+                                            className={`vehicle-pick-item ${values.vehicleId === v._id ? 'selected' : ''}`}
+                                            onClick={() => setFieldValue('vehicleId', v._id)}
                                         >
                                             <div className="vehicle-pick-img-wrapper">
-                                                <img src={getImageUrl(v.image)} alt={v.model} />
+                                                <img src={getImageUrl(v.image?.fileName)} alt={v.model} />
                                             </div>
                                             <div className="vehicle-pick-info">
                                                 <h4>{v.make} {v.model}</h4>
                                                 <span>{v.year || v.type}</span>
                                             </div>
                                             <div className="vehicle-check">
-                                                {selectedVehicle?._id === v._id ? (
+                                                {values.vehicleId === v._id ? (
                                                     <i className="fa-solid fa-circle-check"></i>
                                                 ) : (
                                                     <i className="fa-regular fa-circle"></i>
@@ -327,7 +232,7 @@ const ServiceBooking = () => {
                                                 className={`slot-card ${selectedSlot === slot.id ? 'active' : ''}`}
                                                 style={disabled ? { opacity: 0.6, cursor: 'not-allowed', backgroundColor: '#F1F5F9' } : {}}
                                                 onClick={() => {
-                                                    if (!disabled) setSelectedSlot(slot.id);
+                                                    if (!disabled) setFieldValue('slotId', slot.id);
                                                     else if (!selectedVehicle) toast.warning("Please select a vehicle first.");
                                                 }}
                                             >

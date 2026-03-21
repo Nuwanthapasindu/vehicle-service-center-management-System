@@ -1,7 +1,8 @@
-export default function getImageUrl(path = "") {
-  if (!path) return "";
-  if (path.startsWith("http") || path.startsWith("https")) return path;
+export default function getImageUrl(fileName = "") {
+  const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80";
 
-  const serverUrl = import.meta.env.VITE_SERVER_URL.split("/api")[0];
-  return `${serverUrl}/uploads/${path}`;
+  if (!fileName) return FALLBACK_IMAGE;
+  if (fileName.startsWith("http") || fileName.startsWith("https")) return fileName;
+
+  return `${import.meta.env.VITE_SERVER_URL}/storage/uploads/${fileName}`;
 }

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import './MyGarage.css';
+import getImageUrl from '../../../util/getImageUrl';
 
 const MyGarage = () => {
     const [vehicles, setVehicles] = useState([]);
@@ -19,7 +20,7 @@ const MyGarage = () => {
             const response = await axios.get('/vehicle/my-vehicles');
             setVehicles(response.data.payload.vehicles || []);
         } catch (error) {
-            console.error("Failed to fetch vehicles", error);
+            toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
         } finally {
             setLoading(false);
         }
@@ -36,14 +37,6 @@ const MyGarage = () => {
                 toast.error(error.response?.data?.payload?.message || "Failed to remove vehicle.");
             }
         }
-    };
-
-    const getImageUrl = (imageObj) => {
-        if (imageObj && imageObj.fileName) {
-            return `${import.meta.env.VITE_SERVER_URL}/storage/uploads/${imageObj.fileName}`;
-        }
-        // return a fallback dummy image
-        return "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80";
     };
 
     // Calculate overall stats
@@ -109,7 +102,7 @@ const MyGarage = () => {
                         {vehicles.map((vehicle) => (
                             <div className="vehicle-card" key={vehicle._id}>
                                 <div className="card-image-wrapper">
-                                    <img src={getImageUrl(vehicle.image)} alt={vehicle.model} className="vehicle-card-img" />
+                                    <img src={getImageUrl(vehicle.image?.fileName)} alt={vehicle.model} className="vehicle-card-img" />
                                     {/* For now, just assuming ACTIVE status */}
                                     <span className="status-badge active">
                                         ACTIVE
