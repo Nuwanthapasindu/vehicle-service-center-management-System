@@ -1,0 +1,132 @@
+.calendar-card {
+    background-color: var(--light, #FFFFFF);
+    border-radius: 20px;
+    padding: 2.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-color, #E2E8F0);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.month-year {
+    font-size: 1.25rem;
+    font-weight: 850;
+    color: var(--dark, #1A1D23);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.month-year i {
+    color: var(--primary-color, #8EDB00);
+}
+
+.calendar-nav {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.calendar-nav .nav-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #F1F5F9;
+    background: none;
+    border-radius: 8px;
+    color: #94A3B8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.calendar-nav .nav-btn:hover {
+    background-color: #F8FAFC;
+    color: var(--dark, #1A1D23);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.day-name {
+    font-size: 0.75rem;
+    font-weight: 850;
+    color: #CBD5E1;
+    letter-spacing: 1px;
+    padding-bottom: 1rem;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dark, #1A1D23);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.calendar-day:not(.empty):hover {
+    background-color: #F8FAFC;
+}
+
+.calendar-day.selected {
+    background-color: var(--primary-color, #8EDB00) !important;
+    color: var(--dark, #1A1D23);
+    font-weight: 850;
+}
+
+.calendar-day.unavailable {
+    color: #E2E8F0;
+    cursor: default;
+}
+
+.calendar-legend {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #F1F5F9;
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--secondary, #64748B);
+}
+
+.legend-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.legend-item .dot.selected {
+    background-color: var(--primary-color, #8EDB00);
+}
+
+.legend-item .dot.available {
+    background-color: #F1F5F9;
+    border: 1px solid #E2E8F0;
+}
+
+.legend-item .dot.unavailable {
+    background-color: #E2E8F0;
+}

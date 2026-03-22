@@ -20,7 +20,7 @@ const MyGarage = () => {
             const response = await axios.get('/vehicle/my-vehicles');
             setVehicles(response.data.payload.vehicles || []);
         } catch (error) {
-            console.error("Failed to fetch vehicles", error);
+            toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
         } finally {
             setLoading(false);
         }
@@ -38,8 +38,6 @@ const MyGarage = () => {
             }
         }
     };
-
-
 
     // Calculate overall stats
     const totalVehicles = vehicles.length;
@@ -104,7 +102,7 @@ const MyGarage = () => {
                         {vehicles.map((vehicle) => (
                             <div className="vehicle-card" key={vehicle._id}>
                                 <div className="card-image-wrapper">
-                                    <img src={getImageUrl(vehicle.image?.fileName)} alt={vehicle.model} className="vehicle-card-img" />
+                                    <img src={getImageUrl(vehicle.image?.filePath)} alt={vehicle.model} className="vehicle-card-img" />
                                     {/* For now, just assuming ACTIVE status */}
                                     <span className="status-badge active">
                                         ACTIVE
