@@ -12,14 +12,12 @@ export default function EditSupplier({ supplier, onBack, API }) {
   const [selectedItems, setSelectedItems] = useState(supplier?.items?.length ? supplier.items : ['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 2. Handle Update Action
   const handleUpdate = async () => {
     if (!companyName) {
       Alert.alert("Error", "Company Name is required");
       return;
     }
 
-    // Clean up empty phone numbers and items
     const validPhones = phones.filter(p => p.trim() !== '');
     const validItems = selectedItems.filter(i => i.trim() !== '');
 
@@ -40,7 +38,6 @@ export default function EditSupplier({ supplier, onBack, API }) {
     }
   };
 
-  // 3. Handle Delete Action
   const handleDelete = () => {
     Alert.alert(
       "Confirm Delete",

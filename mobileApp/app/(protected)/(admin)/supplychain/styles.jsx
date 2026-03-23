@@ -1,12 +1,10 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -15,20 +13,17 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFF',
   },
-  
   headerTitle: {
     fontSize: 16,
     fontWeight: '800',
     color: '#1F2937',
     letterSpacing: 0.5,
   },
-  
   searchContainer: {
     paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: '#FAFAFA',
   },
-  
   searchSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -39,23 +34,19 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 48,
   },
-  
   searchIcon: {
     marginRight: 10,
   },
-  
   searchInput: {
     flex: 1,
     fontSize: 14,
     color: '#1F2937',
   },
-  
   list: {
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 150,
   },
-  
   card: {
     backgroundColor: '#FFF',
     borderRadius: 12,
@@ -67,35 +58,29 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
-  
   cardContent: {
     flex: 1,
   },
-  
   supplierName: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 4,
   },
-  
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
   },
-  
   infoText: {
     fontSize: 13,
     color: '#6B7280',
     marginLeft: 8,
   },
-  
   subtitle: {
     fontSize: 13,
     color: '#9CA3AF',
   },
-  
   callButton: {
     backgroundColor: '#84CC16',
     width: 48,
@@ -104,25 +89,21 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
     marginBottom: 4,
   },
-  
   badgeText: {
     fontSize: 10,
     fontWeight: 'bold',
   },
-  
   totalCostValue: {
     fontSize: 16,
     fontWeight: '800',
     color: '#374151',
   },
-  
   fab: {
     position: 'absolute',
     right: 20,
@@ -136,7 +117,6 @@ export const styles = StyleSheet.create({
     elevation: 5,
     zIndex: 10,
   },
-  
   bottomTabs: {
     flexDirection: 'row',
     height: 70,
@@ -148,50 +128,42 @@ export const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: 10,
   },
-  
   tabItem: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
   tabText: {
     fontSize: 10,
     fontWeight: 'bold',
     color: '#9CA3AF',
     marginTop: 4,
   },
-  
   activeTabText: {
     color: '#84CC16',
   },
-  
   scrollContent: {
     padding: 20,
     paddingBottom: 120,
   },
-  
   sectionTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 15,
   },
-  
   sectionTitleText: {
     fontSize: 15,
     fontWeight: 'bold',
     color: '#1F2937',
     marginLeft: 8,
   },
-  
   label: {
     fontSize: 13,
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
   },
-  
   smallLabelCaps: {
     fontSize: 11,
     fontWeight: 'bold',
@@ -200,14 +172,12 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 10,
   },
-  
   tinyLabel: {
     fontSize: 10,
     fontWeight: 'bold',
     color: '#9CA3AF',
     marginBottom: 6,
   },
-  
   formInput: {
     backgroundColor: '#FFF',
     borderWidth: 1,
@@ -219,7 +189,6 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 15,
   },
-  
   formInputSmall: {
     backgroundColor: '#FFF',
     borderWidth: 1,
@@ -230,7 +199,6 @@ export const styles = StyleSheet.create({
     color: '#1F2937',
     fontSize: 14,
   },
-  
   dropdown: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -242,35 +210,29 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 15,
     height: 48,
   },
-  
   dropdownText: {
     color: '#374151',
     fontSize: 14,
   },
-  
   addSmallBtn: {
     backgroundColor: '#F4FCE3',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
   },
-  
   addSmallBtnText: {
     color: '#84CC16',
     fontSize: 12,
     fontWeight: 'bold',
   },
-  
   inputWithIconRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
   trashIcon: {
     padding: 10,
     marginLeft: 5,
   },
-  
   sectionHeaderOrder: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -278,7 +240,6 @@ export const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 15,
   },
-  
   addItemBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -289,14 +250,12 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D9F99D',
   },
-  
   addItemText: {
     color: '#84CC16',
     fontWeight: 'bold',
     marginLeft: 5,
     fontSize: 12,
   },
-  
   orderItemCard: {
     backgroundColor: '#FFF',
     borderRadius: 12,
@@ -305,29 +264,24 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
-  
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
   },
-  
   itemName: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#1F2937',
   },
-  
   skuText: {
     fontSize: 12,
     color: '#9CA3AF',
     marginTop: 4,
   },
-  
   inputRow: {
     flexDirection: 'row',
   },
-  
   footer: {
     padding: 20,
     backgroundColor: '#FFF',
@@ -337,7 +291,6 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
   },
-  
   saveSupplierBtn: {
     backgroundColor: '#84CC16',
     borderRadius: 8,
@@ -346,7 +299,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
   saveSupplierBtnText: {
     fontSize: 15,
     fontWeight: 'bold',
@@ -354,4 +306,6 @@ export const styles = StyleSheet.create({
   },
 });
 
-export default function IgnoreStyles() { return null; }
+export default function IgnoreStyles() {
+  return null;
+}

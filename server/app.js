@@ -48,12 +48,8 @@ app.use("/api/v1/file", fileRouter);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/package", packageRouter);
 
-
-
-//  SUPPLY CHAIN ROUTES 
+//  SUPPLY CHAIN ROUTES
 app.use('/api/suppliers', require('./routes/supplier.route'));
-app.use('/api/orders', require('./routes/order.route')); 
-app.use('/api/inventory', require('./routes/inventory.route'));
 
 app.use((req, res, next) => {
   next(

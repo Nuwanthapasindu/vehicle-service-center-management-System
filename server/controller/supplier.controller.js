@@ -1,54 +1,81 @@
-const Supplier = require('../model/Supplier');
-const { validateSupplier } = require('../validation/supplier.validation'); 
+const Supplier = require('../model/Supplier'); 
 
-exports.createSupplier = async (req, res) => {
+//Add new Supplier
+exports.createSupplier = async (req, res, next) => {
   try {
-    const { error } = validateSupplier(req.body);
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
+    const { companyName, agentName, companyMobile, items } = req.body;
 
-    const newSupplier = new Supplier(req.body);
-    await newSupplier.save();
-    res.status(201).json(newSupplier);
-  } catch (error) { 
-    res.status(400).json({ error: error.message }); 
+    const newSupplier = new Supplier({
+      companyName,
+      agentName,
+      companyMobile,
+      items
+    });
+
+    const savedSupplier = await newSupplier.save();
+    res.status(201).json(savedSupplier);
+
+  } catch (error) {
+    console.error("Create Supplier Error:", error);
+    res.status(500).json({ message: "Server error while creating supplier." });
   }
 };
 
-exports.getAllSuppliers = async (req, res) => {
+//Get all Suppliers
+exports.getAllSuppliers = async (req, res, next) => {
   try {
     const suppliers = await Supplier.find({ isDeleted: false }).sort({ createdAt: -1 });
     res.status(200).json(suppliers);
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+  } catch (error) {
+    console.error("Fetch Suppliers Error:", error);
+    res.status(500).json({ message: "Server error while fetching suppliers." });
   }
 };
 
-exports.createSupplier = async (req, res) => {
+//Update Supplier
+exports.updateSupplier = async (req, res, next) => {
   try {
-    const newSupplier = new Supplier(req.body);
-    await newSupplier.save();
-    res.status(201).json(newSupplier);
-  } catch (error) { 
-    res.status(400).json({ error: error.message }); 
+    const supplierId = req.params.id;
+    const { companyName, agentName, companyMobile, items } = req.body;
+
+    const updatedSupplier = await Supplier.findByIdAndUpdate(
+      supplierId,
+      { companyName, agentName, companyMobile, items },
+      { new: true }
+    );
+
+    if (!updatedSupplier) {
+      return res.status(404).json({ message: "Supplier not found." });
+    }
+
+    res.status(200).json(updatedSupplier);
+  } catch (error) {
+    console.error("Update Supplier Error:", error);
+    res.status(500).json({ message: "Server error while updating supplier." });
   }
 };
 
-exports.updateSupplier = async (req, res) => {
+//Delete Supplier
+exports.deleteSupplier = async (req, res, next) => {
   try {
-    const updated = await Supplier.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.status(200).json(updated);
-  } catch (error) { 
-    res.status(400).json({ error: error.message }); 
-  }
-};
+    const supplierId = req.params.id;
 
-exports.deleteSupplier = async (req, res) => {
-  try {
-    await Supplier.findByIdAndUpdate(req.params.id, { isDeleted: true, deletedAt: new Date() });
-    res.status(200).json({ message: "Supplier deleted successfully" });
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+    const deletedSupplier = await Supplier.findByIdAndUpdate(
+      supplierId,
+      {
+        isDeleted: true,
+        deletedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!deletedSupplier) {
+      return res.status(404).json({ message: "Supplier not found." });
+    }
+
+    res.status(200).json({ message: "Supplier deleted successfully." });
+  } catch (error) {
+    console.error("Delete Supplier Error:", error);
+    res.status(500).json({ message: "Server error while deleting supplier." });
   }
 };

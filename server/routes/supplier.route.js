@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const supplierCtrl = require('../controller/supplier.controller'); // Folder eka 'controller' hari 'controllers' hari kiyala sure karaganna
+const supplierController = require('../controller/supplier.controller');
 
-router.get('/', supplierCtrl.getAllSuppliers);
 
-router.post('/', supplierCtrl.createSupplier);
+const { validateSupplier } = require('../validation/supplier.validation');
 
-router.put('/:id', supplierCtrl.updateSupplier);
+router.post('/', validateSupplier, supplierController.createSupplier);
 
-router.delete('/:id', supplierCtrl.deleteSupplier);
+router.get('/', supplierController.getAllSuppliers);
+
+router.put('/:id', validateSupplier, supplierController.updateSupplier);
+
+router.delete('/:id', supplierController.deleteSupplier);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu, Plus, Search, Phone, ClipboardList, Truck, AlertTriangle, Trash2, X } from 'lucide-react-native';
+import { Menu, Plus, Search, Phone, ClipboardList, Truck, AlertTriangle, X } from 'lucide-react-native';
 import { useNavigation } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
 import axios from 'axios';
@@ -12,7 +12,7 @@ import EditSupplier from './editSupplier';
 import AddOrder from './AddOrder';
 import EditOrder from './editOrder';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL.replace('/v1', '');
+const API_URL = process.env.EXPO_PUBLIC_API_URL ? process.env.EXPO_PUBLIC_API_URL.replace('/v1', '') : 'http://localhost:5000/api';
 
 export default function SupplyChainApp() {
   const navigation = useNavigation();
@@ -25,30 +25,34 @@ export default function SupplyChainApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [lowStockWarning, setLowStockWarning] = useState(false);
   const [lowStockItems, setLowStockItems] = useState([]);
-  const [isWarningDismissed, setIsWarningDismissed] = useState(false); 
+  const [isWarningDismissed, setIsWarningDismissed] = useState(false);
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const endpoint = activeTab === 'SUPPLIERS' ? '/suppliers' : '/orders';
-      const response = await axios.get(`${API_URL}${endpoint}`);
+const fetchData = async () => {
+  setIsLoading(true);
+  try {
+    if (activeTab === 'SUPPLIERS') {
+      const response = await axios.get(`${API_URL}/suppliers`);
       setData(response.data);
-
-      const stockRes = await axios.get(`${API_URL}/inventory/low-stock`);
-      setLowStockItems(stockRes.data);
-      setLowStockWarning(stockRes.data.length > 0);
-    } catch (error) {
-      console.error("Fetch Error:", error.response?.data || error.message);
-      Alert.alert("Network Error", "Could not connect to the server. Please check your connection.");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setData([]); 
     }
-  };
+
+    /*
+    const stockRes = await axios.get(`${API_URL}/inventory/low-stock`);
+    setLowStockItems(stockRes.data);
+    setLowStockWarning(stockRes.data.length > 0);
+    */
+  } catch (error) {
+    console.error("Fetch Error:", error.response?.data || error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     if (currentView === 'LIST') {
       fetchData();
-      setIsWarningDismissed(false); 
+      setIsWarningDismissed(false);
     }
   }, [activeTab, currentView]);
 
@@ -64,32 +68,12 @@ export default function SupplyChainApp() {
     setCurrentView(activeTab === 'SUPPLIERS' ? 'ADD_SUPPLIER' : 'ADD_ORDER');
   };
 
-  const handleDeleteItem = (id) => {
-    const isSupplier = activeTab === 'SUPPLIERS';
-    const endpoint = isSupplier ? `/suppliers/${id}` : `/orders/${id}`;
-    const itemName = isSupplier ? "Supplier" : "Order";
-
-    Alert.alert(
-      `Delete ${itemName}`,
-      `Are you sure you want to completely remove this ${itemName}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Yes, Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_URL}${endpoint}`);
-              Alert.alert("Success", `${itemName} deleted successfully!`);
-              fetchData();
-            } catch (error) {
-              console.log("Delete Error:", error);
-              Alert.alert("Error", `Could not delete ${itemName}.`);
-            }
-          }
-        }
-      ]
-    );
+  const callSupplier = (phoneNumbers) => {
+    if (phoneNumbers && phoneNumbers.length > 0) {
+      Linking.openURL(`tel:${phoneNumbers[0]}`);
+    } else {
+      Alert.alert("No Number", "This supplier doesn't have a registered mobile number.");
+    }
   };
 
   if (currentView === 'ADD_SUPPLIER') return <AddSupplier onBack={() => setCurrentView('LIST')} API={API_URL} />;
@@ -112,11 +96,11 @@ export default function SupplyChainApp() {
           <TouchableOpacity
             style={{ flex: 1 }}
             onPress={() => {
-                if (lowStockItems.length > 0) {
-                  const itemNames = lowStockItems.map(i => `• ${i.name} (Qty: ${i.qty})`).join('\n');
-                  Alert.alert('Low Stock Items', itemNames);
-                }
-              }}
+              if (lowStockItems.length > 0) {
+                const itemNames = lowStockItems.map(i => `• ${i.name} (Qty: ${i.qty})`).join('\n');
+                Alert.alert('Low Stock Items', itemNames);
+              }
+            }}
           >
             <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>⚠️ Inventory Low Stock Alert (Tap to view)</Text>
           </TouchableOpacity>
@@ -143,7 +127,7 @@ export default function SupplyChainApp() {
       ) : (
         <FlatList
           data={getFilteredData()}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item._id || Math.random().toString()}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -173,16 +157,12 @@ export default function SupplyChainApp() {
 
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 {activeTab === 'SUPPLIERS' ? (
-                  <View style={[styles.callButton, { marginRight: 15 }]}>
+                  <TouchableOpacity style={styles.callButton} onPress={() => callSupplier(item.companyMobile)}>
                     <Phone size={20} color="#1F2937" />
-                  </View>
+                  </TouchableOpacity>
                 ) : (
-                  <Text style={[styles.totalCostValue, { marginRight: 15 }]}>Rs. {item.totalCost || 0}</Text>
+                  <Text style={styles.totalCostValue}>Rs. {item.totalCost || 0}</Text>
                 )}
-                
-                <TouchableOpacity onPress={() => handleDeleteItem(item._id)} style={{ padding: 5 }}>
-                  <Trash2 size={24} color="#EF4444" />
-                </TouchableOpacity>
               </View>
             </TouchableOpacity>
           )}
