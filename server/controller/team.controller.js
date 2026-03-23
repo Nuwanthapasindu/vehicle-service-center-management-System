@@ -20,12 +20,29 @@ exports.createTeam = async (req, res, next) => {
     }
 };
 
+// Get all teams
+exports.getAllTeams = async (req, res, next) => {
+    try {
+        const teams = await Team.find({ isDeleted: false })
+            .populate('employees'); // Populates employee details to get the count
+
+        const builder = new responseBuilder(res);
+        builder.setStatus(200);
+        return builder.buildResponse({ 
+            message: "Teams fetched successfully", 
+            data: teams 
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // Skill-Based Assignment: Filter teams by required skill & availability
 exports.getTeamsBySkill = async (req, res, next) => {
     try {
         const { skill } = req.query;
 
-        // 1. Find all available employees with this skill
+        //Find all available employees with this skill
         const eligibleEmployees = await Employee.find({
             skills: { $in: [skill] },
             isAvailable: true,
@@ -49,6 +66,29 @@ exports.getTeamsBySkill = async (req, res, next) => {
         });
 
         //return responseBuilder(res, 200, "Available teams with required skill", teams);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Add this to your team controller file
+exports.getTeamById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const team = await Team.findById(id).populate('employees');
+
+        if (!team || team.isDeleted) {
+            const builder = new responseBuilder(res);
+            builder.setStatus(404);
+            return builder.buildResponse({ message: "Team not found" });
+        }
+
+        const builder = new responseBuilder(res);
+        builder.setStatus(200);
+        return builder.buildResponse({ 
+            message: "Team fetched successfully", 
+            data: team 
+        });
     } catch (error) {
         next(error);
     }

@@ -6,5 +6,7 @@ router.post("/", teamController.createTeam);
 router.get("/filter", teamController.getTeamsBySkill);
 router.put("/:id", teamController.updateTeam);
 router.delete("/:id", teamController.deleteTeam);
+router.get("/", teamController.getAllTeams);
+router.get("/:id", teamController.getTeamById);
 
 module.exports = router;

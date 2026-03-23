@@ -6,6 +6,50 @@ const { hashPassword } = require("../util/password");
 const mongoose = require("mongoose");
 
 // Admin: Add Employee (User + Auth + Employee)
+
+exports.createEmployee = async (req, res, next) => {
+    try {
+        const { name, mobile, address, role, dob, nic, skills, gender, userName, password } = req.body;
+
+        // 1. Create User
+        const newUser = await User.create({
+            name,
+            mobile,
+            address,
+            role,
+            isActive: true
+        });
+
+        // 2. Create Auth record
+        const hashedPassword = await hashPassword(password);
+        await Auth.create({
+            user: newUser._id,
+            userName,
+            password: hashedPassword
+        });
+
+        // 3. Create Employee profile
+        const newEmployee = await Employee.create({
+            user: newUser._id,
+            dob,
+            nic,
+            skills,
+            gender
+        });
+
+        const builder = new responseBuilder(res);
+        builder.setStatus(201);
+        return builder.buildResponse({
+            message: "Employee registered successfully",
+            data: newEmployee
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+/*
 exports.createEmployee = async (req, res, next) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -52,7 +96,7 @@ exports.createEmployee = async (req, res, next) => {
         next(error);
     }
 };
-
+*/
 // Admin: View Employee List (With Available/Unavailable filters)
 exports.getEmployees = async (req, res, next) => {
     try {
@@ -81,17 +125,33 @@ exports.getEmployees = async (req, res, next) => {
 exports.updateEmployee = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { name, mobile, address, dob, nic, skills } = req.body;
+        const { name, mobile, address, dob, nic, skills,gender,isAvailable,userName, password} = req.body;
 
         const employee = await Employee.findById(id);
         if (!employee) return res.status(404).json({ message: "Not found" });
 
         // Update User info
         await User.findByIdAndUpdate(employee.user, { name, mobile, address });
+
+        //2. GET AUTH FIRST 
+        const auth = await Auth.findOne({ user: employee.user });
+
+        if (auth) {
+            let updateData = {};
+
+            if (userName) updateData.userName = userName;
+
+            if (password) {
+                const hashedPassword = await hashPassword(password);
+                updateData.password = hashedPassword;
+            }
+
+            await Auth.findByIdAndUpdate(auth._id, updateData);
+        }
         
         // Update Employee info
         const updatedEmployee = await Employee.findByIdAndUpdate(id, 
-            { dob, nic, skills }, 
+            { dob, nic, skills,gender,isAvailable}, 
             { new: true }
         ).populate('user');
 
@@ -129,6 +189,7 @@ exports.toggleAvailability = async (req, res, next) => {
 };
 
 // Admin: Delete Employee (Soft Delete)
+/*
 exports.deleteEmployee = async (req, res, next) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -168,6 +229,40 @@ exports.deleteEmployee = async (req, res, next) => {
             await session.abortTransaction();
         }
         session.endSession();
+        next(error);
+    }
+};
+*/
+exports.deleteEmployee = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const employee = await Employee.findById(id);
+        if (!employee) {
+            return res.status(404).json({ message: "Employee not found" });
+        }
+
+        // Soft delete Employee
+        await Employee.findByIdAndUpdate(id, {
+            isDeleted: true,
+            deletedAt: new Date(),
+            isAvailable: false
+        });
+
+        // Soft delete User
+        await User.findByIdAndUpdate(employee.user, {
+            isDeleted: true,
+            deletedAt: new Date(),
+            isActive: false
+        });
+
+        const builder = new responseBuilder(res);
+        builder.setStatus(200);
+        return builder.buildResponse({
+            message: "Employee and associated user deleted successfully"
+        });
+
+    } catch (error) {
         next(error);
     }
 };

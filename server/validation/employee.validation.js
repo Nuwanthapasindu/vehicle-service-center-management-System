@@ -47,6 +47,17 @@ const updateEmployeeValidationSchema = joi.object({
   nic: joi.string().trim(),
   skills: joi.array().items(joi.string()),
   gender: joi.string(),
+
+  // NEW FIELDS
+  userName: joi.string().trim().alphanum().messages({
+    "string.alphanum": "Username must only contain letters and numbers",
+  }),
+
+  password: joi
+    .string()
+    .min(8)
+    .max(10)
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).*$/)
 });
 
 module.exports.validatedCreateEmployee = validator(createEmployeeValidationSchema);
