@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import './ServiceHistory.css';
 
 const ServiceHistory = () => {
+    const navigate = useNavigate();
     const [historyData, setHistoryData] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -175,9 +176,16 @@ const ServiceHistory = () => {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <button className="review-link-btn">
-                                                        Review <i className="fa-solid fa-star"></i>
-                                                    </button>
+                                                    {item.status === 'FINISH' ? (
+                                                        <button
+                                                            className="review-link-btn"
+                                                            onClick={() => navigate(`/customer/reviews/write/${item._id || item.id}`)}
+                                                        >
+                                                            Review <i className="fa-solid fa-star"></i>
+                                                        </button>
+                                                    ) : (
+                                                        <span style={{ color: '#94A3B8', fontSize: '0.9rem', fontStyle: 'italic' }}>N/A</span>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

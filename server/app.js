@@ -20,6 +20,7 @@ const userRouter = require("./routes/user.route");
 const vehicleRouter = require("./routes/vehicle.route");
 const bookingRouter = require("./routes/booking.route");
 const timeslotRouter = require("./routes/timeslot.route");
+const reviewRouter = require("./routes/review.route");
 
 // CONFIGURE EXPRESS APP
 const app = express();
@@ -57,6 +58,7 @@ app.use("/api/v1/package", packageRouter);
 app.use("/api/v1/vehicle", vehicleRouter);
 app.use("/api/v1/booking", bookingRouter);
 app.use("/api/v1/timeslot", timeslotRouter);
+app.use("/api/v1/review", reviewRouter);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {
