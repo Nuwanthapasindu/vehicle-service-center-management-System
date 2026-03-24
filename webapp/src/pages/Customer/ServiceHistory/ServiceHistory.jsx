@@ -38,7 +38,7 @@ const ServiceHistory = () => {
             item.licensePlate.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-        
+
         const matchesVehicle = vehicleFilter === 'all' || item.vehicle.toLowerCase().includes(vehicleFilter.toLowerCase());
 
         return matchesSearch && matchesStatus && matchesVehicle;
@@ -104,7 +104,7 @@ const ServiceHistory = () => {
                         </div>
                         <div className="select-filters">
                             <div className="filter-select">
-                                <select 
+                                <select
                                     value={vehicleFilter}
                                     onChange={(e) => setVehicleFilter(e.target.value)}
                                 >
@@ -151,7 +151,7 @@ const ServiceHistory = () => {
                                             <th>VEHICLE</th>
                                             <th>SERVICE</th>
                                             <th>STATUS</th>
-                                            <th>STATUS</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
