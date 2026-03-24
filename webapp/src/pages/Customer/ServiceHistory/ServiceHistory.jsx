@@ -1,44 +1,80 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import './ServiceHistory.css';
 
 const ServiceHistory = () => {
-    const historyData = [
-        {
-            date: "Oct 10, 2023",
-            vehicle: "Porsche 911 GT3",
-            service: "Full Exterior Wash + Wax",
-            status: "COMPLETED"
-        },
-        {
-            date: "Sep 24, 2023",
-            vehicle: "BMW X5",
-            service: "Interior Deep Clean",
-            status: "COMPLETED"
-        },
-        {
-            date: "Aug 15, 2023",
-            vehicle: "Audi RS6",
-            service: "Ceramic Coating Pro",
-            status: "COMPLETED"
+    const [historyData, setHistoryData] = useState([]);
+    const [vehicles, setVehicles] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [vehicleFilter, setVehicleFilter] = useState('all');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [historyRes, vehiclesRes] = await Promise.all([
+                    axios.get('/booking/my-history'),
+                    axios.get('/vehicle/my-vehicles')
+                ]);
+                setHistoryData(historyRes.data.payload.history || []);
+                setVehicles(vehiclesRes.data.payload.vehicles || []);
+            } catch (error) {
+                console.error("Failed to fetch data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const filteredData = historyData.filter(item => {
+        const matchesSearch = item.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.licensePlate.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+        
+        const matchesVehicle = vehicleFilter === 'all' || item.vehicle.toLowerCase().includes(vehicleFilter.toLowerCase());
+
+        return matchesSearch && matchesStatus && matchesVehicle;
+    });
+
+    const getStatusClass = (status) => {
+        switch (status) {
+            case 'FINISH': return 'completed';
+            case 'START': return 'progress';
+            case 'PENDING': return 'pending';
+            default: return '';
         }
-    ];
+    };
+
+    const getStatusText = (status) => {
+        switch (status) {
+            case 'FINISH': return 'COMPLETED';
+            case 'START': return 'IN PROGRESS';
+            case 'PENDING': return 'PENDING';
+            default: return status;
+        }
+    };
 
     return (
         <div className="customer-portal-wrapper">
             <Sidebar />
 
             <div className="customer-content-area">
-                <Header title="Service History" />
+                <Header title="Customer Dashboard" />
 
                 <main className="history-main-content">
                     {/* Breadcrumbs */}
                     <nav className="breadcrumbs">
                         <Link to="/customer/dashboard">Home</Link>
                         <i className="fa-solid fa-chevron-right"></i>
-                        <span className="active">Booking</span>
+                        <span className="active">Service History</span>
                     </nav>
 
                     {/* Page Title Section */}
@@ -59,22 +95,33 @@ const ServiceHistory = () => {
                     <div className="filter-card">
                         <div className="search-box">
                             <i className="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" placeholder="Search by vehicle, plate or service..." />
+                            <input
+                                type="text"
+                                placeholder="Search by vehicle, plate or service..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
                         <div className="select-filters">
                             <div className="filter-select">
-                                <select defaultValue="all">
+                                <select 
+                                    value={vehicleFilter}
+                                    onChange={(e) => setVehicleFilter(e.target.value)}
+                                >
                                     <option value="all">All Vehicles</option>
-                                    <option value="porsche">Porsche 911 GT3</option>
-                                    <option value="bmw">BMW X5</option>
+                                    {vehicles.map(v => (
+                                        <option key={v._id} value={`${v.make} ${v.model}`}>
+                                            {v.make} {v.model}
+                                        </option>
+                                    ))}
                                 </select>
                                 <i className="fa-solid fa-chevron-down"></i>
                             </div>
                             <div className="filter-select">
                                 <select defaultValue="6m">
+                                    <option value="all">All Time</option>
                                     <option value="6m">Date Range: Last 6 Months</option>
                                     <option value="1y">Last Year</option>
-                                    <option value="all">All Time</option>
                                 </select>
                                 <i className="fa-solid fa-chevron-down"></i>
                             </div>
@@ -87,34 +134,56 @@ const ServiceHistory = () => {
                             <h3 className="card-title">Service History Preview</h3>
                         </div>
                         <div className="table-responsive">
-                            <table className="history-table">
-                                <thead>
-                                    <tr>
-                                        <th>DATE</th>
-                                        <th>VEHICLE</th>
-                                        <th>SERVICE</th>
-                                        <th>STATUS</th>
-                                        <th>ACTION</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {historyData.map((item, index) => (
-                                        <tr key={index}>
-                                            <td className="date-cell">{item.date}</td>
-                                            <td className="vehicle-cell">{item.vehicle}</td>
-                                            <td className="service-cell">{item.service}</td>
-                                            <td>
-                                                <span className="status-pill completed">{item.status}</span>
-                                            </td>
-                                            <td>
-                                                <button className="details-link-btn">
-                                                    Details <i className="fa-solid fa-chevron-right"></i>
-                                                </button>
-                                            </td>
+                            {loading ? (
+                                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                                    <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
+                                    <p style={{ marginTop: '1rem' }}>Loading history...</p>
+                                </div>
+                            ) : filteredData.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                                    <p>No records found.</p>
+                                </div>
+                            ) : (
+                                <table className="history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>DATE</th>
+                                            <th>VEHICLE</th>
+                                            <th>SERVICE</th>
+                                            <th>STATUS</th>
+                                            <th>STATUS</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {filteredData.map((item) => (
+                                            <tr key={item.id}>
+                                                <td className="date-cell">
+                                                    {new Date(item.date).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })}
+                                                </td>
+                                                <td className="vehicle-cell">
+                                                    <div>{item.vehicle}</div>
+                                                    <small style={{ color: '#94A3B8', fontSize: '0.75rem' }}>{item.licensePlate}</small>
+                                                </td>
+                                                <td className="service-cell">{item.service}</td>
+                                                <td>
+                                                    <span className={`status-pill ${getStatusClass(item.status)}`}>
+                                                        {getStatusText(item.status)}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button className="review-link-btn">
+                                                        Review <i className="fa-solid fa-star"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
                     </div>
 
