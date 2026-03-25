@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
+import { enums } from '../../../constants/enum';
+import { formatShortDate } from '../../../util/dateFormatter';
+import { getStatusClass, getStatusText } from '../../../util/statusFormatter';
+import { toast } from 'react-toastify';
 import './ServiceHistory.css';
 
 const ServiceHistory = () => {
@@ -14,53 +18,46 @@ const ServiceHistory = () => {
     const [vehicleFilter, setVehicleFilter] = useState('all');
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchHistory = async () => {
             try {
                 setLoading(true);
-                const [historyRes, vehiclesRes] = await Promise.all([
-                    axios.get('/booking/my-history'),
-                    axios.get('/vehicle/my-vehicles')
-                ]);
-                setHistoryData(historyRes.data.payload.history || []);
-                setVehicles(vehiclesRes.data.payload.vehicles || []);
+                const response = await axios.get('/booking/my-history', {
+                    params: {
+                        search: searchTerm,
+                        status: statusFilter,
+                        vehicle: vehicleFilter
+                    }
+                });
+                setHistoryData(response.data.payload.history || []);
             } catch (error) {
-                console.error("Failed to fetch data:", error);
+                toast.error("Failed to fetch service history");
             } finally {
                 setLoading(false);
             }
         };
-        fetchData();
+
+        const timer = setTimeout(() => {
+            fetchHistory();
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timer);
+    }, [searchTerm, statusFilter, vehicleFilter]);
+
+    useEffect(() => {
+        const fetchVehicles = async () => {
+            try {
+                const vehiclesRes = await axios.get('/vehicle/my-vehicles');
+                setVehicles(vehiclesRes.data.payload.vehicles || []);
+            } catch (error) {
+                console.error("Failed to fetch vehicles:", error);
+            }
+        };
+        fetchVehicles();
     }, []);
 
-    const filteredData = historyData.filter(item => {
-        const matchesSearch = item.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.licensePlate.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
 
-        const matchesVehicle = vehicleFilter === 'all' || item.vehicle.toLowerCase().includes(vehicleFilter.toLowerCase());
 
-        return matchesSearch && matchesStatus && matchesVehicle;
-    });
-
-    const getStatusClass = (status) => {
-        switch (status) {
-            case 'FINISH': return 'completed';
-            case 'START': return 'progress';
-            case 'PENDING': return 'pending';
-            default: return '';
-        }
-    };
-
-    const getStatusText = (status) => {
-        switch (status) {
-            case 'FINISH': return 'COMPLETED';
-            case 'START': return 'IN PROGRESS';
-            case 'PENDING': return 'PENDING';
-            default: return status;
-        }
-    };
 
     return (
         <div className="customer-portal-wrapper">
@@ -139,7 +136,7 @@ const ServiceHistory = () => {
                                     <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
                                     <p style={{ marginTop: '1rem' }}>Loading history...</p>
                                 </div>
-                            ) : filteredData.length === 0 ? (
+                            ) : historyData.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '3rem' }}>
                                     <p>No records found.</p>
                                 </div>
@@ -155,14 +152,10 @@ const ServiceHistory = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredData.map((item) => (
+                                        {historyData.map((item) => (
                                             <tr key={item.id}>
                                                 <td className="date-cell">
-                                                    {new Date(item.date).toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'short',
-                                                        day: 'numeric'
-                                                    })}
+                                                    {formatShortDate(item.date)}
                                                 </td>
                                                 <td className="vehicle-cell">
                                                     <div>{item.vehicle}</div>

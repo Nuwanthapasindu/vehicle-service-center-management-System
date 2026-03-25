@@ -51,20 +51,21 @@ module.exports.createBooking = async (payload, mobile) => {
     }
 };
 
-module.exports.getBookingHistory = async (mobile) => {
+module.exports.getBookingHistory = async (mobile, filters = {}) => {
     try {
         const owner = await User.findOne({ mobile, isDeleted: false });
         if (!owner) throw new AppError("Customer not found", 404);
 
+        const { search, status, vehicle: vehicleFilter } = filters;
+
         const bookings = await Booking.find({ customer: owner._id, isDeleted: false })
-            .populate("vehicle")
-            .populate("slot")
+            .populate("vehicle", "make model licensePlate")
             .sort({ date: -1 });
 
-        // For each booking, check for a JobCard and its status
-        const history = await Promise.all(bookings.map(async (booking) => {
+        // For each booking, fetch corresponding JobCard details
+        let history = await Promise.all(bookings.map(async (booking) => {
             const jobCard = await JobCard.findOne({ booking: booking._id, isDeleted: false })
-                .populate("selectedPackage");
+                .populate("selectedPackage", "name");
 
             return {
                 id: booking._id,
@@ -76,6 +77,24 @@ module.exports.getBookingHistory = async (mobile) => {
                 canViewDetails: !!jobCard
             };
         }));
+
+        // Apply Server-Side Filtering
+        if (search || (status && status !== 'all') || (vehicleFilter && vehicleFilter !== 'all')) {
+            history = history.filter(item => {
+                const searchLower = search ? search.toLowerCase() : "";
+                const matchesSearch = !search ||
+                    item.vehicle.toLowerCase().includes(searchLower) ||
+                    item.service.toLowerCase().includes(searchLower) ||
+                    item.licensePlate.toLowerCase().includes(searchLower);
+
+                const matchesStatus = !status || status === 'all' || item.status === status;
+
+                const matchesVehicle = !vehicleFilter || vehicleFilter === 'all' ||
+                    item.vehicle.toLowerCase().includes(vehicleFilter.toLowerCase());
+
+                return matchesSearch && matchesStatus && matchesVehicle;
+            });
+        }
 
         return history;
     } catch (error) {
@@ -101,7 +120,9 @@ module.exports.getDashboardData = async (mobile) => {
             customer: owner._id,
             isDeleted: false,
             date: { $gte: today }
-        }).populate("vehicle").populate("slot").sort({ date: 1 });
+        }).populate("vehicle", "make model")
+            .populate("slot", "startTime endTime")
+            .sort({ date: 1 });
 
         // Calculate Total Spent from Invoices
         const invoices = await Invoice.find({ customer: owner._id, isDeleted: false });
@@ -123,7 +144,7 @@ module.exports.getDashboardData = async (mobile) => {
 
         // Recent Vehicles (max 4)
         const recentVehicles = await Vehicle.find({ ownerId: owner._id, isDeleted: false })
-            .populate("image")
+            .populate("image", "filePath")
             .sort({ createdAt: -1 })
             .limit(4);
 

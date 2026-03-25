@@ -4,7 +4,10 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import useAuthentication from '../../../hooks/auth';
-import getImageUrl from '../../../util/getImageUrl';
+import RecentVehicleCard from '../../../components/Customer/Dashboard/RecentVehicleCard';
+import { formatDate, formatLongDate, formatShortDate } from '../../../util/dateFormatter';
+import { getStatusClass, getStatusText } from '../../../util/statusFormatter';
+import { enums } from '../../../constants/enum';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -29,11 +32,11 @@ const Dashboard = () => {
         fetchDashboardData();
     }, []);
 
-    const stats = dashboardData?.stats || {
-        activeBookings: 0,
-        totalVehicles: 0,
-        totalBookings: 0,
-        totalSpent: "LKR0.00"
+    const stats = {
+        activeBookings: dashboardData?.stats?.activeBookings ?? 0,
+        totalVehicles: dashboardData?.stats?.totalVehicles ?? 0,
+        totalBookings: dashboardData?.stats?.totalBookings ?? 0,
+        totalSpent: dashboardData?.stats?.totalSpent ?? "LKR0.00"
     };
 
     const upcoming = dashboardData?.upcomingBooking;
@@ -56,7 +59,7 @@ const Dashboard = () => {
                     <h2 className="greeting">Good morning, {userName}</h2>
                     <p className="greeting-msg">
                         {upcoming ? (
-                            <>Your <span className="highlight">{upcoming.vehicle}</span> is scheduled for a service soon.</>
+                            <>Your <span className="highlight">{upcoming.vehicle || 'Vehicle'}</span> is scheduled for a service soon.</>
                         ) : (
                             <>You have no upcoming services scheduled.</>
                         )}
@@ -81,7 +84,7 @@ const Dashboard = () => {
                         <span className="stat-label">ACTIVE BOOKINGS</span>
                         <h3 className="stat-value">{stats.activeBookings}</h3>
                         <p className="stat-description">
-                            {upcoming ? `Next: ${new Date(upcoming.date).toLocaleDateString()}` : "No upcoming service"}
+                            {upcoming ? `Next: ${formatDate(upcoming.date)}` : "No upcoming service"}
                         </p>
                     </div>
                     <div className="stat-icon-bg">
@@ -131,19 +134,7 @@ const Dashboard = () => {
                     <div className="vehicle-list">
                         {dashboardData?.recentVehicles?.length > 0 ? (
                             dashboardData.recentVehicles.map((vehicle) => (
-                                <Link to={`/customer/my-garage/${vehicle._id}`} className="vehicle-item-card" key={vehicle._id} style={{ textDecoration: 'none' }}>
-                                    <div className="vehicle-image">
-                                        <img src={getImageUrl(vehicle.image?.filePath)} alt={vehicle.model} />
-                                    </div>
-                                    <div className="vehicle-details">
-                                        <h5 className="vehicle-name">{vehicle.make} {vehicle.model}</h5>
-                                        <span className="vehicle-year">{vehicle.licensePlate}</span>
-                                    </div>
-                                    <div className="service-status">
-                                        <span className="dot"></span>
-                                        <span>{vehicle.type}</span>
-                                    </div>
-                                </Link>
+                                <RecentVehicleCard key={vehicle._id} vehicle={vehicle} />
                             ))
                         ) : (
                             <div className="empty-state">No vehicles in garage.</div>
@@ -161,19 +152,19 @@ const Dashboard = () => {
                                     <i className="fa-solid fa-spray-can-sparkles"></i>
                                 </div>
                                 <div className="service-name-box">
-                                    <h5 className="service-title">{upcoming.service}</h5>
-                                    <span className="service-vehicle">{upcoming.vehicle}</span>
+                                    <h5 className="service-title">{upcoming.service || 'Service'}</h5>
+                                    <span className="service-vehicle">{upcoming.vehicle || 'Vehicle'}</span>
                                 </div>
-                                <span className="status-badge">{upcoming.status}</span>
+                                <span className="status-badge">{upcoming.status || 'Status'}</span>
                             </div>
                             <div className="card-body">
                                 <div className="booking-info-item">
                                     <i className="fa-regular fa-calendar"></i>
-                                    <span>{new Date(upcoming.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                    <span>{formatLongDate(upcoming.date)}</span>
                                 </div>
                                 <div className="booking-info-item">
                                     <i className="fa-regular fa-clock"></i>
-                                    <span>{upcoming.time}</span>
+                                    <span>{upcoming.time || 'TBD'}</span>
                                 </div>
                                 <div className="booking-info-item">
                                     <i className="fa-solid fa-location-dot"></i>
@@ -215,17 +206,13 @@ const Dashboard = () => {
                                 {dashboardData.recentHistory.map((item) => (
                                     <tr key={item.id}>
                                         <td className="date-cell">
-                                            {new Date(item.date).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
+                                            {formatShortDate(item.date)}
                                         </td>
                                         <td className="vehicle-cell">{item.vehicle}</td>
                                         <td>{item.service}</td>
                                         <td>
-                                            <span className={`status-pill ${item.status.toLowerCase() === 'finish' ? 'completed' : item.status.toLowerCase() === 'start' ? 'progress' : 'pending'}`}>
-                                                {item.status === 'FINISH' ? 'COMPLETED' : item.status === 'START' ? 'IN PROGRESS' : item.status}
+                                            <span className={`status-pill ${getStatusClass(item.status)}`}>
+                                                {getStatusText(item.status)}
                                             </span>
                                         </td>
                                     </tr>
