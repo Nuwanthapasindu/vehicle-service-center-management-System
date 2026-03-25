@@ -14,6 +14,11 @@ require("dotenv").config();
 const authRouter = require("./routes/auth.route");
 const log = require("./middleware/log");
 const fileRouter = require("./routes/file.route");
+const inventoryRouter = require("./routes/inventory.route");
+const categoryRouter = require("./routes/category.route");
+const serviceRouter = require("./routes/service.route");
+const packageRouter = require("./routes/package.route");
+const userRouter = require("./routes/user.route");
 
 // CONFIGURE EXPRESS APP
 const app = express();
@@ -46,6 +51,10 @@ app.use("/api/v1/storage/uploads",express.static(path.join(process.cwd(),"storag
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/file", fileRouter);
+app.use("/api/v1/inventory", inventoryRouter);
+app.use("/api/v1/categories", categoryRouter);
+app.use("/api/v1/service", serviceRouter);
+app.use("/api/v1/package", packageRouter);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {

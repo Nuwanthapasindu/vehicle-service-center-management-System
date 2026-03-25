@@ -1,11 +1,12 @@
 const Inventory = require('../model/Inventory');
 const InventoryLog = require('../model/InventoryLog');
+const User = require('../model/User');
 const AppError = require('../error/appError');
 const ResponseBuilder = require('../util/responseBuilder');
 const { INVENTORY_ACTION_TYPES } = require('../util/constants');
 const { inventorySchema, stockAdjustmentSchema } = require('../validation/inventory.validation');
 
-const adjustStockInternal = async (inventoryId, change, actionType, userId = null, session = null) => {
+const adjustStockInternal = async (inventoryId, change, actionType, userId, session = null) => {
 
     const item = await Inventory.findOne({ _id: inventoryId, isDeleted: false }).session(session);
 
@@ -35,6 +36,22 @@ const adjustStockInternal = async (inventoryId, change, actionType, userId = nul
 
 exports.adjustStockHelper = adjustStockInternal;
 
+const getUserIdByMobile = async (mobileNumber) => {
+    if (!mobileNumber) {
+        throw new AppError("Mobile number is required", 400);
+    }
+    
+    const user = await User.findOne({ mobileNumber, isActive: true, isDeleted: false })
+        .select('_id')
+        .lean();
+    
+    if (!user) {
+        throw new AppError("User not found with this mobile number", 404);
+    }
+    
+    return user._id;
+};
+
 exports.getInventory = async (req, res, next) => {
     try {
 
@@ -55,10 +72,11 @@ exports.getInventory = async (req, res, next) => {
 
 exports.addItem = async (req, res, next) => {
     try {
-
         const { error } = inventorySchema.validate(req.body);
         if (error) return next(new AppError(error.details[0].message, 400));
 
+        const userId = await getUserIdByMobile(req.user.mobile);
+        
         const item = await Inventory.create(req.body);
 
         await InventoryLog.create({
@@ -67,7 +85,7 @@ exports.addItem = async (req, res, next) => {
             quantityChange: item.qty,
             previousStock: 0,
             stockBalance: item.qty,
-            performedBy: req.user?._id
+            performedBy: userId
         });
 
         const response = new ResponseBuilder(res);
@@ -82,10 +100,11 @@ exports.addItem = async (req, res, next) => {
 
 exports.manualAdjustment = async (req, res, next) => {
     try {
-
         const { error } = stockAdjustmentSchema.validate(req.body);
         if (error) return next(new AppError(error.details[0].message, 400));
 
+        const userId = await getUserIdByMobile(req.user.mobile);
+        
         const { id } = req.params;
         const { quantityChange } = req.body;
 
@@ -93,7 +112,7 @@ exports.manualAdjustment = async (req, res, next) => {
             id,
             quantityChange,
             INVENTORY_ACTION_TYPES.MANUAL_ADJUSTMENT,
-            req.user?._id
+            userId
         );
 
         const response = new ResponseBuilder(res);
@@ -108,14 +127,14 @@ exports.manualAdjustment = async (req, res, next) => {
 
 exports.reduceStockByInvoice = async (req, res, next) => {
     try {
-
         const { items } = req.body;
 
         if (!items || !Array.isArray(items) || !items.length)
             return next(new AppError("No items provided", 400));
 
-        const updatePromises = items.map(item => {
+        const userId = await getUserIdByMobile(req.user.mobile);
 
+        const updatePromises = items.map(item => {
             if (!item.inventoryId || !item.quantity)
                 throw new AppError("Invalid item structure", 400);
 
@@ -123,9 +142,8 @@ exports.reduceStockByInvoice = async (req, res, next) => {
                 item.inventoryId,
                 -Math.abs(item.quantity),
                 INVENTORY_ACTION_TYPES.INVOICE_SALE,
-                req.user?._id
+                userId
             );
-
         });
 
         await Promise.all(updatePromises);
@@ -141,14 +159,14 @@ exports.reduceStockByInvoice = async (req, res, next) => {
 
 exports.increaseStockByPO = async (req, res, next) => {
     try {
-
         const { items } = req.body;
 
         if (!items || !Array.isArray(items) || !items.length)
             return next(new AppError("No items provided", 400));
 
-        const updatePromises = items.map(item => {
+        const userId = await getUserIdByMobile(req.user.mobile);
 
+        const updatePromises = items.map(item => {
             if (!item.inventoryId || !item.quantityReceived)
                 throw new AppError("Invalid item structure", 400);
 
@@ -156,9 +174,8 @@ exports.increaseStockByPO = async (req, res, next) => {
                 item.inventoryId,
                 Math.abs(item.quantityReceived),
                 INVENTORY_ACTION_TYPES.PO_RECEIVE,
-                req.user?._id
+                userId
             );
-
         });
 
         await Promise.all(updatePromises);
@@ -174,7 +191,6 @@ exports.increaseStockByPO = async (req, res, next) => {
 
 exports.updateItem = async (req, res, next) => {
     try {
-
         const item = await Inventory.findOneAndUpdate(
             { _id: req.params.id, isDeleted: false },
             req.body,
@@ -196,7 +212,6 @@ exports.updateItem = async (req, res, next) => {
 
 exports.deleteItem = async (req, res, next) => {
     try {
-
         const item = await Inventory.findOneAndUpdate(
             { _id: req.params.id, isDeleted: false },
             { isDeleted: true, deletedAt: new Date() },
