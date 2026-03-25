@@ -5,8 +5,10 @@
   "main": "server.js",
   "scripts": {
     "test": "jest",
+    "test:unit": "jest /tests/unit --runInBand",                             
+    "test:integration": "jest /tests/integration --runInBand",
     "dev": "nodemon server.js"
-  },
+  },                                                                                  
   "author": "",
   "license": "ISC",
   "dependencies": {
