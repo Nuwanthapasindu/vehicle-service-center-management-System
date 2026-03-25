@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import useAuthentication from '../../../hooks/auth';
 import getImageUrl from '../../../util/getImageUrl';
@@ -20,7 +21,7 @@ const Dashboard = () => {
                 const response = await axios.get('/booking/dashboard');
                 setDashboardData(response.data.payload.data);
             } catch (error) {
-                console.error("Failed to fetch dashboard data:", error);
+                toast.error("Failed to fetch dashboard data");
             } finally {
                 setLoading(false);
             }
