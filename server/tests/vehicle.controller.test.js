@@ -62,6 +62,30 @@ describe("Vehicle Controller Tests", () => {
       expect(savedVehicle.make).toBe("Toyota");
       expect(savedVehicle.ownerId.toString()).toBe(mockUser._id.toString());
     });
+  
+    test("should add a vehicle with an image successfully", async () => {
+      const mockFile = await new File({
+        originalName: "test.png",
+        fileName: "1711580000000-test.png",
+        filePath: "uploads/1711580000000-test.png",
+        fileType: "image/png",
+        fileSize: 1024,
+      }).save();
+  
+      const payload = {
+        licensePlate: "WP-CAB-4321",
+        type: "CAR",
+        make: "Toyota",
+        model: "Corolla",
+        image: mockFile._id.toString(),
+      };
+  
+      const result = await addVehicle(payload, mockMobile);
+      expect(result).toBe("Vehicle added successfully");
+  
+      const savedVehicle = await Vehicle.findOne({ licensePlate: "WP-CAB-4321" });
+      expect(savedVehicle.image.toString()).toBe(mockFile._id.toString());
+    });
 
     test("should fail if validation fails (e.g., missing license plate)", async () => {
       const payload = {
