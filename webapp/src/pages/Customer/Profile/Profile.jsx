@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import './Profile.css';
@@ -67,7 +68,10 @@ const Profile = () => {
                 <main className="profile-main-content">
                     {/* Breadcrumbs */}
                     <nav className="breadcrumbs">
-                        <span>Home</span>
+                        <Link to="/customer/dashboard">
+                            <i className="fa-solid fa-house"></i>
+                            Dashboard
+                        </Link>
                         <i className="fa-solid fa-chevron-right"></i>
                         <span className="active">Profile Details</span>
                     </nav>
@@ -75,7 +79,7 @@ const Profile = () => {
                     {/* Page Header */}
                     <section className="page-title-section">
                         <div className="title-text">
-                            <h2 className="page-title">Profile Settings</h2>
+                            <h1 className="page-title">Profile Settings</h1>
                             <p className="page-subtitle">
                                 Manage your professional detailing account and security.
                             </p>

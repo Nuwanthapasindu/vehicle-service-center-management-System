@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import getImageUrl from '../../../util/getImageUrl';
+import defaultCarImg from '../../../assets/imgs/default-car.png';
 import './MyGarage.css';
 
 const MyGarage = () => {
@@ -48,7 +49,10 @@ const MyGarage = () => {
         <CustomerLayout title="My Digital Garage">
             {/* Breadcrumbs */}
             <nav className="breadcrumbs">
-                <span>Dashboard</span>
+                <Link to="/customer/dashboard">
+                    <i className="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </Link>
                 <i className="fa-solid fa-chevron-right"></i>
                 <span className="active">My Digital Garage</span>
             </nav>
@@ -56,7 +60,7 @@ const MyGarage = () => {
             {/* Page Header */}
             <section className="page-title-section">
                 <div className="title-text">
-                    <h2 className="page-title">My Digital Garage</h2>
+                    <h1 className="page-title">My Digital Garage</h1>
                     <p className="page-subtitle">
                         Manage your personal vehicle fleet, track maintenance history, and keep your cars in showroom condition.
                     </p>
@@ -93,16 +97,24 @@ const MyGarage = () => {
             {/* Vehicle Grid */}
             <div className="vehicle-grid">
                 {loading ? (
-                    <div className="loading-container" style={{ textAlign: "center", padding: "3rem", width: "100%", gridColumn: "1 / -1" }}>
-                        <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-                        <p style={{ marginTop: "1rem" }}>Loading your garage...</p>
+                    <div className="loading-state-container">
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading your garage...</p>
+                    </div>
+                ) : vehicles.length === 0 ? (
+                    <div className="empty-state-container" style={{ gridColumn: '1 / -1' }}>
+                        <div className="empty-state-icon">
+                            <i className="fa-solid fa-car-side"></i>
+                        </div>
+                        <p className="empty-state-text">No records found.</p>
+                        <Link to="/customer/my-garage/add" className="empty-state-btn">Add Your First Vehicle</Link>
                     </div>
                 ) : (
                     <>
                         {vehicles.map((vehicle) => (
                             <div className="vehicle-card" key={vehicle._id}>
                                 <div className="card-image-wrapper">
-                                    <img src={getImageUrl(vehicle.image?.filePath)} alt={vehicle.model} className="vehicle-card-img" />
+                                    <img src={getImageUrl(vehicle.image?.filePath) || defaultCarImg} alt={vehicle.model} className="vehicle-card-img" />
                                     {/* For now, just assuming ACTIVE status */}
                                     <span className="status-badge active">
                                         ACTIVE
@@ -145,7 +157,7 @@ const MyGarage = () => {
                 )}
 
                 {/* Add Another Vehicle Placeholder */}
-                {!loading && (
+                {!loading && vehicles.length > 0 && (
                     <Link to="/customer/my-garage/add" className="add-placeholder-card">
                         <div className="placeholder-content">
                             <div className="plus-circle">

@@ -53,11 +53,18 @@ const Dashboard = () => {
 
     return (
         <CustomerLayout title="Customer Dashboard">
+            {/* Breadcrumbs */}
+            <nav className="breadcrumbs">
+                <span className="active">
+                    <i className="fa-solid fa-house"></i> Dashboard
+                </span>
+            </nav>
+
             {/* Welcome Section */}
-            <section className="welcome-greeting">
+            <section className="page-title-section welcome-greeting">
                 <div className="greeting-text">
-                    <h2 className="greeting">Good morning, {userName}</h2>
-                    <p className="greeting-msg">
+                    <h1 className="page-title">Good morning, {userName}</h1>
+                    <p className="page-subtitle greeting-msg">
                         {upcoming ? (
                             <>Your <span className="highlight">{upcoming.vehicle || 'Vehicle'}</span> is scheduled for a service soon.</>
                         ) : (
@@ -128,7 +135,7 @@ const Dashboard = () => {
                 {/* My Garage Preview */}
                 <div className="dashboard-section garage-preview-section">
                     <div className="section-header">
-                        <h4 className="section-title">My Garage</h4>
+                        <h2 className="section-title">My Garage</h2>
                         <Link to="/customer/my-garage" className="view-all-btn" style={{ textDecoration: 'none' }}>View All</Link>
                     </div>
                     <div className="vehicle-list">
@@ -137,14 +144,20 @@ const Dashboard = () => {
                                 <RecentVehicleCard key={vehicle._id} vehicle={vehicle} />
                             ))
                         ) : (
-                            <div className="empty-state">No vehicles in garage.</div>
+                            <div className="empty-state-container">
+                                <div className="empty-state-icon">
+                                    <i className="fa-solid fa-car-side"></i>
+                                </div>
+                                <p className="empty-state-text">No records found.</p>
+                                <Link to="/customer/my-garage/add" className="empty-state-btn">Add Vehicle</Link>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* Upcoming Section */}
                 <div className="dashboard-section upcoming-section">
-                    <h4 className="section-title">Upcoming</h4>
+                    <h2 className="section-title">Upcoming</h2>
                     {upcoming ? (
                         <div className="upcoming-booking-card">
                             <div className="card-header">
@@ -176,10 +189,12 @@ const Dashboard = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="empty-state upcoming-empty">
-                            <i className="fa-regular fa-calendar-xmark"></i>
-                            <p>No upcoming appointments</p>
-                            <Link to="/customer/service-booking" className="book-inline-btn">Book Now</Link>
+                        <div className="empty-state-container">
+                            <div className="empty-state-icon">
+                                <i className="fa-regular fa-calendar-xmark"></i>
+                            </div>
+                            <p className="empty-state-text">No upcoming appointments</p>
+                            <Link to="/customer/service-booking" className="empty-state-btn">Book Now</Link>
                         </div>
                     )}
                 </div>
@@ -188,7 +203,7 @@ const Dashboard = () => {
             {/* Service History Preview */}
             <section className="dashboard-section table-section">
                 <div className="section-header">
-                    <h4 className="section-title">Service History Preview</h4>
+                    <h2 className="section-title">Service History Preview</h2>
                     <Link to="/customer/service-history" className="view-link">View Full History</Link>
                 </div>
                 <div className="table-container">
@@ -220,7 +235,13 @@ const Dashboard = () => {
                             </tbody>
                         </table>
                     ) : (
-                        <div className="empty-state">No service history yet.</div>
+                        <div className="empty-state-container">
+                            <div className="empty-state-icon">
+                                <i className="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <p className="empty-state-text">No service history yet.</p>
+                            <Link to="/customer/service-booking" className="empty-state-btn">Book Your First Service</Link>
+                        </div>
                     )}
                 </div>
             </section>

@@ -19,7 +19,7 @@ const vehicleAddSchema = joi.object({
     "any.required": "Vehicle model is required",
     "string.empty": "Vehicle model cannot be empty",
   }),
-  image: joi.string().allow("").optional()
+  image: joi.any().optional(),
 });
 
 module.exports.validatedVehicleAdd = validator(vehicleAddSchema);
@@ -37,7 +37,7 @@ const vehicleUpdateSchema = joi.object({
   model: joi.string().trim().messages({
     "string.empty": "Vehicle model cannot be empty",
   }),
-  image: joi.string().allow("").optional()
+  image: joi.any().optional(),
 });
 
 module.exports.validatedVehicleUpdate = validator(vehicleUpdateSchema);

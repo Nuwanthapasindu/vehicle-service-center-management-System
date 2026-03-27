@@ -6,10 +6,7 @@
 }
 
 .greeting-text .greeting {
-    font-size: 2rem;
-    font-weight: 850;
-    color: var(--dark, #1A1D23);
-    margin: 0 0 0.5rem 0;
+    margin: 0;
 }
 
 .greeting-msg {
@@ -183,7 +180,7 @@
     padding: 0.5rem 1rem;
     border-radius: 8px;
     cursor: pointer;
-    text-decoration: none;
+    text-decoration: none !important;
 }
 
 /* Vehicle List */
@@ -203,6 +200,7 @@
     border: 1px solid #F1F5F9;
     border-radius: 16px;
     transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 .vehicle-item-card:hover {

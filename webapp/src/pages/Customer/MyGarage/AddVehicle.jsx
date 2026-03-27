@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
@@ -15,8 +15,6 @@ const AddVehicle = () => {
     const [loading, setLoading] = useState(false);
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
-
-
 
     const formik = useFormik({
         initialValues: {
@@ -74,17 +72,21 @@ const AddVehicle = () => {
                 <main className="add-vehicle-main-content">
                     {/* Breadcrumbs */}
                     <nav className="breadcrumbs">
-                        <i className="fa-solid fa-house"></i>
-                        <span>Garage</span>
+                        <Link to="/customer/dashboard">
+                            <i className="fa-solid fa-house"></i>
+                            Dashboard
+                        </Link>
+                        <i className="fa-solid fa-chevron-right"></i>
+                        <Link to="/customer/my-garage">Garage</Link>
                         <i className="fa-solid fa-chevron-right"></i>
                         <span className="active">Add New Vehicle</span>
                     </nav>
 
                     {/* Page Header */}
                     <section className="page-title-section">
-                        <h2 className="page-title">
+                        <h1 className="page-title">
                             Keep your fleet <span className="highlight">shining</span>.
-                        </h2>
+                        </h1>
                         <p className="page-subtitle">
                             Registering your vehicle allows us to provide personalized detailing packages and track your maintenance history more effectively.
                         </p>
@@ -114,14 +116,14 @@ const AddVehicle = () => {
                                     <i className="fa-solid fa-id-card input-right-icon"></i>
                                 </div>
                                 {formik.touched.licensePlate && formik.errors.licensePlate && (
-                                    <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.licensePlate}</span>
+                                    <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.licensePlate}</span>
                                 )}
                             </div>
 
                             <div className="form-group">
                                 <label htmlFor="vehicleType">Vehicle Type</label>
                                 <div className="select-wrapper">
-                                    <select 
+                                    <select
                                         id="type"
                                         name="type"
                                         value={formik.values.type}
@@ -138,7 +140,7 @@ const AddVehicle = () => {
                                     <i className="fa-solid fa-chevron-down select-icon"></i>
                                 </div>
                                 {formik.touched.type && formik.errors.type && (
-                                    <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.type}</span>
+                                    <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.type}</span>
                                 )}
                             </div>
 
@@ -146,7 +148,7 @@ const AddVehicle = () => {
                                 <div className="form-group">
                                     <label htmlFor="make">Make</label>
                                     <div className="select-wrapper">
-                                        <select 
+                                        <select
                                             id="make"
                                             name="make"
                                             value={formik.values.make}
@@ -171,7 +173,7 @@ const AddVehicle = () => {
                                         <i className="fa-solid fa-chevron-down select-icon"></i>
                                     </div>
                                     {formik.touched.make && formik.errors.make && (
-                                        <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.make}</span>
+                                        <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.make}</span>
                                     )}
                                 </div>
                                 <div className="form-group">
@@ -200,16 +202,16 @@ const AddVehicle = () => {
                                         <i className="fa-solid fa-car input-right-icon"></i>
                                     </div>
                                     {formik.touched.model && formik.errors.model && (
-                                        <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.model}</span>
+                                        <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.model}</span>
                                     )}
                                 </div>
                             </div>
 
                             <div className="form-group">
                                 <label>Upload Image</label>
-                                <DragDropUpload 
-                                    onFileChange={handleFileChange} 
-                                    previewUrl={imagePreview} 
+                                <DragDropUpload
+                                    onFileChange={handleFileChange}
+                                    previewUrl={imagePreview}
                                 />
                             </div>
 

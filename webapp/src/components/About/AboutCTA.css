@@ -1,0 +1,115 @@
+.cta-section {
+    padding: 8rem 2rem;
+    background-color: #FFFFFF;
+}
+
+.cta-banner {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #1A1D23 0%, #000000 100%);
+    border-radius: 20px;
+    padding: 6rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2);
+}
+
+.cta-banner::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: #8EDB00;
+    filter: blur(200px);
+    opacity: 0.15;
+    top: -300px;
+    right: -300px;
+}
+
+.cta-banner h2 {
+    color: #FFFFFF;
+    font-size: 4rem;
+    font-weight: 950;
+    margin-bottom: 2rem;
+    letter-spacing: -2px;
+}
+
+.cta-banner h2 span {
+    color: #8EDB00;
+}
+
+.cta-banner p {
+    color: #CBD5E1;
+    font-size: 1.15rem;
+    max-width: 600px;
+    margin: 0 auto;
+    margin-bottom: 4rem;
+    line-height: 1.6;
+}
+
+.cta-btns {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+.btn-lime {
+    background-color: #8EDB00;
+    color: #1A1D23;
+    padding: 1.25rem 2.5rem;
+    font-weight: 850;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-lime:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(142, 219, 0, 0.4);
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: #FFFFFF;
+    padding: 1.25rem 2.5rem;
+    font-weight: 850;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: #FFFFFF;
+}
+
+@media (max-width: 1024px) {
+    .cta-banner {
+        padding: 4rem 2rem;
+    }
+    .cta-banner h2 {
+        font-size: 3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .cta-btns {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .btn-lime, .btn-outline {
+        width: 100%;
+        justify-content: center;
+    }
+}

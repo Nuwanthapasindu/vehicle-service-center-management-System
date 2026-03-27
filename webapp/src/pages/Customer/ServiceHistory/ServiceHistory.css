@@ -14,44 +14,9 @@
     width: auto;
 }
 
-.history-main-content {
-    padding: 0 2.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding-bottom: 3rem;
-}
 
-/* Breadcrumbs */
-.breadcrumbs {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-    color: var(--secondary, #64748B);
-    font-weight: 500;
-    margin-top: 1rem;
-}
 
-.breadcrumbs a {
-    text-decoration: none;
-    color: inherit;
-    transition: color 0.2s;
-}
 
-.breadcrumbs a:hover {
-    color: var(--dark, #1A1D23);
-}
-
-.breadcrumbs i {
-    font-size: 0.7rem;
-    opacity: 0.6;
-}
-
-.breadcrumbs .active {
-    color: var(--dark, #1A1D23);
-    font-weight: 750;
-}
 
 /* Page Title Section */
 .page-title-section {
@@ -279,29 +244,17 @@
 }
 
 .history-main-content {
-    padding: 0 4rem;
-    /* Increased padding */
+    padding: 0 2.5rem;
+
     display: flex;
     flex-direction: column;
     gap: 2rem;
     padding-bottom: 4rem;
 }
 
-.page-title {
-    font-size: 2.8rem;
-    font-weight: 900;
-    color: var(--dark, #1A1D23);
-    margin: 0 0 0.25rem 0;
-    letter-spacing: -1px;
-}
 
-.page-subtitle {
-    color: var(--secondary, #64748B);
-    font-size: 1.1rem;
-    font-weight: 500;
-    max-width: 600px;
-    line-height: 1.4;
-}
+
+
 
 .book-new-btn {
     background-color: #8EDB00;
@@ -333,9 +286,6 @@
 }
 
 .history-table-card .card-title {
-    font-size: 1.4rem;
-    font-weight: 850;
-    color: #1A1D23;
     margin: 0 0 2.5rem 0;
 }
 
