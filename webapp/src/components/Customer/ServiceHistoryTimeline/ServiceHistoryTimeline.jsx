@@ -70,10 +70,9 @@ const ServiceHistoryTimeline = ({ loading, history, id }) => {
             <div className="history-footer">
                 <button
                     className="load-more-btn"
-                    disabled={history.length <= 5}
                     onClick={() => navigate('/customer/service-history', { state: { vehicleId: id } })}
                 >
-                    {history.length > 5 ? 'Load More History' : 'Full History Loaded'}
+                    View More
                 </button>
             </div>
         </div>

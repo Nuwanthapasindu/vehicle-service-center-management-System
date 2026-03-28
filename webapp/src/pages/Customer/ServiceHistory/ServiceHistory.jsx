@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import { enums } from '../../../constants/enum';
@@ -9,12 +9,13 @@ import { toast } from 'react-toastify';
 import './ServiceHistory.css';
 
 const ServiceHistory = () => {
+    const location = useLocation();
     const [historyData, setHistoryData] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [vehicleFilter, setVehicleFilter] = useState('all');
+    const [vehicleFilter, setVehicleFilter] = useState(location.state?.vehicleId || 'all');
     const [durationFilter, setDurationFilter] = useState('6m');
 
     // Pagination State
@@ -130,7 +131,7 @@ const ServiceHistory = () => {
                         >
                             <option value="all">All Vehicles</option>
                             {vehicles.map(v => (
-                                <option key={v._id} value={`${v.make} ${v.model}`}>
+                                <option key={v._id} value={v._id}>
                                     {v.make} {v.model}
                                 </option>
                             ))}
