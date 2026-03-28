@@ -238,6 +238,7 @@ const VehicleDetails = () => {
                             loading={historyLoading} 
                             history={serviceHistory} 
                             id={id} 
+                            vehicle={vehicle}
                         />
                     </div>
                 </main>

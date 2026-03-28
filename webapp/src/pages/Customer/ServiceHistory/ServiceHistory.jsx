@@ -6,6 +6,7 @@ import { enums } from '../../../constants/enum';
 import { formatShortDate } from '../../../util/dateFormatter';
 import { getStatusClass, getStatusText } from '../../../util/statusFormatter';
 import { toast } from 'react-toastify';
+import { exportHistoryToPDF } from '../../../util/historyExporter';
 import './ServiceHistory.css';
 
 const ServiceHistory = () => {
@@ -16,11 +17,24 @@ const ServiceHistory = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [vehicleFilter, setVehicleFilter] = useState(location.state?.vehicleId || 'all');
-    const [durationFilter, setDurationFilter] = useState('6m');
+    const [durationFilter, setDurationFilter] = useState('all');
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+
+    const handleExport = () => {
+        if (historyData.length === 0) {
+            toast.info("No records to export.");
+            return;
+        }
+
+        const selectedVehicle = vehicleFilter !== 'all'
+            ? vehicles.find(v => v._id === vehicleFilter)
+            : null;
+
+        exportHistoryToPDF(historyData, selectedVehicle);
+    };
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -263,13 +277,21 @@ const ServiceHistory = () => {
                     </div>
                 </div>
 
-                <div className="feature-info-card">
+                <div
+                    className={`feature-info-card ${historyData.length === 0 ? 'disabled' : ''}`}
+                    onClick={handleExport}
+                    style={{ cursor: historyData.length > 0 ? 'pointer' : 'not-allowed' }}
+                >
                     <div className="info-icon-box blue">
                         <i className="fa-regular fa-file-pdf"></i>
                     </div>
                     <div className="info-text-box">
                         <h4>Export History</h4>
-                        <p>Download a full PDF report of your vehicle's care history for insurance or sales.</p>
+                        {historyData.length > 0 ? (
+                            <p>Download a full PDF report of your vehicle's care history for insurance or sales.</p>
+                        ) : (
+                            <p>No records available to export at this time.</p>
+                        )}
                     </div>
                 </div>
 

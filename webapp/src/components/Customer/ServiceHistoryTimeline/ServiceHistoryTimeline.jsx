@@ -1,8 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { exportHistoryToPDF } from '../../../util/historyExporter';
 
-const ServiceHistoryTimeline = ({ loading, history, id }) => {
+const ServiceHistoryTimeline = ({ loading, history, id, vehicle }) => {
     const navigate = useNavigate();
+
+    const handleDownloadPDF = () => {
+        if (history.length > 0) {
+            exportHistoryToPDF(history, vehicle);
+        }
+    };
 
     return (
         <div className="details-card history-card">
@@ -11,7 +18,12 @@ const ServiceHistoryTimeline = ({ loading, history, id }) => {
                     <i className="fa-solid fa-clock-rotate-left"></i>
                     Service History
                 </h3>
-                <button className="download-pdf-btn">
+                <button 
+                    className="download-pdf-btn" 
+                    onClick={handleDownloadPDF}
+                    disabled={loading || history.length === 0}
+                    style={{ opacity: (loading || history.length === 0) ? 0.6 : 1 }}
+                >
                     Download PDF Log <i className="fa-solid fa-download"></i>
                 </button>
             </div>
