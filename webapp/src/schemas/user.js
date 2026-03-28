@@ -20,6 +20,12 @@ const profileValidationSchema = Yup.object().shape({
                 .oneOf([Yup.ref("newPassword"), null], "Passwords must match"),
             otherwise: (schema) => schema.notRequired(),
         }),
+    currentPassword: Yup.string()
+        .when("newPassword", {
+            is: (val) => val && val.length > 0,
+            then: (schema) => schema.required("Current password is required to change to a new one"),
+            otherwise: (schema) => schema.notRequired(),
+        }),
 });
 
 export { profileValidationSchema };

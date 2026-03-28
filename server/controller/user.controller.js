@@ -19,6 +19,10 @@ module.exports.updateProfile = async (payload, mobile) => {
   if (payload.newPassword) {
     const auth = await Auth.findOne({ user: user._id });
     if (!auth) throw new AppError("Auth credentials not found", 404);
+
+    const isMatch = comparePassword(payload.currentPassword, auth.password);
+    if (!isMatch) throw new AppError("Incorrect current password", 400);
+
     auth.password = hashPassword(payload.newPassword);
     await auth.save();
   }

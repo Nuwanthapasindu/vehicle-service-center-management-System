@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
@@ -15,21 +16,21 @@ const Profile = () => {
     const { profile } = useAuthentication();
     const dispatch = useDispatch();
 
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [status, setStatus] = useState({ type: '', message: '' });
 
     const formik = useFormik({
         initialValues: {
             fullName: '',
             phoneNumber: '',
             address: '',
+            currentPassword: '',
             newPassword: '',
             confirmPassword: ''
         },
         validationSchema: profileValidationSchema,
         onSubmit: async (values) => {
-            setStatus({ type: '', message: '' });
             // Build payload with mandatory fields
             const payload = {
                 fullName: values.fullName,
@@ -39,17 +40,19 @@ const Profile = () => {
             // Include newPassword only if user entered it (and validation ensures it matches confirmPassword)
             if (values.newPassword && values.newPassword.length > 0) {
                 payload.newPassword = values.newPassword;
+                payload.currentPassword = values.currentPassword;
             }
             try {
                 const response = await axios.put('/user/profile', payload);
-                setStatus({ type: 'success', message: 'Profile updated successfully!' });
+                toast.success(response.data.payload.message || 'Profile updated successfully!');
                 dispatch(setUser(response.data.payload.user));
 
                 // Clear password fields after successful update
+                formik.setFieldValue('currentPassword', '');
                 formik.setFieldValue('newPassword', '');
                 formik.setFieldValue('confirmPassword', '');
             } catch (error) {
-                setStatus({ type: 'error', message: error.response?.data?.message || 'Failed to update profile' });
+                toast.error(error.response?.data?.payload?.message || 'Failed to update profile');
             }
         }
     });
@@ -60,6 +63,7 @@ const Profile = () => {
                 fullName: profile.name || '',
                 phoneNumber: profile.mobile || '',
                 address: profile.address || '',
+                currentPassword: '',
                 newPassword: '',
                 confirmPassword: ''
             });
@@ -111,11 +115,6 @@ const Profile = () => {
                         </div>
 
                         <form className="settings-form" onSubmit={formik.handleSubmit}>
-                            {status.message && (
-                                <div className={`status-message ${status.type}`} style={{ padding: '10px', marginBottom: '15px', borderRadius: '4px', backgroundColor: status.type === 'error' ? '#f8d7da' : '#d4edda', color: status.type === 'error' ? '#721c24' : '#155724' }}>
-                                    {status.message}
-                                </div>
-                            )}
 
                             {/* Personal Information Section */}
                             <div className="form-section">
@@ -182,6 +181,32 @@ const Profile = () => {
                                 </h4>
                                 <div className="form-grid">
                                     <div className="form-group">
+                                        <label htmlFor="currentPassword">Current Password</label>
+                                        <div className="password-input-wrapper">
+                                            <input
+                                                type={showCurrentPassword ? "text" : "password"}
+                                                id="currentPassword"
+                                                name="currentPassword"
+                                                value={formik.values.currentPassword}
+                                                onChange={formik.handleChange}
+                                                onBlur={formik.handleBlur}
+                                                placeholder="Enter your current password"
+                                                className={formik.touched.currentPassword && formik.errors.currentPassword ? 'error' : ''}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="password-toggle-btn"
+                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            >
+                                                <i className={`fa-regular ${showCurrentPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                            </button>
+                                        </div>
+                                        {formik.touched.currentPassword && formik.errors.currentPassword && (
+                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.currentPassword}</span>
+                                        )}
+                                        <p className="password-hint">Verification is required before changing password.</p>
+                                    </div>
+                                    <div className="form-group">
                                         <label htmlFor="newPassword">New Password</label>
                                         <div className="password-input-wrapper">
                                             <input
@@ -192,6 +217,7 @@ const Profile = () => {
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
                                                 placeholder="Enter at least 8 characters"
+                                                className={formik.touched.newPassword && formik.errors.newPassword ? 'error' : ''}
                                             />
                                             <button
                                                 type="button"
@@ -217,6 +243,7 @@ const Profile = () => {
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
                                                 placeholder="Retype your new password"
+                                                className={formik.touched.confirmPassword && formik.errors.confirmPassword ? 'error' : ''}
                                             />
                                             <button
                                                 type="button"
