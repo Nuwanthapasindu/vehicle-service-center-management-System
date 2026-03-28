@@ -56,9 +56,25 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
         const owner = await User.findOne({ mobile, isDeleted: false });
         if (!owner) throw new AppError("Customer not found", 404);
 
-        const { search, status, vehicle: vehicleFilter } = filters;
+        const { search, status, vehicle: vehicleFilter, duration } = filters;
 
-        const bookings = await Booking.find({ customer: owner._id, isDeleted: false })
+        // Build query object
+        const query = { customer: owner._id, isDeleted: false };
+
+        if (duration && duration !== 'all') {
+            const now = new Date();
+            let startDate = new Date();
+            if (duration === '6m') startDate.setMonth(now.getMonth() - 6);
+            else if (duration === '1y') startDate.setFullYear(now.getFullYear() - 1);
+            else if (duration === '2y') startDate.setFullYear(now.getFullYear() - 2);
+            else if (duration === '5y') startDate.setFullYear(now.getFullYear() - 5);
+            
+            // Set to start of the day
+            startDate.setHours(0, 0, 0, 0);
+            query.date = { $gte: startDate };
+        }
+
+        const bookings = await Booking.find(query)
             .populate("vehicle", "make model licensePlate")
             .sort({ date: -1 });
 

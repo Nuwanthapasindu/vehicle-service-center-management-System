@@ -19,9 +19,9 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
 router.get("/my-history", authTokenMiddleware, (req, res, next) => {
     const responseBuilder = new responseBuild(res);
     const mobile = req.user.mobile;
-    const { search, status, vehicle } = req.query;
+    const { search, status, vehicle, duration } = req.query;
 
-    getBookingHistory(mobile, { search, status, vehicle })
+    getBookingHistory(mobile, { search, status, vehicle, duration })
         .then((history) => {
             responseBuilder.setStatus(200);
             responseBuilder.buildResponse({ history });

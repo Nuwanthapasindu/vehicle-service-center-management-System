@@ -15,10 +15,11 @@ const ServiceHistory = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [vehicleFilter, setVehicleFilter] = useState('all');
+    const [durationFilter, setDurationFilter] = useState('6m');
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 4;
+    const itemsPerPage = 10;
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -28,7 +29,8 @@ const ServiceHistory = () => {
                     params: {
                         search: searchTerm,
                         status: statusFilter,
-                        vehicle: vehicleFilter
+                        vehicle: vehicleFilter,
+                        duration: durationFilter
                     }
                 });
                 setHistoryData(response.data.payload.history || []);
@@ -45,7 +47,7 @@ const ServiceHistory = () => {
         }, 500); // 500ms debounce
 
         return () => clearTimeout(timer);
-    }, [searchTerm, statusFilter, vehicleFilter]);
+    }, [searchTerm, statusFilter, vehicleFilter, durationFilter]);
 
     // Pagination calculations
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -136,7 +138,10 @@ const ServiceHistory = () => {
                         <i className="fa-solid fa-chevron-down"></i>
                     </div>
                     <div className="filter-select">
-                        <select defaultValue="6m">
+                        <select
+                            value={durationFilter}
+                            onChange={(e) => setDurationFilter(e.target.value)}
+                        >
                             <option value="all">All Time</option>
                             <option value="6m">Last 6 Months</option>
                             <option value="1y">Last Year</option>
