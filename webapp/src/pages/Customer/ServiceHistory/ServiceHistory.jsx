@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
-import Header from '../../../components/Customer/Header/CustomerHeader';
+import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import { enums } from '../../../constants/enum';
 import { formatShortDate } from '../../../util/dateFormatter';
 import { getStatusClass, getStatusText } from '../../../util/statusFormatter';
@@ -49,7 +48,7 @@ const ServiceHistory = () => {
                 const vehiclesRes = await axios.get('/vehicle/my-vehicles');
                 setVehicles(vehiclesRes.data.payload.vehicles || []);
             } catch (error) {
-                console.error("Failed to fetch vehicles:", error);
+                toast.error("Failed to fetch vehicles");
             }
         };
         fetchVehicles();
@@ -60,13 +59,7 @@ const ServiceHistory = () => {
 
 
     return (
-        <div className="customer-portal-wrapper">
-            <Sidebar />
-
-            <div className="customer-content-area">
-                <Header title="Customer Dashboard" />
-
-                <main className="history-main-content">
+        <CustomerLayout title="Service History">
                     {/* Breadcrumbs */}
                     <nav className="breadcrumbs">
                         <Link to="/customer/dashboard">Home</Link>
@@ -212,9 +205,7 @@ const ServiceHistory = () => {
                             </div>
                         </div>
                     </div>
-                </main>
-            </div>
-        </div>
+        </CustomerLayout>
     );
 };
 
