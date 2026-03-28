@@ -48,7 +48,7 @@ const ServiceHistory = () => {
                 const vehiclesRes = await axios.get('/vehicle/my-vehicles');
                 setVehicles(vehiclesRes.data.payload.vehicles || []);
             } catch (error) {
-                toast.error("Failed to fetch vehicles");
+                toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
             }
         };
         fetchVehicles();
@@ -62,7 +62,10 @@ const ServiceHistory = () => {
         <CustomerLayout title="Service History">
                     {/* Breadcrumbs */}
                     <nav className="breadcrumbs">
-                        <Link to="/customer/dashboard">Home</Link>
+                        <Link to="/customer/dashboard">
+                            <i className="fa-solid fa-house"></i>
+                            Dashboard
+                        </Link>
                         <i className="fa-solid fa-chevron-right"></i>
                         <span className="active">Service History</span>
                     </nav>
@@ -70,7 +73,7 @@ const ServiceHistory = () => {
                     {/* Page Title Section */}
                     <section className="page-title-section">
                         <div className="title-text-box">
-                            <h2 className="page-title">Service History</h2>
+                            <h1 className="page-title">Service History</h1>
                             <p className="page-subtitle">
                                 Manage and review all your professional detailing records in one place.
                             </p>
@@ -125,13 +128,17 @@ const ServiceHistory = () => {
                         </div>
                         <div className="table-responsive">
                             {loading ? (
-                                <div style={{ textAlign: 'center', padding: '3rem' }}>
-                                    <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-                                    <p style={{ marginTop: '1rem' }}>Loading history...</p>
+                                <div className="loading-state-container">
+                                    <i className="fa-solid fa-spinner fa-spin"></i>
+                                    <p>Loading history...</p>
                                 </div>
                             ) : historyData.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '3rem' }}>
-                                    <p>No records found.</p>
+                                <div className="empty-state-container">
+                                    <div className="empty-state-icon">
+                                        <i className="fa-solid fa-clock-rotate-left"></i>
+                                    </div>
+                                    <p className="empty-state-text">No service history yet.</p>
+                                    <Link to="/customer/service-booking" className="empty-state-btn">Book Your First Service</Link>
                                 </div>
                             ) : (
                                 <table className="history-table">

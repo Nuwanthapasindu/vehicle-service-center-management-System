@@ -9,6 +9,7 @@ import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import DragDropUpload from '../../../components/Upload/DragDropUpload';
 import getImageUrl from '../../../util/getImageUrl';
+import defaultCarImg from '../../../assets/imgs/default-car.png';
 import './VehicleDetails.css';
 
 const VehicleDetails = () => {
@@ -108,7 +109,7 @@ const VehicleDetails = () => {
             make: vehicle.make,
             model: vehicle.model
         });
-        setImagePreview(getImageUrl(vehicle.image?.filePath));
+        setImagePreview(getImageUrl(vehicle.image?.filePath) || defaultCarImg);
         setImageFile(null);
         setShowModal(true);
     };
@@ -146,7 +147,11 @@ const VehicleDetails = () => {
 
                 <main className="vehicle-details-main">
                     <nav className="breadcrumbs">
-                        <i className="fa-solid fa-house"></i>
+                        <Link to="/customer/dashboard">
+                            <i className="fa-solid fa-house"></i>
+                            Dashboard
+                        </Link>
+                        <i className="fa-solid fa-chevron-right"></i>
                         <Link to="/customer/my-garage">Garage</Link>
                         <i className="fa-solid fa-chevron-right"></i>
                         <span className="active">{vehicle.make} {vehicle.model}</span>
@@ -155,7 +160,7 @@ const VehicleDetails = () => {
                     <section className="vehicle-hero-card">
                         <div className="hero-image-overlay"></div>
                         <img
-                            src={getImageUrl(vehicle.image?.filePath)}
+                            src={getImageUrl(vehicle.image?.filePath) || defaultCarImg}
                             alt={`${vehicle.make} ${vehicle.model}`}
                             className="hero-bg-img"
                         />
@@ -227,13 +232,11 @@ const VehicleDetails = () => {
                             </div>
 
                             <div className="timeline-container">
-                                <div className="timeline-item">
-                                    <div className="timeline-marker grey">
-                                        <i className="fa-solid fa-arrows-rotate"></i>
+                                <div className="empty-state-container" style={{ padding: '2.5rem', border: 'none', background: '#F8FAFC' }}>
+                                    <div className="empty-state-icon" style={{ fontSize: '1.25rem', width: '48px', height: '48px', marginBottom: '1rem' }}>
+                                        <i className="fa-solid fa-clock-rotate-left"></i>
                                     </div>
-                                    <div className="service-entry-card">
-                                        <p style={{ textAlign: "center", padding: "2rem", color: "var(--secondary)" }}>No service history logged yet.</p>
-                                    </div>
+                                    <p className="empty-state-text" style={{ fontSize: '0.95rem', marginBottom: '0' }}>No service history yet.</p>
                                 </div>
                             </div>
 
