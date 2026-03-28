@@ -101,7 +101,7 @@ const MyGarage = () => {
                         <p>Loading your garage...</p>
                     </div>
                 ) : vehicles.length === 0 ? (
-                    <div className="empty-state-container" style={{ gridColumn: '1 / -1' }}>
+                    <div className="empty-state-container">
                         <div className="empty-state-icon">
                             <i className="fa-solid fa-car-side"></i>
                         </div>
