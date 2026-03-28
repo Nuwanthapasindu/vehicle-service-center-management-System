@@ -49,7 +49,7 @@ const ServiceHistory = () => {
                 const vehiclesRes = await axios.get('/vehicle/my-vehicles');
                 setVehicles(vehiclesRes.data.payload.vehicles || []);
             } catch (error) {
-                console.error("Failed to fetch vehicles:", error);
+                toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
             }
         };
         fetchVehicles();

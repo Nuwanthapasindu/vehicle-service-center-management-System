@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
-import getImageUrl from '../../../util/getImageUrl';
-import defaultCarImg from '../../../assets/imgs/default-car.png';
+import VehicleCard from '../../../components/Customer/VehicleCard/VehicleCard';
 import './MyGarage.css';
 
 const MyGarage = () => {
@@ -112,61 +111,19 @@ const MyGarage = () => {
                 ) : (
                     <>
                         {vehicles.map((vehicle) => (
-                            <div className="vehicle-card" key={vehicle._id}>
-                                <div className="card-image-wrapper">
-                                    <img src={getImageUrl(vehicle.image?.filePath) || defaultCarImg} alt={vehicle.model} className="vehicle-card-img" />
-                                    {/* For now, just assuming ACTIVE status */}
-                                    <span className="status-badge active">
-                                        ACTIVE
-                                    </span>
-                                </div>
-                                <div className="card-content">
-                                    <div className="vehicle-basic-info">
-                                        <h4 className="vehicle-title">{vehicle.make} {vehicle.model}</h4>
-                                        <span className="vehicle-year">{vehicle.type}</span>
-                                    </div>
-                                    <div className="vehicle-meta">
-                                        <div className="meta-item plate">
-                                            <span>{vehicle.licensePlate}</span>
-                                        </div>
-                                        <div className="meta-item time">
-                                            <i className="fa-regular fa-calendar-check"></i>
-                                            <span>{new Date(vehicle.createdAt).toLocaleDateString()} added</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="card-footer">
-                                    <Link to={`/customer/my-garage/${vehicle._id}`} className="view-details-link">
-                                        <span>VIEW DETAILS</span>
-                                        <i className="fa-solid fa-arrow-right"></i>
-                                    </Link>
-                                    <div className="action-icons">
-                                        {/* <button className="icon-btn edit"><i className="fa-regular fa-pen-to-square"></i></button> */}
-                                        <button
-                                            className="icon-btn delete"
-                                            onClick={() => handleDeleteVehicle(vehicle._id)}
-                                            title="Remove Vehicle"
-                                        >
-                                            <i className="fa-regular fa-trash-can"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <VehicleCard 
+                                key={vehicle._id} 
+                                vehicle={vehicle} 
+                                onDelete={handleDeleteVehicle} 
+                            />
                         ))}
                     </>
                 )}
 
+
                 {/* Add Another Vehicle Placeholder */}
                 {!loading && vehicles.length > 0 && (
-                    <Link to="/customer/my-garage/add" className="add-placeholder-card">
-                        <div className="placeholder-content">
-                            <div className="plus-circle">
-                                <i className="fa-solid fa-plus"></i>
-                            </div>
-                            <h4 className="placeholder-title">Add Another Vehicle</h4>
-                            <p className="placeholder-text">Track and manage more cars in your profile</p>
-                        </div>
-                    </Link>
+                    <VehicleCard isNewCard />
                 )}
             </div>
         </CustomerLayout>
