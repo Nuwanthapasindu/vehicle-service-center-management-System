@@ -10,6 +10,7 @@ import Header from '../../../components/Customer/Header/CustomerHeader';
 import DragDropUpload from '../../../components/Upload/DragDropUpload';
 import getImageUrl from '../../../util/getImageUrl';
 import defaultCarImg from '../../../assets/imgs/default-car.png';
+import ServiceHistoryTimeline from '../../../components/Customer/ServiceHistoryTimeline/ServiceHistoryTimeline';
 import './VehicleDetails.css';
 
 const VehicleDetails = () => {
@@ -24,8 +25,29 @@ const VehicleDetails = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
+    const [serviceHistory, setServiceHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
+    const fetchServiceHistory = async () => {
+        try {
+            setHistoryLoading(true);
+            const response = await axios.get('/booking/my-history', {
+                params: { vehicle: id }
+            });
+            setServiceHistory(response.data.payload.history || []);
+        } catch (error) {
+            console.error("Failed to fetch service history:", error);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
 
+    useEffect(() => {
+        if (id) {
+            fetchVehicle();
+            fetchServiceHistory();
+        }
+    }, [id, navigate]);
     const formik = useFormik({
         initialValues: {
             licensePlate: '',
@@ -81,14 +103,6 @@ const VehicleDetails = () => {
         }
     };
 
-    useEffect(() => {
-        if (id) {
-            fetchVehicle();
-        }
-    }, [id, navigate]);
-
-
-
     const handleDelete = async () => {
         if (window.confirm("Are you sure you want to completely remove this vehicle?")) {
             try {
@@ -128,9 +142,9 @@ const VehicleDetails = () => {
                 <div className="customer-content-area">
                     <Header title="Customer Dashboard" />
                     <main className="vehicle-details-main">
-                        <div style={{ textAlign: "center", padding: "5rem" }}>
-                            <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-                            <p style={{ marginTop: "1rem" }}>Loading vehicle details...</p>
+                        <div className="loading-state-container">
+                            <i className="fa-solid fa-spinner fa-spin"></i>
+                            <p>Loading vehicle details...</p>
                         </div>
                     </main>
                 </div>
@@ -167,7 +181,7 @@ const VehicleDetails = () => {
 
                         <div className="hero-content">
                             <div className="hero-meta-badges">
-                                <span className="status-badge active">ACTIVE</span>
+                                {/* <span className="status-badge active">ACTIVE</span> */}
                                 <span className="meta-info"><i className="fa-regular fa-calendar"></i> {new Date(vehicle.createdAt).getFullYear()}</span>
                                 <span className="meta-info"><i className="fa-solid fa-id-card"></i> {vehicle.licensePlate}</span>
                             </div>
@@ -220,30 +234,12 @@ const VehicleDetails = () => {
                             </div>
                         </div>
 
-                        <div className="details-card history-card">
-                            <div className="card-header">
-                                <h3 className="card-title">
-                                    <i className="fa-solid fa-clock-rotate-left"></i>
-                                    Service History
-                                </h3>
-                                <button className="download-pdf-btn">
-                                    Download PDF Log <i className="fa-solid fa-download"></i>
-                                </button>
-                            </div>
-
-                            <div className="timeline-container">
-                                <div className="empty-state-container" style={{ padding: '2.5rem', border: 'none', background: '#F8FAFC' }}>
-                                    <div className="empty-state-icon" style={{ fontSize: '1.25rem', width: '48px', height: '48px', marginBottom: '1rem' }}>
-                                        <i className="fa-solid fa-clock-rotate-left"></i>
-                                    </div>
-                                    <p className="empty-state-text" style={{ fontSize: '0.95rem', marginBottom: '0' }}>No service history yet.</p>
-                                </div>
-                            </div>
-
-                            <div className="history-footer">
-                                <button className="load-more-btn" disabled>Load More History</button>
-                            </div>
-                        </div>
+                        <ServiceHistoryTimeline 
+                            loading={historyLoading} 
+                            history={serviceHistory} 
+                            id={id} 
+                            vehicle={vehicle}
+                        />
                     </div>
                 </main>
             </div>

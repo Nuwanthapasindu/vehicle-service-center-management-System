@@ -6,6 +6,38 @@
     padding-bottom: 3rem;
 }
 
+.loading-state-container,
+.empty-state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 2rem;
+    background-color: #F8FAFC;
+    border-radius: 20px;
+    border: 1px dashed #E2E8F0;
+    text-align: center;
+    gap: 1.25rem;
+    margin: 2rem 0;
+}
+
+.loading-state-container i {
+    font-size: 2.5rem;
+    color: var(--primary-color, #8EDB00);
+}
+
+.loading-state-container p,
+.empty-state-text {
+    font-size: 1rem;
+    color: var(--secondary, #64748B);
+    font-weight: 600;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: #CBD5E1;
+}
+
 
 
 /* Hero Card */
@@ -211,111 +243,146 @@
     cursor: pointer;
 }
 
+/* Service History Timeline Refined */
 .timeline-container {
     position: relative;
-    padding-left: 2rem;
-    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
 }
 
-.timeline-container::before {
+.timeline-list {
+    position: relative;
+    padding-left: 2.2rem;
+}
+
+.timeline-list::before {
     content: '';
     position: absolute;
     left: 11px;
-    top: 0;
-    bottom: 0;
+    top: 10px;
+    bottom: 10px;
     width: 2px;
-    background-color: #F1F5F9;
+    background: linear-gradient(to bottom, var(--primary-color), #E2E8F0);
 }
 
 .timeline-item {
     position: relative;
-    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .timeline-marker {
     position: absolute;
-    left: -2rem;
+    left: -2.2rem;
     top: 5px;
-    z-index: 1;
+    z-index: 2;
     background: white;
-    padding: 2px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
 }
 
 .timeline-marker i {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     color: var(--primary-color, #8EDB00);
-}
-
-.timeline-marker.grey i {
-    color: #CBD5E1;
 }
 
 .service-entry-card {
-    background-color: #F8FAFC;
+    background: #F8FAFC;
     border: 1px solid #F1F5F9;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 1.5rem;
-    transition: transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transition: all 0.3s ease;
 }
 
 .service-entry-card:hover {
+    background: #FFFFFF;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border-color: var(--primary-color);
     transform: translateX(5px);
 }
 
-.entry-header {
+.entry-main-info {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
+}
+
+.entry-text {
+    flex: 1;
+    padding-right: 1.5rem;
 }
 
 .entry-name {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 850;
     color: var(--dark, #1A1D23);
-    margin: 0 0 0.25rem 0;
+    margin: 0 0 0.4rem 0;
 }
 
 .entry-desc {
-    font-size: 0.85rem;
-    color: var(--secondary, #64748B);
-    font-weight: 600;
+    font-size: 0.95rem;
+    color: #64748B;
+    line-height: 1.5;
     margin: 0;
+    font-weight: 500;
 }
 
-.entry-price {
-    font-size: 1.25rem;
+.entry-price-tag {
+    font-size: 1.35rem;
     font-weight: 850;
-    color: var(--primary-color, #8EDB00);
+    color: var(--primary-color);
 }
 
-.entry-meta {
+.entry-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.25rem;
+    border-top: 1px solid #EDF2F7;
+}
+
+.meta-left {
+    display: flex;
+    gap: 2rem;
+}
+
+.meta-data {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-}
-
-.entry-meta span {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #94A3B8;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.entry-meta i {
+    gap: 0.75rem;
     font-size: 0.9rem;
-    color: #CBD5E1;
+    color: #64748B;
+    font-weight: 700;
 }
 
-.status-pill {
-    font-size: 0.65rem;
+.meta-data i {
+    color: #CBD5E1;
+    font-size: 1rem;
+}
+
+.service-status-badge {
+    font-size: 0.75rem;
     font-weight: 900;
-    padding: 0.35rem 0.6rem;
-    border-radius: 4px;
-    background-color: #F0FDF4;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.service-status-badge.completed {
+    background-color: #E6F9EC;
     color: #16A34A;
+    border: 1px solid #B7EB8F;
+}
+
+.service-status-badge.pending {
+    background-color: #FFFBEB;
+    color: #D97706;
 }
 
 .history-footer {

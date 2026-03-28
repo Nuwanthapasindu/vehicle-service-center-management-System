@@ -21,20 +21,20 @@ const VehicleCard = ({ vehicle, onDelete, isNewCard }) => {
     }
 
     // Determine the active status for the badge
-    const statusText = vehicle.status?.toUpperCase() || 'ACTIVE';
-    const statusClass = vehicle.status === 'in-service' ? 'in-service' : 'active';
+    // const statusText = vehicle.status?.toUpperCase() || 'ACTIVE';
+    // const statusClass = vehicle.status === 'in-service' ? 'in-service' : 'active';
 
     return (
         <div className="vehicle-card">
             <div className="card-image-wrapper">
-                <img 
-                    src={getImageUrl(vehicle.image?.filePath) || defaultCarImg} 
-                    alt={vehicle.model} 
-                    className="vehicle-card-img" 
+                <img
+                    src={getImageUrl(vehicle.image?.filePath) || defaultCarImg}
+                    alt={vehicle.model}
+                    className="vehicle-card-img"
                 />
-                <span className={`status-badge ${statusClass}`}>
+                {/* <span className={`status-badge ${statusClass}`}>
                     {statusText}
-                </span>
+                </span> */}
             </div>
             <div className="card-content">
                 <div className="vehicle-basic-info">

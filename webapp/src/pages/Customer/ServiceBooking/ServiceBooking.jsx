@@ -13,6 +13,7 @@ import BookingCalendar from '../../../components/Customer/Calendar/BookingCalend
 
 const ServiceBooking = () => {
     const [vehicles, setVehicles] = useState([]);
+    const [loadingVehicles, setLoadingVehicles] = useState(true);
 
     const formik = useFormik({
         initialValues: {
@@ -58,10 +59,13 @@ const ServiceBooking = () => {
     useEffect(() => {
         const fetchVehicles = async () => {
             try {
+                setLoadingVehicles(true);
                 const response = await axios.get('/vehicle/my-vehicles');
                 setVehicles(response.data.payload.vehicles || []);
             } catch (error) {
                 toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
+            } finally {
+                setLoadingVehicles(false);
             }
         };
         fetchVehicles();
@@ -168,7 +172,12 @@ const ServiceBooking = () => {
                                 <h2 className="section-title">Select Vehicle</h2>
                             </div>
                             <div className="vehicle-row-list">
-                                {vehicles.length === 0 ? (
+                                {loadingVehicles ? (
+                                    <div className="loading-state-container">
+                                        <i className="fa-solid fa-spinner fa-spin"></i>
+                                        <p>Loading your vehicles...</p>
+                                    </div>
+                                ) : vehicles.length === 0 ? (
                                     <div className="empty-state-container">
                                         <div className="empty-state-icon">
                                             <i className="fa-solid fa-car-rear"></i>

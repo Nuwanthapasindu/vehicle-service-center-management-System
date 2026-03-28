@@ -15,7 +15,7 @@
 }
 
 .page-subtitle {
-     margin: 0;
+    margin: 0;
 }
 
 .add-vehicle-btn {
@@ -101,6 +101,29 @@
     gap: 2rem;
     padding-bottom: 3rem;
 }
+
+.loading-state-container,
+.empty-state-container {
+    grid-column: 1 / -1;
+}
+
+.empty-state-btn {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    padding: 0.9rem 2rem;
+    border-radius: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 12px rgba(142, 219, 0, 0.15);
+}
+
+.empty-state-btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
 
 
 /* Responsive */

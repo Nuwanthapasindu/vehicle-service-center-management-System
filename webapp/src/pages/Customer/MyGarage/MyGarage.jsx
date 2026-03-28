@@ -9,9 +9,27 @@ import './MyGarage.css';
 const MyGarage = () => {
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [serviceLogsCount, setServiceLogsCount] = useState(0);
 
     useEffect(() => {
-        fetchMyVehicles();
+        const loadInitialData = async () => {
+            try {
+                setLoading(true);
+                // Fetch both vehicles and dashboard stats concurrently
+                const [vehiclesRes, dashboardRes] = await Promise.all([
+                    axios.get('/vehicle/my-vehicles'),
+                    axios.get('/booking/dashboard')
+                ]);
+
+                setVehicles(vehiclesRes.data.payload.vehicles || []);
+                setServiceLogsCount(dashboardRes.data.payload.data.stats.totalBookings || 0);
+            } catch (error) {
+                toast.error("Failed to load your garage metrics.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadInitialData();
     }, []);
 
     const fetchMyVehicles = async () => {
@@ -41,8 +59,7 @@ const MyGarage = () => {
 
     // Calculate overall stats
     const totalVehicles = vehicles.length;
-    // We can just mock service logs for now or keep it like the original component
-    const totalServiceLogs = 0;
+    const totalServiceLogs = serviceLogsCount;
 
     return (
         <CustomerLayout title="My Digital Garage">
@@ -101,7 +118,7 @@ const MyGarage = () => {
                         <p>Loading your garage...</p>
                     </div>
                 ) : vehicles.length === 0 ? (
-                    <div className="empty-state-container" style={{ gridColumn: '1 / -1' }}>
+                    <div className="empty-state-container">
                         <div className="empty-state-icon">
                             <i className="fa-solid fa-car-side"></i>
                         </div>
@@ -111,10 +128,10 @@ const MyGarage = () => {
                 ) : (
                     <>
                         {vehicles.map((vehicle) => (
-                            <VehicleCard 
-                                key={vehicle._id} 
-                                vehicle={vehicle} 
-                                onDelete={handleDeleteVehicle} 
+                            <VehicleCard
+                                key={vehicle._id}
+                                vehicle={vehicle}
+                                onDelete={handleDeleteVehicle}
                             />
                         ))}
                     </>

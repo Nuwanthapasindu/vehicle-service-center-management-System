@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
@@ -17,7 +18,7 @@ const Profile = () => {
 
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
-    const [status, setStatus] = useState({ type: '', message: '' });
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const formik = useFormik({
         initialValues: {
@@ -25,20 +26,33 @@ const Profile = () => {
             phoneNumber: '',
             address: '',
             currentPassword: '',
-            newPassword: ''
+            newPassword: '',
+            confirmPassword: ''
         },
         validationSchema: profileValidationSchema,
         onSubmit: async (values) => {
-            setStatus({ type: '', message: '' });
+            // Build payload with mandatory fields
+            const payload = {
+                fullName: values.fullName,
+                phoneNumber: values.phoneNumber,
+                address: values.address,
+            };
+            // Include newPassword only if user entered it (and validation ensures it matches confirmPassword)
+            if (values.newPassword && values.newPassword.length > 0) {
+                payload.newPassword = values.newPassword;
+                payload.currentPassword = values.currentPassword;
+            }
             try {
-                const response = await axios.put('/user/profile', values);
-                setStatus({ type: 'success', message: 'Profile updated successfully!' });
+                const response = await axios.put('/user/profile', payload);
+                toast.success(response.data.payload.message || 'Profile updated successfully!');
                 dispatch(setUser(response.data.payload.user));
 
+                // Clear password fields after successful update
                 formik.setFieldValue('currentPassword', '');
                 formik.setFieldValue('newPassword', '');
+                formik.setFieldValue('confirmPassword', '');
             } catch (error) {
-                setStatus({ type: 'error', message: error.response?.data?.message || 'Failed to update profile' });
+                toast.error(error.response?.data?.payload?.message || 'Failed to update profile');
             }
         }
     });
@@ -50,7 +64,8 @@ const Profile = () => {
                 phoneNumber: profile.mobile || '',
                 address: profile.address || '',
                 currentPassword: '',
-                newPassword: ''
+                newPassword: '',
+                confirmPassword: ''
             });
         }
     }, [profile]);
@@ -100,11 +115,6 @@ const Profile = () => {
                         </div>
 
                         <form className="settings-form" onSubmit={formik.handleSubmit}>
-                            {status.message && (
-                                <div className={`status-message ${status.type}`} style={{ padding: '10px', marginBottom: '15px', borderRadius: '4px', backgroundColor: status.type === 'error' ? '#f8d7da' : '#d4edda', color: status.type === 'error' ? '#721c24' : '#155724' }}>
-                                    {status.message}
-                                </div>
-                            )}
 
                             {/* Personal Information Section */}
                             <div className="form-section">
@@ -180,7 +190,8 @@ const Profile = () => {
                                                 value={formik.values.currentPassword}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
-                                                placeholder="Leave blank to keep current"
+                                                placeholder="Enter your current password"
+                                                className={formik.touched.currentPassword && formik.errors.currentPassword ? 'error' : ''}
                                             />
                                             <button
                                                 type="button"
@@ -193,6 +204,7 @@ const Profile = () => {
                                         {formik.touched.currentPassword && formik.errors.currentPassword && (
                                             <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.currentPassword}</span>
                                         )}
+                                        <p className="password-hint">Verification is required before changing password.</p>
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="newPassword">New Password</label>
@@ -204,7 +216,8 @@ const Profile = () => {
                                                 value={formik.values.newPassword}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
-                                                placeholder="At least 8 characters"
+                                                placeholder="Enter at least 8 characters"
+                                                className={formik.touched.newPassword && formik.errors.newPassword ? 'error' : ''}
                                             />
                                             <button
                                                 type="button"
@@ -218,6 +231,31 @@ const Profile = () => {
                                             <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.newPassword}</span>
                                         )}
                                         <p className="password-hint">Must include uppercase, number and symbol.</p>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="confirmPassword">Confirm New Password</label>
+                                        <div className="password-input-wrapper">
+                                            <input
+                                                type={showConfirmPassword ? "text" : "password"}
+                                                id="confirmPassword"
+                                                name="confirmPassword"
+                                                value={formik.values.confirmPassword}
+                                                onChange={formik.handleChange}
+                                                onBlur={formik.handleBlur}
+                                                placeholder="Retype your new password"
+                                                className={formik.touched.confirmPassword && formik.errors.confirmPassword ? 'error' : ''}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="password-toggle-btn"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            >
+                                                <i className={`fa-regular ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                            </button>
+                                        </div>
+                                        {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.confirmPassword}</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>

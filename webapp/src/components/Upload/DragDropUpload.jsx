@@ -5,7 +5,7 @@ const DragDropUpload = ({
     onFileChange,
     previewUrl,
     accept = "image/png, image/jpeg, image/jpg, image/webp",
-    hintText = "PNG, JPG or WEBP",
+    hintText = "PNG, JPG or WEBP (Max 10 MB)",
     mainText = "Click to upload or drag and drop",
     iconClass = "fa-solid fa-camera-retro upload-icon"
 }) => {

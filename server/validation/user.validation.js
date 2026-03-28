@@ -20,7 +20,14 @@ const updateProfileSchema = joi.object({
     "any.required": "Address is required",
     "string.empty": "Address is required",
   }),
-  currentPassword: joi.string().allow("").optional().trim(),
+  currentPassword: joi.string().trim().when("newPassword", {
+    is: joi.string().min(1).required(),
+    then: joi.required().messages({
+      "any.required": "Current password is required to change password",
+      "string.empty": "Current password is required to change password",
+    }),
+    otherwise: joi.optional().allow(""),
+  }),
   newPassword: joi
     .string()
     .allow("")

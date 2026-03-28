@@ -36,7 +36,7 @@ const Dashboard = () => {
         activeBookings: dashboardData?.stats?.activeBookings ?? 0,
         totalVehicles: dashboardData?.stats?.totalVehicles ?? 0,
         totalBookings: dashboardData?.stats?.totalBookings ?? 0,
-        totalSpent: dashboardData?.stats?.totalSpent ?? "LKR0.00"
+        totalSpent: dashboardData?.stats?.totalSpent ?? "LKR 0.00"
     };
 
     const upcoming = dashboardData?.upcomingBooking;
@@ -44,8 +44,11 @@ const Dashboard = () => {
     if (loading) {
         return (
             <CustomerLayout title="Customer Dashboard">
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-                    <i className="fa-solid fa-spinner fa-spin fa-3x" style={{ color: 'var(--primary-color)' }}></i>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', width: '100%' }}>
+                    <div className="loading-state-container">
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading your profile...</p>
+                    </div>
                 </div>
             </CustomerLayout>
         );
