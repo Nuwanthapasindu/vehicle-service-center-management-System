@@ -36,7 +36,7 @@ const Dashboard = () => {
         activeBookings: dashboardData?.stats?.activeBookings ?? 0,
         totalVehicles: dashboardData?.stats?.totalVehicles ?? 0,
         totalBookings: dashboardData?.stats?.totalBookings ?? 0,
-        totalSpent: dashboardData?.stats?.totalSpent ?? "LKR0.00"
+        totalSpent: dashboardData?.stats?.totalSpent ?? "LKR 0.00"
     };
 
     const upcoming = dashboardData?.upcomingBooking;

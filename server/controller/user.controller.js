@@ -17,19 +17,10 @@ module.exports.updateProfile = async (payload, mobile) => {
   }
 
   if (payload.newPassword) {
-    if (!payload.currentPassword) {
-      throw new AppError("Current password is required to set a new password", 400);
-    }
     const auth = await Auth.findOne({ user: user._id });
     if (!auth) throw new AppError("Auth credentials not found", 404);
-
-    const passwordCheck = comparePassword(payload.currentPassword, auth.password);
-    if (!passwordCheck) throw new AppError("Invalid current password", 400);
-
     auth.password = hashPassword(payload.newPassword);
     await auth.save();
-  } else if (payload.currentPassword) {
-    throw new AppError("New password is required", 400);
   }
 
   user.name = payload.fullName;

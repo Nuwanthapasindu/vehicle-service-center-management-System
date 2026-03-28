@@ -15,8 +15,8 @@ const Profile = () => {
     const { profile } = useAuthentication();
     const dispatch = useDispatch();
 
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [status, setStatus] = useState({ type: '', message: '' });
 
     const formik = useFormik({
@@ -24,19 +24,30 @@ const Profile = () => {
             fullName: '',
             phoneNumber: '',
             address: '',
-            currentPassword: '',
-            newPassword: ''
+            newPassword: '',
+            confirmPassword: ''
         },
         validationSchema: profileValidationSchema,
         onSubmit: async (values) => {
             setStatus({ type: '', message: '' });
+            // Build payload with mandatory fields
+            const payload = {
+                fullName: values.fullName,
+                phoneNumber: values.phoneNumber,
+                address: values.address,
+            };
+            // Include newPassword only if user entered it (and validation ensures it matches confirmPassword)
+            if (values.newPassword && values.newPassword.length > 0) {
+                payload.newPassword = values.newPassword;
+            }
             try {
-                const response = await axios.put('/user/profile', values);
+                const response = await axios.put('/user/profile', payload);
                 setStatus({ type: 'success', message: 'Profile updated successfully!' });
                 dispatch(setUser(response.data.payload.user));
 
-                formik.setFieldValue('currentPassword', '');
+                // Clear password fields after successful update
                 formik.setFieldValue('newPassword', '');
+                formik.setFieldValue('confirmPassword', '');
             } catch (error) {
                 setStatus({ type: 'error', message: error.response?.data?.message || 'Failed to update profile' });
             }
@@ -49,8 +60,8 @@ const Profile = () => {
                 fullName: profile.name || '',
                 phoneNumber: profile.mobile || '',
                 address: profile.address || '',
-                currentPassword: '',
-                newPassword: ''
+                newPassword: '',
+                confirmPassword: ''
             });
         }
     }, [profile]);
@@ -171,30 +182,6 @@ const Profile = () => {
                                 </h4>
                                 <div className="form-grid">
                                     <div className="form-group">
-                                        <label htmlFor="currentPassword">Current Password</label>
-                                        <div className="password-input-wrapper">
-                                            <input
-                                                type={showCurrentPassword ? "text" : "password"}
-                                                id="currentPassword"
-                                                name="currentPassword"
-                                                value={formik.values.currentPassword}
-                                                onChange={formik.handleChange}
-                                                onBlur={formik.handleBlur}
-                                                placeholder="Leave blank to keep current"
-                                            />
-                                            <button
-                                                type="button"
-                                                className="password-toggle-btn"
-                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                            >
-                                                <i className={`fa-regular ${showCurrentPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                                            </button>
-                                        </div>
-                                        {formik.touched.currentPassword && formik.errors.currentPassword && (
-                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.currentPassword}</span>
-                                        )}
-                                    </div>
-                                    <div className="form-group">
                                         <label htmlFor="newPassword">New Password</label>
                                         <div className="password-input-wrapper">
                                             <input
@@ -204,7 +191,7 @@ const Profile = () => {
                                                 value={formik.values.newPassword}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
-                                                placeholder="At least 8 characters"
+                                                placeholder="Enter at least 8 characters"
                                             />
                                             <button
                                                 type="button"
@@ -218,6 +205,30 @@ const Profile = () => {
                                             <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.newPassword}</span>
                                         )}
                                         <p className="password-hint">Must include uppercase, number and symbol.</p>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="confirmPassword">Confirm New Password</label>
+                                        <div className="password-input-wrapper">
+                                            <input
+                                                type={showConfirmPassword ? "text" : "password"}
+                                                id="confirmPassword"
+                                                name="confirmPassword"
+                                                value={formik.values.confirmPassword}
+                                                onChange={formik.handleChange}
+                                                onBlur={formik.handleBlur}
+                                                placeholder="Retype your new password"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="password-toggle-btn"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            >
+                                                <i className={`fa-regular ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                            </button>
+                                        </div>
+                                        {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+                                            <span className="field-error" style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{formik.errors.confirmPassword}</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
