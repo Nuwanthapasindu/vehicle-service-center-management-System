@@ -310,7 +310,7 @@
     flex-direction: column;
     gap: 1rem;
     overflow-y: auto;
-    max-height: 480px; 
+    max-height: 6000px;
     padding-right: 0.5rem;
 }
 
@@ -413,6 +413,7 @@
     .booking-info-cards-row {
         grid-template-columns: 1fr;
     }
+
     .picker-row {
         grid-template-columns: 1fr;
     }
