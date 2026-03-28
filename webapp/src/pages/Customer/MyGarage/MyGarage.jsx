@@ -1,148 +1,132 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
-import Header from '../../../components/Customer/Header/CustomerHeader';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
+import VehicleCard from '../../../components/Customer/VehicleCard/VehicleCard';
 import './MyGarage.css';
 
 const MyGarage = () => {
-    const navigate = useNavigate();
-    const vehicles = [
-        {
-            id: 1,
-            name: "BMW X5 m50i",
-            year: "2020",
-            plate: "DET-4556",
-            lastService: "5d ago",
-            status: "",
-            image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80"
-        },
-        {
-            id: 2,
-            name: "Porsche 911 Carrera",
-            year: "2023",
-            plate: "ABC-1234",
-            lastService: "Detained 2w ago",
-            status: "ACTIVE",
-            image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80"
-        },
-        {
-            id: 3,
-            name: "Toyota Camry SE",
-            year: "2021",
-            plate: "XYZ-9876",
-            lastService: "In shop now",
-            status: "IN SERVICE",
-            image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80"
+    const [vehicles, setVehicles] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchMyVehicles();
+    }, []);
+
+    const fetchMyVehicles = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get('/vehicle/my-vehicles');
+            setVehicles(response.data.payload.vehicles || []);
+        } catch (error) {
+            toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    const handleDeleteVehicle = async (id) => {
+        if (window.confirm("Are you sure you want to completely remove this vehicle from your garage?")) {
+            try {
+                const response = await axios.delete(`/vehicle/${id}`);
+                setVehicles(prev => prev.filter(v => v._id !== id));
+                toast.success(response.data.payload.message || "Vehicle removed securely.");
+            } catch (error) {
+                console.error("Deletion failed:", error);
+                toast.error(error.response?.data?.payload?.message || "Failed to remove vehicle.");
+            }
+        }
+    };
+
+    // Calculate overall stats
+    const totalVehicles = vehicles.length;
+    // We can just mock service logs for now or keep it like the original component
+    const totalServiceLogs = 0;
 
     return (
-        <div className="customer-portal-wrapper">
-            <Sidebar />
+        <CustomerLayout title="My Digital Garage">
+            {/* Breadcrumbs */}
+            <nav className="breadcrumbs">
+                <Link to="/customer/dashboard">
+                    <i className="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </Link>
+                <i className="fa-solid fa-chevron-right"></i>
+                <span className="active">My Digital Garage</span>
+            </nav>
 
-            <div className="customer-content-area">
-                <Header title="My Digital Garage" />
+            {/* Page Header */}
+            <section className="page-title-section">
+                <div className="title-text">
+                    <h1 className="page-title">My Digital Garage</h1>
+                    <p className="page-subtitle">
+                        Manage your personal vehicle fleet, track maintenance history, and keep your cars in showroom condition.
+                    </p>
+                </div>
+                <Link to="/customer/my-garage/add" className="add-vehicle-btn">
+                    <i className="fa-solid fa-circle-plus"></i>
+                    <span>Add New Vehicle</span>
+                </Link>
+            </section>
 
-                <main className="garage-main-content">
-                    {/* Breadcrumbs */}
-                    <nav className="breadcrumbs">
-                        <span>Dashboard</span>
-                        <i className="fa-solid fa-chevron-right"></i>
-                        <span className="active">My Digital Garage</span>
-                    </nav>
-
-                    {/* Page Header */}
-                    <section className="page-title-section">
-                        <div className="title-text">
-                            <h2 className="page-title">My Digital Garage</h2>
-                            <p className="page-subtitle">
-                                Manage your personal vehicle fleet, track maintenance history, and keep your cars in showroom condition.
-                            </p>
-                        </div>
-                        <Link to="/customer/my-garage/add" className="add-vehicle-btn">
-                            <i className="fa-solid fa-circle-plus"></i>
-                            <span>Add New Vehicle</span>
-                        </Link>
-                    </section>
-
-                    {/* Stats Summary Row */}
-                    <div className="garage-stats-row">
-                        <div className="mini-stat-card">
-                            <div className="mini-icon-box green">
-                                <i className="fa-solid fa-car"></i>
-                            </div>
-                            <div className="mini-stat-info">
-                                <h3 className="stat-num">4</h3>
-                                <span className="stat-label">TOTAL VEHICLES</span>
-                            </div>
-                        </div>
-
-                        <div className="mini-stat-card">
-                            <div className="mini-icon-box blue">
-                                <i className="fa-solid fa-clock-rotate-left"></i>
-                            </div>
-                            <div className="mini-stat-info">
-                                <h3 className="stat-num">24</h3>
-                                <span className="stat-label">SERVICE LOGS</span>
-                            </div>
-                        </div>
+            {/* Stats Summary Row */}
+            <div className="garage-stats-row">
+                <div className="mini-stat-card">
+                    <div className="mini-icon-box green">
+                        <i className="fa-solid fa-car"></i>
                     </div>
-
-                    {/* Vehicle Grid */}
-                    <div className="vehicle-grid">
-                        {vehicles.map((vehicle) => (
-                            <div className="vehicle-card" key={vehicle.id}>
-                                <div className="card-image-wrapper">
-                                    <img src={vehicle.image} alt={vehicle.name} className="vehicle-card-img" />
-                                    {vehicle.status && (
-                                        <span className={`status-badge ${vehicle.status.toLowerCase().replace(' ', '-')}`}>
-                                            {vehicle.status}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="card-content">
-                                    <div className="vehicle-basic-info">
-                                        <h4 className="vehicle-title">{vehicle.name}</h4>
-                                        <span className="vehicle-year">{vehicle.year}</span>
-                                    </div>
-                                    <div className="vehicle-meta">
-                                        <div className="meta-item plate">
-                                            <span>{vehicle.plate}</span>
-                                        </div>
-                                        <div className="meta-item time">
-                                            <i className="fa-regular fa-calendar-check"></i>
-                                            <span>{vehicle.lastService}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="card-footer">
-                                    <Link to={`/customer/my-garage/${vehicle.id}`} className="view-details-link">
-                                        <span>VIEW DETAILS</span>
-                                        <i className="fa-solid fa-arrow-right"></i>
-                                    </Link>
-                                    <div className="action-icons">
-                                        <button className="icon-btn edit"><i className="fa-regular fa-pen-to-square"></i></button>
-                                        <button className="icon-btn delete"><i className="fa-regular fa-trash-can"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Add Another Vehicle Placeholder */}
-                        <Link to="/customer/my-garage/add" className="add-placeholder-card">
-                            <div className="placeholder-content">
-                                <div className="plus-circle">
-                                    <i className="fa-solid fa-plus"></i>
-                                </div>
-                                <h4 className="placeholder-title">Add Another Vehicle</h4>
-                                <p className="placeholder-text">Track and manage more cars in your profile</p>
-                            </div>
-                        </Link>
+                    <div className="mini-stat-info">
+                        <h3 className="stat-num">{totalVehicles}</h3>
+                        <span className="stat-label">TOTAL VEHICLES</span>
                     </div>
+                </div>
 
-                </main>
+                <div className="mini-stat-card">
+                    <div className="mini-icon-box blue">
+                        <i className="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div className="mini-stat-info">
+                        <h3 className="stat-num">{totalServiceLogs}</h3>
+                        <span className="stat-label">SERVICE LOGS</span>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            {/* Vehicle Grid */}
+            <div className="vehicle-grid">
+                {loading ? (
+                    <div className="loading-state-container">
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading your garage...</p>
+                    </div>
+                ) : vehicles.length === 0 ? (
+                    <div className="empty-state-container" style={{ gridColumn: '1 / -1' }}>
+                        <div className="empty-state-icon">
+                            <i className="fa-solid fa-car-side"></i>
+                        </div>
+                        <p className="empty-state-text">No records found.</p>
+                        <Link to="/customer/my-garage/add" className="empty-state-btn">Add Your First Vehicle</Link>
+                    </div>
+                ) : (
+                    <>
+                        {vehicles.map((vehicle) => (
+                            <VehicleCard 
+                                key={vehicle._id} 
+                                vehicle={vehicle} 
+                                onDelete={handleDeleteVehicle} 
+                            />
+                        ))}
+                    </>
+                )}
+
+
+                {/* Add Another Vehicle Placeholder */}
+                {!loading && vehicles.length > 0 && (
+                    <VehicleCard isNewCard />
+                )}
+            </div>
+        </CustomerLayout>
     );
 };
 

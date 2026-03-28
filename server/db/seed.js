@@ -7,6 +7,7 @@ const process = require("process");
 const User = require("../model/User");
 const Auth = require("../model/Auth");
 const Employee = require("../model/Employee");
+const Timeslot = require("../model/Timeslot");
 
 const { USER_ROLES, GENDERS } = require("../util/constants");
 dotenv.config();
@@ -65,10 +66,29 @@ const seedAdminUser = async () => {
   }
 };
 
+const seedTimeslots = async () => {
+  try {
+    const count = await Timeslot.countDocuments();
+    if (count > 0) return;
+
+    await Timeslot.insertMany([
+      { startTime: "09:00", endTime: "13:00", maxCapacity: 2 },
+      { startTime: "10:30", endTime: "14:30", maxCapacity: 2 },
+      { startTime: "13:00", endTime: "17:00", maxCapacity: 2 },
+      { startTime: "14:30", endTime: "18:30", maxCapacity: 2 }
+    ]);
+
+    console.log("Timeslots seeded successfully");
+  } catch (error) {
+    console.error("Error seeding timeslots:", error);
+  }
+};
+
 async function main() {
   try {
     await connectDB();
     await seedAdminUser();
+    await seedTimeslots();
   } catch (error) {
     console.error("Error during seeding:", error);
   } finally {
