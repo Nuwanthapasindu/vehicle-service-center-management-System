@@ -32,7 +32,7 @@ const fetchData = async () => {
   try {
     if (activeTab === 'SUPPLIERS') {
       const response = await axios.get(`${API_URL}/suppliers`);
-      setData(response.data);
+      setData(response.data?.payload?.suppliers || response.data?.suppliers || response.data || []);
     } else {
       setData([]); 
     }

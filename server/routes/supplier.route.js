@@ -1,16 +1,58 @@
-const express = require('express');
-const router = express.Router();
-const supplierController = require('../controller/supplier.controller');
+const router = require('express').Router();
+const {
+  createSupplier,
+  getAllSuppliers,
+  updateSupplier,
+  deleteSupplier,
+} = require('../controller/supplier.controller');
+const responseBuild = require('../util/responseBuilder');
 
+router.post('/', (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const payload = req.body;
 
-const { validateSupplier } = require('../validation/supplier.validation');
+  createSupplier(payload)
+    .then((supplier) => {
+      responseBuilder.setStatus(201);
+      responseBuilder.buildResponse({ supplier });
+    })
+    .catch((error) => next(error));
+});
 
-router.post('/', validateSupplier, supplierController.createSupplier);
+router.get('/', (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
 
-router.get('/', supplierController.getAllSuppliers);
+  getAllSuppliers()
+    .then((suppliers) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ suppliers });
+    })
+    .catch((error) => next(error));
+});
 
-router.put('/:id', validateSupplier, supplierController.updateSupplier);
+router.put('/:id', (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const payload = req.body;
+  const { id } = req.params;
 
-router.delete('/:id', supplierController.deleteSupplier);
+  updateSupplier(id, payload)
+    .then((supplier) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ supplier });
+    })
+    .catch((error) => next(error));
+});
+
+router.delete('/:id', (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const { id } = req.params;
+
+  deleteSupplier(id)
+    .then((message) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ message });
+    })
+    .catch((error) => next(error));
+});
 
 module.exports = router;

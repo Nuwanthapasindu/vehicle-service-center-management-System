@@ -1,18 +1,48 @@
-const validateSupplier = (req, res, next) => {
-  const { companyName, companyMobile } = req.body;
+const joi = require("joi");
+const validator = require("./core");
 
-  if (!companyName || companyName.trim() === "") {
-    return res.status(400).json({ message: "Company Name is required." });
-  }
+// Validation schema for creating a new supplier
+const createSupplierValidationSchema = joi.object({
+  companyName: joi.string().required().trim().min(2).max(100).messages({
+    "any.required": "Company name is required",
+    "string.empty": "Company name cannot be empty",
+  }),
+  companyMobile: joi.array().items(
+    joi.string().length(10).pattern(/^[0-9]+$/).messages({
+      "string.length": "Mobile number must be exactly 10 digits",
+      "string.pattern.base": "Mobile number can only contain digits",
+    })
+  ).optional(),
+  agentName: joi.string().trim().max(100).optional().allow(""),
+  agentMobile: joi.array().items(
+    joi.string().length(10).pattern(/^[0-9]+$/).messages({
+      "string.length": "Mobile number must be exactly 10 digits",
+      "string.pattern.base": "Mobile number can only contain digits",
+    })
+  ).optional(),
+  items: joi.array().items(joi.string().trim()).optional(),
+});
 
-  if (companyMobile && companyMobile.length > 0) {
-    const invalidPhones = companyMobile.filter(phone => phone.length !== 10);
-    if (invalidPhones.length > 0) {
-      return res.status(400).json({ message: "Mobile numbers must be exactly 10 digits." });
-    }
-  }
+// Validation schema for updating a supplier
+const updateSupplierValidationSchema = joi.object({
+  companyName: joi.string().trim().min(2).max(100).optional().messages({
+    "string.empty": "Company name cannot be empty",
+  }),
+  companyMobile: joi.array().items(
+    joi.string().length(10).pattern(/^[0-9]+$/).messages({
+      "string.length": "Mobile number must be exactly 10 digits",
+      "string.pattern.base": "Mobile number can only contain digits",
+    })
+  ).optional(),
+  agentName: joi.string().trim().max(100).optional().allow(""),
+  agentMobile: joi.array().items(
+    joi.string().length(10).pattern(/^[0-9]+$/).messages({
+      "string.length": "Mobile number must be exactly 10 digits",
+      "string.pattern.base": "Mobile number can only contain digits",
+    })
+  ).optional(),
+  items: joi.array().items(joi.string().trim()).optional(),
+});
 
-  next();
-};
-
-module.exports = { validateSupplier };
+module.exports.validatedCreateSupplier = validator(createSupplierValidationSchema);
+module.exports.validatedUpdateSupplier = validator(updateSupplierValidationSchema);

@@ -1,81 +1,114 @@
-const Supplier = require('../model/Supplier'); 
+const Supplier = require('../model/Supplier');
+const AppError = require('../error/AppError');
+const {
+  validatedCreateSupplier,
+  validatedUpdateSupplier,
+} = require('../validation/supplier.validation');
 
-//Add new Supplier
-exports.createSupplier = async (req, res, next) => {
+/**
+ * Create a new supplier
+ * @param {Object} payload - Supplier data
+ * @returns {Promise<Object>} - Created supplier
+ */
+module.exports.createSupplier = async (payload) => {
+  const { value, error } = validatedCreateSupplier(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
+
   try {
-    const { companyName, agentName, companyMobile, items } = req.body;
-
-    const newSupplier = new Supplier({
-      companyName,
-      agentName,
-      companyMobile,
-      items
+    const existingSupplier = await Supplier.findOne({
+      companyName: value.companyName,
+      isDeleted: false,
     });
+    
+    if (existingSupplier) {
+      throw new AppError("Supplier with this company name already exists", 400);
+    }
 
+    const newSupplier = new Supplier(value);
     const savedSupplier = await newSupplier.save();
-    res.status(201).json(savedSupplier);
-
+    return savedSupplier;
   } catch (error) {
-    console.error("Create Supplier Error:", error);
-    res.status(500).json({ message: "Server error while creating supplier." });
+    throw new AppError(error.message, error.statusCode || 500);
   }
 };
 
-//Get all Suppliers
-exports.getAllSuppliers = async (req, res, next) => {
+/**
+ * Get all suppliers
+ * @returns {Promise<Array>} - List of suppliers
+ */
+module.exports.getAllSuppliers = async () => {
   try {
     const suppliers = await Supplier.find({ isDeleted: false }).sort({ createdAt: -1 });
-    res.status(200).json(suppliers);
+    return suppliers;
   } catch (error) {
-    console.error("Fetch Suppliers Error:", error);
-    res.status(500).json({ message: "Server error while fetching suppliers." });
+    throw new AppError(error.message, error.statusCode || 500);
   }
 };
 
-//Update Supplier
-exports.updateSupplier = async (req, res, next) => {
+/**
+ * Update a supplier
+ * @param {string} id - Supplier ID
+ * @param {Object} payload - Update data
+ * @returns {Promise<Object>} - Updated supplier
+ */
+module.exports.updateSupplier = async (id, payload) => {
+  if (!id) throw new AppError("Supplier id is required", 400);
+
+  // Prevent manual alteration of soft-delete statuses
+  if (payload.isDeleted !== undefined) delete payload.isDeleted;
+  if (payload.deletedAt !== undefined) delete payload.deletedAt;
+
+  const { value, error } = validatedUpdateSupplier(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
+
   try {
-    const supplierId = req.params.id;
-    const { companyName, agentName, companyMobile, items } = req.body;
-
-    const updatedSupplier = await Supplier.findByIdAndUpdate(
-      supplierId,
-      { companyName, agentName, companyMobile, items },
-      { new: true }
-    );
-
-    if (!updatedSupplier) {
-      return res.status(404).json({ message: "Supplier not found." });
+    if (value.companyName) {
+      const existingSupplier = await Supplier.findOne({
+        companyName: value.companyName,
+        _id: { $ne: id },
+        isDeleted: false,
+      });
+      if (existingSupplier) {
+        throw new AppError("Supplier company name already in use", 400);
+      }
     }
 
-    res.status(200).json(updatedSupplier);
+    const updatedSupplier = await Supplier.findOneAndUpdate(
+      { _id: id, isDeleted: false },
+      value,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedSupplier || updatedSupplier.isDeleted) {
+      throw new AppError("Supplier not found", 404);
+    }
+
+    return updatedSupplier;
   } catch (error) {
-    console.error("Update Supplier Error:", error);
-    res.status(500).json({ message: "Server error while updating supplier." });
+    throw new AppError(error.message, error.statusCode || 500);
   }
 };
 
-//Delete Supplier
-exports.deleteSupplier = async (req, res, next) => {
-  try {
-    const supplierId = req.params.id;
+/**
+ * Delete a supplier
+ * @param {string} id - Supplier ID
+ * @returns {Promise<string>} - Success message
+ */
+module.exports.deleteSupplier = async (id) => {
+  if (!id) throw new AppError("Supplier id is required", 400);
 
-    const deletedSupplier = await Supplier.findByIdAndUpdate(
-      supplierId,
-      {
-        isDeleted: true,
-        deletedAt: new Date()
-      },
-      { new: true }
+  try {
+    const deletedSupplier = await Supplier.updateOne(
+      { _id: id, isDeleted: false },
+      { isDeleted: true, deletedAt: Date.now() }
     );
 
-    if (!deletedSupplier) {
-      return res.status(404).json({ message: "Supplier not found." });
+    if (!deletedSupplier.modifiedCount) {
+      throw new AppError("Supplier not found", 404);
     }
 
-    res.status(200).json({ message: "Supplier deleted successfully." });
+    return "Supplier deleted successfully.";
   } catch (error) {
-    console.error("Delete Supplier Error:", error);
-    res.status(500).json({ message: "Server error while deleting supplier." });
+    throw new AppError(error.message, error.statusCode || 500);
   }
 };
