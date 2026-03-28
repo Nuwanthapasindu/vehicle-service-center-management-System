@@ -10,6 +10,7 @@ import Header from '../../../components/Customer/Header/CustomerHeader';
 import DragDropUpload from '../../../components/Upload/DragDropUpload';
 import getImageUrl from '../../../util/getImageUrl';
 import defaultCarImg from '../../../assets/imgs/default-car.png';
+import ServiceHistoryTimeline from '../../../components/Customer/ServiceHistoryTimeline/ServiceHistoryTimeline';
 import './VehicleDetails.css';
 
 const VehicleDetails = () => {
@@ -24,8 +25,29 @@ const VehicleDetails = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
+    const [serviceHistory, setServiceHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
+    const fetchServiceHistory = async () => {
+        try {
+            setHistoryLoading(true);
+            const response = await axios.get('/booking/my-history', {
+                params: { vehicle: id }
+            });
+            setServiceHistory(response.data.payload.history || []);
+        } catch (error) {
+            console.error("Failed to fetch service history:", error);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
 
+    useEffect(() => {
+        if (id) {
+            fetchVehicle();
+            fetchServiceHistory();
+        }
+    }, [id, navigate]);
     const formik = useFormik({
         initialValues: {
             licensePlate: '',
@@ -80,14 +102,6 @@ const VehicleDetails = () => {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        if (id) {
-            fetchVehicle();
-        }
-    }, [id, navigate]);
-
-
 
     const handleDelete = async () => {
         if (window.confirm("Are you sure you want to completely remove this vehicle?")) {
@@ -220,30 +234,11 @@ const VehicleDetails = () => {
                             </div>
                         </div>
 
-                        <div className="details-card history-card">
-                            <div className="card-header">
-                                <h3 className="card-title">
-                                    <i className="fa-solid fa-clock-rotate-left"></i>
-                                    Service History
-                                </h3>
-                                <button className="download-pdf-btn">
-                                    Download PDF Log <i className="fa-solid fa-download"></i>
-                                </button>
-                            </div>
-
-                            <div className="timeline-container">
-                                <div className="empty-state-container">
-                                    <div className="empty-state-icon">
-                                        <i className="fa-solid fa-clock-rotate-left"></i>
-                                    </div>
-                                    <p className="empty-state-text">No service history yet.</p>
-                                </div>
-                            </div>
-
-                            <div className="history-footer">
-                                <button className="load-more-btn" disabled>Load More History</button>
-                            </div>
-                        </div>
+                        <ServiceHistoryTimeline 
+                            loading={historyLoading} 
+                            history={serviceHistory} 
+                            id={id} 
+                        />
                     </div>
                 </main>
             </div>

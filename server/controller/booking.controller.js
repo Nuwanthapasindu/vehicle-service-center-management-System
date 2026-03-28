@@ -60,6 +60,11 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
 
         // Build query object
         const query = { customer: owner._id, isDeleted: false };
+        // Handle direct vehicle filtering if it's a valid ID (passed from VehicleDetails)
+        const isVehicleId = vehicleFilter && vehicleFilter.match(/^[0-9a-fA-F]{24}$/);
+        if (isVehicleId) {
+            query.vehicle = vehicleFilter;
+        }
 
         if (duration && duration !== 'all') {
             const now = new Date();
@@ -68,7 +73,7 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
             else if (duration === '1y') startDate.setFullYear(now.getFullYear() - 1);
             else if (duration === '2y') startDate.setFullYear(now.getFullYear() - 2);
             else if (duration === '5y') startDate.setFullYear(now.getFullYear() - 5);
-            
+
             // Set to start of the day
             startDate.setHours(0, 0, 0, 0);
             query.date = { $gte: startDate };
@@ -94,8 +99,8 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
             };
         }));
 
-        // Apply Server-Side Filtering
-        if (search || (status && status !== 'all') || (vehicleFilter && vehicleFilter !== 'all')) {
+        // Apply Server-Side Filtering (Search and Status)
+        if (search || (status && status !== 'all') || (!isVehicleId && vehicleFilter && vehicleFilter !== 'all')) {
             history = history.filter(item => {
                 const searchLower = search ? search.toLowerCase() : "";
                 const matchesSearch = !search ||
@@ -105,10 +110,11 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
 
                 const matchesStatus = !status || status === 'all' || item.status === status;
 
-                const matchesVehicle = !vehicleFilter || vehicleFilter === 'all' ||
+                // Only perform name-based vehicle filter if not already filtered by database (ID)
+                const matchesVehicleName = isVehicleId || !vehicleFilter || vehicleFilter === 'all' ||
                     item.vehicle.toLowerCase().includes(vehicleFilter.toLowerCase());
 
-                return matchesSearch && matchesStatus && matchesVehicle;
+                return matchesSearch && matchesStatus && matchesVehicleName;
             });
         }
 
