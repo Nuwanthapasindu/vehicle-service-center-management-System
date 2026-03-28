@@ -167,7 +167,7 @@ const VehicleDetails = () => {
 
                         <div className="hero-content">
                             <div className="hero-meta-badges">
-                                <span className="status-badge active">ACTIVE</span>
+                                {/* <span className="status-badge active">ACTIVE</span> */}
                                 <span className="meta-info"><i className="fa-regular fa-calendar"></i> {new Date(vehicle.createdAt).getFullYear()}</span>
                                 <span className="meta-info"><i className="fa-solid fa-id-card"></i> {vehicle.licensePlate}</span>
                             </div>
