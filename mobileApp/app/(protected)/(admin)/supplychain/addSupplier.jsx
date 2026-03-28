@@ -41,7 +41,7 @@ export default function AddSupplier({ onBack, API }) {
       });
       onBack();
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Failed to save supplier";
+      const errorMessage = error.response?.data?.payload?.message || "Failed to save supplier";
       Toast.show({
         type: 'error',
         text1: 'Validation Error',
