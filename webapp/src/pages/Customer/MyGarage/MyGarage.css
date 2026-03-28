@@ -15,7 +15,7 @@
 }
 
 .page-subtitle {
-     margin: 0;
+    margin: 0;
 }
 
 .add-vehicle-btn {
@@ -105,33 +105,6 @@
 .loading-state-container,
 .empty-state-container {
     grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 5rem 2rem;
-    background-color: #F8FAFC;
-    border-radius: 20px;
-    border: 1px dashed #E2E8F0;
-    text-align: center;
-    gap: 1.25rem;
-}
-
-.loading-state-container i {
-    font-size: 2.5rem;
-    color: var(--primary-color, #8EDB00);
-}
-
-.loading-state-container p,
-.empty-state-text {
-    font-size: 1rem;
-    color: var(--secondary, #64748B);
-    font-weight: 600;
-}
-
-.empty-state-icon {
-    font-size: 3rem;
-    color: #CBD5E1;
 }
 
 .empty-state-btn {

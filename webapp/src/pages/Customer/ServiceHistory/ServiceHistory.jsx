@@ -23,6 +23,13 @@ const ServiceHistory = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
+    // Sync filter with router state (deep-linking from other pages)
+    useEffect(() => {
+        const vehicleId = location.state?.vehicleId || 'all';
+        setVehicleFilter(vehicleId);
+        setCurrentPage(1);
+    }, [location.state?.vehicleId]);
+
     const handleExport = () => {
         if (historyData.length === 0) {
             toast.info("No records to export.");
@@ -173,7 +180,10 @@ const ServiceHistory = () => {
                 <div className="card-header">
                     <h3 className="card-title">Service History Preview</h3>
                     <div className="items-count-badge">
-                        Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, historyData.length)} of {historyData.length} records
+                        {historyData.length === 0
+                            ? "Showing 0 of 0 records"
+                            : `Showing ${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, historyData.length)} of ${historyData.length} records`
+                        }
                     </div>
                 </div>
                 <div className="table-responsive">
