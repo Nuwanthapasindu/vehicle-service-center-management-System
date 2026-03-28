@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Phone, PlusCircle, Trash2, Box } from 'lucide-react-native';
 import axios from 'axios';
 import { Formik } from 'formik';
+import Toast from 'react-native-toast-message';
 import { supplierValidationSchema } from '../../../../schema/supplier.schema';
 import { styles } from './styles';
 
@@ -32,12 +33,21 @@ export default function AddSupplier({ onBack, API }) {
         companyMobile: values.companyMobile.filter(p => p.trim() !== ''),
         items: values.items.filter(i => i.trim() !== '')
       });
-      Alert.alert("Success", "Supplier saved successfully!");
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Supplier saved successfully!',
+        position: 'bottom'
+      });
       onBack();
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Failed to save supplier";
-      Alert.alert("Validation Error", errorMessage);
-      console.log("Error details:", error.response?.data);
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: errorMessage,
+        position: 'bottom'
+      });
     } finally {
       setSubmitting(false);
     }

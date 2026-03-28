@@ -83,7 +83,7 @@ module.exports.updateSupplier = async (id, payload) => {
       throw new AppError("Supplier not found", 404);
     }
 
-    return updatedSupplier;
+    return "Supplier updated successfully.";
   } catch (error) {
     throw new AppError(error.message, error.statusCode || 500);
   }

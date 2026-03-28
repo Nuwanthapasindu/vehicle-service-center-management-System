@@ -6,6 +6,9 @@ const {
   deleteSupplier,
 } = require('../controller/supplier.controller');
 const responseBuild = require('../util/responseBuilder');
+const { authTokenMiddleware } = require('../middleware/auth');
+
+router.use(authTokenMiddleware);
 
 router.post('/', (req, res, next) => {
   const responseBuilder = new responseBuild(res);
@@ -36,9 +39,9 @@ router.put('/:id', (req, res, next) => {
   const { id } = req.params;
 
   updateSupplier(id, payload)
-    .then((supplier) => {
+    .then((message) => {
       responseBuilder.setStatus(200);
-      responseBuilder.buildResponse({ supplier });
+      responseBuilder.buildResponse({ message });
     })
     .catch((error) => next(error));
 });

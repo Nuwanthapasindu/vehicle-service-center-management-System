@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Trash2, CheckCircle2 } from 'lucide-react-native';
 import { styles } from './styles';
+import CustomButton from '../../../../components/CustomButton';
 
 export default function EditOrder({ order, onBack }) {
   const displayOrder = order || {
@@ -54,28 +55,44 @@ export default function EditOrder({ order, onBack }) {
       <View style={[styles.footer, { paddingBottom: 20 }]}>
         {isPending ? (
           <View>
-            <TouchableOpacity style={styles.saveSupplierBtn} onPress={onBack}>
-              <Text style={styles.saveSupplierBtnText}>MARK AS RECEIVED</Text>
-              <CheckCircle2 size={20} color="#1F2937" style={{ marginLeft: 8 }} />
-            </TouchableOpacity>
+            <CustomButton
+              text="MARK AS RECEIVED"
+              icon={<CheckCircle2 size={20} color="#1F2937" />}
+              onPress={onBack}
+              style={styles.saveSupplierBtn}
+              textStyle={styles.saveSupplierBtnText}
+              iconStyle={{ marginLeft: 8 }}
+            />
 
-            <TouchableOpacity style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444', marginTop: 10 }]} onPress={onBack}>
-              <Trash2 size={18} color="#EF4444" style={{ marginRight: 8 }} />
-              <Text style={[styles.saveSupplierBtnText, { color: '#EF4444' }]}>DELETE ORDER</Text>
-            </TouchableOpacity>
+            <CustomButton
+              text="DELETE ORDER"
+              icon={<Trash2 size={18} color="#EF4444" />}
+              onPress={onBack}
+              style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444', marginTop: 10 }]}
+              textStyle={[styles.saveSupplierBtnText, { color: '#EF4444' }]}
+              iconStyle={{ marginRight: 8 }}
+            />
           </View>
         ) : isDraft ? (
           <View>
-            <TouchableOpacity style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]} onPress={onBack}>
-              <Trash2 size={18} color="#EF4444" style={{ marginRight: 8 }} />
-              <Text style={[styles.saveSupplierBtnText, { color: '#EF4444' }]}>DELETE ORDER</Text>
-            </TouchableOpacity>
+            <CustomButton
+              text="DELETE ORDER"
+              icon={<Trash2 size={18} color="#EF4444" />}
+              onPress={onBack}
+              style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]}
+              textStyle={[styles.saveSupplierBtnText, { color: '#EF4444' }]}
+              iconStyle={{ marginRight: 8 }}
+            />
           </View>
         ) : (
-          <TouchableOpacity style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]} onPress={onBack}>
-            <Trash2 size={18} color="#EF4444" style={{ marginRight: 8 }} />
-            <Text style={[styles.saveSupplierBtnText, { color: '#EF4444' }]}>DELETE RECORD</Text>
-          </TouchableOpacity>
+          <CustomButton
+            text="DELETE RECORD"
+            icon={<Trash2 size={18} color="#EF4444" />}
+            onPress={onBack}
+            style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]}
+            textStyle={[styles.saveSupplierBtnText, { color: '#EF4444' }]}
+            iconStyle={{ marginRight: 8 }}
+          />
         )}
       </View>
     </SafeAreaView>
