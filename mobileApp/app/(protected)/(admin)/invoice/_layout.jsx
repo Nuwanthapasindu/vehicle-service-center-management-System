@@ -1,4 +1,3 @@
-import { View, Text } from 'react-native'
 import React from 'react'
 import { Stack } from 'expo-router'
 import colors from '../../../../constants/colors'
@@ -25,6 +24,11 @@ export default function InvoiceLayout() {
           title: "All Invoice",
           headerLeft: () => <DrawerToggleButton tintColor={colors.DARK} />,
         }} />
+        <Stack.Screen name="AddInvoice" options={{
+          title: "Direct Invoice",
+          headerBackTitle: "Invoices",
+        }}
+        />
     </Stack>
   )
 }

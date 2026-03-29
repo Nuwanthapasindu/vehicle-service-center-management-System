@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Platform
 import React, { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import colors from '../../../../constants/colors'
+import { useNavigation } from 'expo-router'
 
 const INVOICES = [
   { id: '1', invoiceId: '#INV-2023-001', name: 'James Wilson', plate: 'ABC-1234', date: 'Oct 24, 2023', amount: '$245.00', status: 'PAID' },
@@ -11,6 +12,7 @@ const INVOICES = [
 ]
 
 export default function AllInvoice() {
+  const navigate = useNavigation()
   const [activeFilter, setActiveFilter] = useState('All');
 
   const renderItem = ({ item }) => {
@@ -76,7 +78,7 @@ export default function AllInvoice() {
         ListHeaderComponent={renderHeader}
       />
 
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity style={styles.fab} onPress={() => navigate.push('AddInvoice')}>
         <Ionicons name="add" size={28} color={colors.DARK} />
       </TouchableOpacity>
     </View>
