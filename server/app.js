@@ -10,7 +10,6 @@ const path = require("path");
 const process = require("process");
 require("dotenv").config();
 
-// ROUTERS IMPORT
 const authRouter = require("./routes/auth.route");
 const log = require("./middleware/log");
 const fileRouter = require("./routes/file.route");
@@ -18,13 +17,12 @@ const serviceRouter = require("./routes/service.route");
 const packageRouter = require("./routes/package.route");
 const userRouter = require("./routes/user.route");
 const vehicleRouter = require("./routes/vehicle.route");
+const bookingRouter = require("./routes/booking.route");
+const timeslotRouter = require("./routes/timeslot.route");
 
-// CONFIGURE EXPRESS APP
 const app = express();
-//  DATABASE CONNECTION ESTABLISHMENT
 connectDB();
 
-// TOP LEVEL MIDDLEWARE
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
@@ -35,7 +33,6 @@ app.use(
 );
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(log);
-// Serve Swagger documentation
 if (process.env.NODE_ENV !== "production") {
   app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec, {
     explorer: true,
@@ -52,9 +49,13 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/file", fileRouter);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/package", packageRouter);
+
+//  SUPPLY CHAIN ROUTES
+app.use('/api/suppliers', require('./routes/supplier.route'));
+
 app.use("/api/v1/vehicle", vehicleRouter);
-
-
+app.use("/api/v1/booking", bookingRouter);
+app.use("/api/v1/timeslot", timeslotRouter);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {
@@ -66,7 +67,6 @@ app.use((req, res, next) => {
   );
 });
 
-// LOW LEVEL MIDDLEWARE
 app.use(errorHandling);
 
 module.exports = app;

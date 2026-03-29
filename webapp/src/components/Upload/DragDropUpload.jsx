@@ -1,12 +1,11 @@
 import React, { useRef, useState } from 'react';
 import './DragDropUpload.css';
 
-const DragDropUpload = ({ 
-    onFileChange, 
-    previewUrl, 
-    accept = "image/png, image/jpeg, image/jpg, image/webp", 
-    maxSizeMB = 5,
-    hintText = "PNG, JPG or WEBP (MAX. 5MB)",
+const DragDropUpload = ({
+    onFileChange,
+    previewUrl,
+    accept = "image/png, image/jpeg, image/jpg, image/webp",
+    hintText = "PNG, JPG or WEBP (Max 10 MB)",
     mainText = "Click to upload or drag and drop",
     iconClass = "fa-solid fa-camera-retro upload-icon"
 }) => {
@@ -59,19 +58,19 @@ const DragDropUpload = ({
     };
 
     return (
-        <div 
-            className={`upload-dropzone ${isDragging ? 'dragging' : ''}`} 
+        <div
+            className={`upload-dropzone ${isDragging ? 'dragging' : ''}`}
             onClick={handleClick}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
         >
-            <input 
-                type="file" 
+            <input
+                type="file"
                 ref={fileInputRef}
-                className="file-input" 
-                hidden 
+                className="file-input"
+                hidden
                 accept={accept}
                 onChange={handleChange}
             />

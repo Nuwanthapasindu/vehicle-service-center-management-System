@@ -6,10 +6,7 @@
 }
 
 .greeting-text .greeting {
-    font-size: 2rem;
-    font-weight: 850;
-    color: var(--dark, #1A1D23);
-    margin: 0 0 0.5rem 0;
+    margin: 0;
 }
 
 .greeting-msg {
@@ -183,7 +180,7 @@
     padding: 0.5rem 1rem;
     border-radius: 8px;
     cursor: pointer;
-    text-decoration: none;
+    text-decoration: none !important;
 }
 
 /* Vehicle List */
@@ -203,6 +200,7 @@
     border: 1px solid #F1F5F9;
     border-radius: 16px;
     transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 .vehicle-item-card:hover {
@@ -383,6 +381,58 @@
     background-color: #F0FDF4;
     color: #16A34A;
     border: 1px solid #DCFCE7;
+}
+
+.status-pill.progress {
+    background-color: #EFF6FF;
+    color: #2563EB;
+    border: 1px solid #DBEAFE;
+}
+
+.status-pill.pending {
+    background-color: #FFFBEB;
+    color: #D97706;
+    border: 1px solid #FEF3C7;
+}
+
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: #94A3B8;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background-color: #F8FAFC;
+    border-radius: 12px;
+    border: 1px dashed #E2E8F0;
+}
+
+.upcoming-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem 1.5rem;
+}
+
+.upcoming-empty i {
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+
+.book-inline-btn {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 850;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-top: 0.5rem;
+    transition: all 0.2s;
+}
+
+.book-inline-btn:hover {
+    transform: scale(1.05);
 }
 
 /* Responsive */

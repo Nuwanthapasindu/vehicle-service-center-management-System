@@ -9,12 +9,14 @@ import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import DragDropUpload from '../../../components/Upload/DragDropUpload';
 import getImageUrl from '../../../util/getImageUrl';
+import defaultCarImg from '../../../assets/imgs/default-car.png';
+import ServiceHistoryTimeline from '../../../components/Customer/ServiceHistoryTimeline/ServiceHistoryTimeline';
 import './VehicleDetails.css';
 
 const VehicleDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    
+
     const [vehicle, setVehicle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -23,8 +25,29 @@ const VehicleDetails = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
+    const [serviceHistory, setServiceHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
+    const fetchServiceHistory = async () => {
+        try {
+            setHistoryLoading(true);
+            const response = await axios.get('/booking/my-history', {
+                params: { vehicle: id }
+            });
+            setServiceHistory(response.data.payload.history || []);
+        } catch (error) {
+            console.error("Failed to fetch service history:", error);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
 
+    useEffect(() => {
+        if (id) {
+            fetchVehicle();
+            fetchServiceHistory();
+        }
+    }, [id, navigate]);
     const formik = useFormik({
         initialValues: {
             licensePlate: '',
@@ -80,14 +103,6 @@ const VehicleDetails = () => {
         }
     };
 
-    useEffect(() => {
-        if (id) {
-            fetchVehicle();
-        }
-    }, [id, navigate]);
-
-
-
     const handleDelete = async () => {
         if (window.confirm("Are you sure you want to completely remove this vehicle?")) {
             try {
@@ -108,7 +123,7 @@ const VehicleDetails = () => {
             make: vehicle.make,
             model: vehicle.model
         });
-        setImagePreview(getImageUrl(vehicle.image?.fileName));
+        setImagePreview(getImageUrl(vehicle.image?.filePath) || defaultCarImg);
         setImageFile(null);
         setShowModal(true);
     };
@@ -127,9 +142,9 @@ const VehicleDetails = () => {
                 <div className="customer-content-area">
                     <Header title="Customer Dashboard" />
                     <main className="vehicle-details-main">
-                        <div style={{ textAlign: "center", padding: "5rem" }}>
-                            <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-                            <p style={{ marginTop: "1rem" }}>Loading vehicle details...</p>
+                        <div className="loading-state-container">
+                            <i className="fa-solid fa-spinner fa-spin"></i>
+                            <p>Loading vehicle details...</p>
                         </div>
                     </main>
                 </div>
@@ -146,7 +161,11 @@ const VehicleDetails = () => {
 
                 <main className="vehicle-details-main">
                     <nav className="breadcrumbs">
-                        <i className="fa-solid fa-house"></i>
+                        <Link to="/customer/dashboard">
+                            <i className="fa-solid fa-house"></i>
+                            Dashboard
+                        </Link>
+                        <i className="fa-solid fa-chevron-right"></i>
                         <Link to="/customer/my-garage">Garage</Link>
                         <i className="fa-solid fa-chevron-right"></i>
                         <span className="active">{vehicle.make} {vehicle.model}</span>
@@ -155,14 +174,14 @@ const VehicleDetails = () => {
                     <section className="vehicle-hero-card">
                         <div className="hero-image-overlay"></div>
                         <img
-                            src={getImageUrl(vehicle.image?.fileName)}
+                            src={getImageUrl(vehicle.image?.filePath) || defaultCarImg}
                             alt={`${vehicle.make} ${vehicle.model}`}
                             className="hero-bg-img"
                         />
 
                         <div className="hero-content">
                             <div className="hero-meta-badges">
-                                <span className="status-badge active">ACTIVE</span>
+                                {/* <span className="status-badge active">ACTIVE</span> */}
                                 <span className="meta-info"><i className="fa-regular fa-calendar"></i> {new Date(vehicle.createdAt).getFullYear()}</span>
                                 <span className="meta-info"><i className="fa-solid fa-id-card"></i> {vehicle.licensePlate}</span>
                             </div>
@@ -215,32 +234,12 @@ const VehicleDetails = () => {
                             </div>
                         </div>
 
-                        <div className="details-card history-card">
-                            <div className="card-header">
-                                <h3 className="card-title">
-                                    <i className="fa-solid fa-clock-rotate-left"></i>
-                                    Service History
-                                </h3>
-                                <button className="download-pdf-btn">
-                                    Download PDF Log <i className="fa-solid fa-download"></i>
-                                </button>
-                            </div>
-
-                            <div className="timeline-container">
-                                <div className="timeline-item">
-                                    <div className="timeline-marker grey">
-                                        <i className="fa-solid fa-arrows-rotate"></i>
-                                    </div>
-                                    <div className="service-entry-card">
-                                        <p style={{textAlign:"center", padding:"2rem", color:"var(--secondary)"}}>No service history logged yet.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="history-footer">
-                                <button className="load-more-btn" disabled>Load More History</button>
-                            </div>
-                        </div>
+                        <ServiceHistoryTimeline 
+                            loading={historyLoading} 
+                            history={serviceHistory} 
+                            id={id} 
+                            vehicle={vehicle}
+                        />
                     </div>
                 </main>
             </div>
@@ -260,9 +259,9 @@ const VehicleDetails = () => {
                             <div className="modal-body">
                                 <div className="modal-form-group">
                                     <label>VEHICLE IMAGE</label>
-                                    <DragDropUpload 
-                                        onFileChange={handleFileChange} 
-                                        previewUrl={imagePreview} 
+                                    <DragDropUpload
+                                        onFileChange={handleFileChange}
+                                        previewUrl={imagePreview}
                                         hintText="PNG, JPG up to 10MB"
                                     />
                                 </div>
@@ -270,8 +269,8 @@ const VehicleDetails = () => {
                                 <div className="modal-form-row">
                                     <div className="modal-form-group">
                                         <label>LICENSE PLATE</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             name="licensePlate"
                                             value={formik.values.licensePlate}
                                             onChange={formik.handleChange}
@@ -279,15 +278,15 @@ const VehicleDetails = () => {
                                             className={formik.touched.licensePlate && formik.errors.licensePlate ? 'error' : ''}
                                         />
                                         {formik.touched.licensePlate && formik.errors.licensePlate && (
-                                            <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.licensePlate}</span>
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.licensePlate}</span>
                                         )}
                                     </div>
                                     <div className="modal-form-group">
                                         <label>VEHICLE TYPE</label>
                                         <div className="modal-select-wrapper">
-                                            <select 
-                                                name="type" 
-                                                value={formik.values.type} 
+                                            <select
+                                                name="type"
+                                                value={formik.values.type}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
                                                 className={formik.touched.type && formik.errors.type ? 'error' : ''}
@@ -300,7 +299,7 @@ const VehicleDetails = () => {
                                             <i className="fa-solid fa-chevron-down"></i>
                                         </div>
                                         {formik.touched.type && formik.errors.type && (
-                                            <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.type}</span>
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.type}</span>
                                         )}
                                     </div>
                                 </div>
@@ -308,8 +307,8 @@ const VehicleDetails = () => {
                                 <div className="modal-form-row">
                                     <div className="modal-form-group">
                                         <label>MAKE</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             name="make"
                                             value={formik.values.make}
                                             onChange={formik.handleChange}
@@ -317,13 +316,13 @@ const VehicleDetails = () => {
                                             className={formik.touched.make && formik.errors.make ? 'error' : ''}
                                         />
                                         {formik.touched.make && formik.errors.make && (
-                                            <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.make}</span>
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.make}</span>
                                         )}
                                     </div>
                                     <div className="modal-form-group">
                                         <label>MODEL</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             name="model"
                                             value={formik.values.model}
                                             onChange={formik.handleChange}
@@ -331,7 +330,7 @@ const VehicleDetails = () => {
                                             className={formik.touched.model && formik.errors.model ? 'error' : ''}
                                         />
                                         {formik.touched.model && formik.errors.model && (
-                                            <span className="error-text" style={{color: 'red', fontSize: '11px', fontWeight: 'bold'}}>{formik.errors.model}</span>
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.model}</span>
                                         )}
                                     </div>
                                 </div>
