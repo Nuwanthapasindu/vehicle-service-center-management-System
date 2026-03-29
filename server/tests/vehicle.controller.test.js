@@ -106,6 +106,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2022,
       };
 
       await expect(addVehicle(payload, "0000000000")).rejects.toThrow("Owner not found");
@@ -118,6 +119,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Honda",
         model: "Civic",
+        year: 2020,
       }).save();
 
       const payload = {
@@ -125,6 +127,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2022,
       };
 
       await expect(addVehicle(payload, mockMobile)).rejects.toThrow("License plate already registered");
@@ -139,6 +142,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2021,
       }).save();
 
       await new Vehicle({
@@ -147,6 +151,7 @@ describe("Vehicle Controller Tests", () => {
         type: "VAN",
         make: "Toyota",
         model: "Hiace",
+        year: 2018,
         isDeleted: true
       }).save();
 
@@ -164,6 +169,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2022,
       }).save();
 
       const result = await deleteVehicle(vehicle._id, mockMobile);
@@ -188,6 +194,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2019,
       }).save();
 
       await expect(deleteVehicle(vehicle._id, mockMobile)).rejects.toThrow("Vehicle not found");
@@ -202,6 +209,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2022,
       }).save();
 
       const result = await getVehicleById(vehicle._id, mockMobile);
@@ -217,6 +225,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2022,
       }).save();
 
       const payload = {
@@ -239,6 +248,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2021,
       }).save();
 
       await new Vehicle({
@@ -247,6 +257,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Honda",
         model: "Civic",
+        year: 2018,
       }).save();
 
       const payload = {
