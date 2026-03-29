@@ -32,14 +32,14 @@ const VehicleCard = ({ vehicle, onDelete, isNewCard }) => {
                     alt={vehicle.model}
                     className="vehicle-card-img"
                 />
-                {/* <span className={`status-badge ${statusClass}`}>
-                    {statusText}
-                </span> */}
+                <span className="type-badge">
+                    {vehicle.type}
+                </span>
             </div>
             <div className="card-content">
                 <div className="vehicle-basic-info">
                     <h4 className="vehicle-title">{vehicle.make} {vehicle.model}</h4>
-                    <span className="vehicle-year">{vehicle.type}</span>
+                    <span className="year-label">{vehicle.year || 'N/A'}</span>
                 </div>
                 <div className="vehicle-meta">
                     <div className="meta-item plate">

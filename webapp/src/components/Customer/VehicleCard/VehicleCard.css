@@ -33,25 +33,17 @@
     transform: scale(1.05);
 }
 
-.status-badge {
+.type-badge {
     position: absolute;
     top: 1rem;
     right: 1rem;
     padding: 0.4rem 0.8rem;
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 850;
     border-radius: 6px;
     letter-spacing: 0.5px;
     z-index: 2;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.status-badge.active {
-    background-color: var(--dark, #1A1D23);
-    color: var(--light, #FFFFFF);
-}
-
-.status-badge.in-service {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     background-color: var(--primary-color, #8EDB00);
     color: var(--dark, #1A1D23);
 }
@@ -75,7 +67,7 @@
     margin: 0;
 }
 
-.vehicle-year {
+.year-label {
     font-size: 0.9rem;
     color: #94A3B8;
     font-weight: 700;

@@ -28,6 +28,7 @@ module.exports.addVehicle = async (payload, mobile) => {
       type: payload.type,
       make: payload.make,
       model: payload.model,
+      year: payload.year,
       ...(payload.image && { image: payload.image })
     });
 

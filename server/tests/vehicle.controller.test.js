@@ -52,6 +52,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2022,
       };
 
       const result = await addVehicle(payload, mockMobile);
@@ -60,6 +61,7 @@ describe("Vehicle Controller Tests", () => {
       const savedVehicle = await Vehicle.findOne({ licensePlate: "WP-CAB-1234" });
       expect(savedVehicle).not.toBeNull();
       expect(savedVehicle.make).toBe("Toyota");
+      expect(savedVehicle.year).toBe(2022);
       expect(savedVehicle.ownerId.toString()).toBe(mockUser._id.toString());
     });
   
@@ -77,6 +79,7 @@ describe("Vehicle Controller Tests", () => {
         type: "CAR",
         make: "Toyota",
         model: "Corolla",
+        year: 2021,
         image: mockFile._id.toString(),
       };
   
@@ -217,7 +220,8 @@ describe("Vehicle Controller Tests", () => {
       }).save();
 
       const payload = {
-        model: "Camry"
+        model: "Camry",
+        year: 2023
       };
 
       const result = await updateVehicle(vehicle._id, mockMobile, payload);
@@ -225,6 +229,7 @@ describe("Vehicle Controller Tests", () => {
 
       const updatedVehicle = await Vehicle.findById(vehicle._id);
       expect(updatedVehicle.model).toBe("Camry");
+      expect(updatedVehicle.year).toBe(2023);
     });
 
     test("should fail if new license plate is already taken by another vehicle", async () => {

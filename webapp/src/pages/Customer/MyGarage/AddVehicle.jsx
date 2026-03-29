@@ -21,7 +21,8 @@ const AddVehicle = () => {
             licensePlate: '',
             type: '',
             make: '',
-            model: ''
+            model: '',
+            year: ''
         },
         validationSchema: vehicleValidationSchema,
         onSubmit: async (values) => {
@@ -205,6 +206,36 @@ const AddVehicle = () => {
                                         <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.model}</span>
                                     )}
                                 </div>
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                                <label htmlFor="year">Manufacture Year</label>
+                                <div className="input-with-icon">
+                                    <input
+                                        type="number"
+                                        id="year"
+                                        name="year"
+                                        placeholder="Year (Eg: 2022)"
+                                        value={formik.values.year}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className={formik.touched.year && formik.errors.year ? 'error' : ''}
+                                        style={{
+                                            width: '100%',
+                                            padding: '1rem 1.25rem',
+                                            border: '1px solid var(--border-color, #E2E8F0)',
+                                            borderRadius: '12px',
+                                            backgroundColor: 'var(--light, #FFFFFF)',
+                                            fontSize: '0.95rem',
+                                            fontWeight: '600',
+                                            color: 'var(--dark, #1A1D23)'
+                                        }}
+                                    />
+                                    <i className="fa-solid fa-calendar-days input-right-icon"></i>
+                                </div>
+                                {formik.touched.year && formik.errors.year && (
+                                    <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.year}</span>
+                                )}
                             </div>
 
                             <div className="form-group">

@@ -80,7 +80,7 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
         }
 
         const bookings = await Booking.find(query)
-            .populate("vehicle", "make model licensePlate")
+            .populate("vehicle", "make model licensePlate year")
             .sort({ date: -1 });
 
         // For each booking, fetch corresponding JobCard details
@@ -142,7 +142,7 @@ module.exports.getDashboardData = async (mobile) => {
             customer: owner._id,
             isDeleted: false,
             date: { $gte: today }
-        }).populate("vehicle", "make model")
+        }).populate("vehicle", "make model year")
             .populate("slot", "startTime endTime")
             .sort({ date: 1 });
 

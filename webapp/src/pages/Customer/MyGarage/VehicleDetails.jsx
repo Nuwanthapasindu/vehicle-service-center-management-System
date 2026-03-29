@@ -53,7 +53,8 @@ const VehicleDetails = () => {
             licensePlate: '',
             type: '',
             make: '',
-            model: ''
+            model: '',
+            year: ''
         },
         validationSchema: vehicleValidationSchema,
         onSubmit: async (values) => {
@@ -121,7 +122,8 @@ const VehicleDetails = () => {
             licensePlate: vehicle.licensePlate,
             type: vehicle.type,
             make: vehicle.make,
-            model: vehicle.model
+            model: vehicle.model,
+            year: vehicle.year
         });
         setImagePreview(getImageUrl(vehicle.image?.filePath) || defaultCarImg);
         setImageFile(null);
@@ -182,7 +184,7 @@ const VehicleDetails = () => {
                         <div className="hero-content">
                             <div className="hero-meta-badges">
                                 {/* <span className="status-badge active">ACTIVE</span> */}
-                                <span className="meta-info"><i className="fa-regular fa-calendar"></i> {new Date(vehicle.createdAt).getFullYear()}</span>
+                                <span className="meta-info"><i className="fa-regular fa-calendar"></i> {vehicle.year || 'N/A'}</span>
                                 <span className="meta-info"><i className="fa-solid fa-id-card"></i> {vehicle.licensePlate}</span>
                             </div>
 
@@ -226,6 +228,10 @@ const VehicleDetails = () => {
                                 <div className="spec-item">
                                     <span className="spec-label">Model</span>
                                     <span className="spec-value">{vehicle.model}</span>
+                                </div>
+                                <div className="spec-item">
+                                    <span className="spec-label">Manufacture Year</span>
+                                    <span className="spec-value">{vehicle.year || 'N/A'}</span>
                                 </div>
                                 <div className="spec-item border-none">
                                     <span className="spec-label">Date Added</span>
@@ -331,6 +337,20 @@ const VehicleDetails = () => {
                                         />
                                         {formik.touched.model && formik.errors.model && (
                                             <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.model}</span>
+                                        )}
+                                    </div>
+                                    <div className="modal-form-group">
+                                        <label>YEAR</label>
+                                        <input
+                                            type="number"
+                                            name="year"
+                                            value={formik.values.year}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            className={formik.touched.year && formik.errors.year ? 'error' : ''}
+                                        />
+                                        {formik.touched.year && formik.errors.year && (
+                                            <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.year}</span>
                                         )}
                                     </div>
                                 </div>
