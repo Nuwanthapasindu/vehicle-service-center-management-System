@@ -29,6 +29,11 @@ export default function InvoiceLayout() {
           headerBackTitle: "Invoices",
         }}
         />
+        <Stack.Screen name="ViewInvoice" options={{
+          title: "Invoice & Billing",
+          headerBackTitle: "Invoices",
+        }}
+        />
     </Stack>
   )
 }

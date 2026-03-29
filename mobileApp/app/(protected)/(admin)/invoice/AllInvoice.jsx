@@ -18,7 +18,7 @@ export default function AllInvoice() {
   const renderItem = ({ item }) => {
     const isPaid = item.status === 'PAID';
     return (
-      <View style={styles.card}>
+      <TouchableOpacity style={styles.card} onPress={() => navigate.push('ViewInvoice')} activeOpacity={0.7}>
         <View style={styles.cardHeader}>
           <Text style={styles.invoiceId}>{item.invoiceId}</Text>
           <View style={[styles.badge, isPaid ? styles.badgePaid : styles.badgeUnpaid]}>
@@ -32,7 +32,7 @@ export default function AllInvoice() {
           <Text style={styles.dateText}>{item.date}</Text>
           <Text style={styles.amountText}>{item.amount}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
