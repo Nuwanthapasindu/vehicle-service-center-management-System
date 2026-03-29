@@ -13,192 +13,223 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import colors from "../../../../constants/colors";
+import { Formik } from "formik";
+import CreateTeamSchema from "../../../../schema/CreateTeamSchema";
+import axios from "axios";
 
 export default function CreateTeam() {
   const router = useRouter();
-  const [teamName, setTeamName] = useState("");
   const [employees, setEmployees] = useState([]);
-  const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
 
-  // Fetch employees from backend to populate the list
   useEffect(() => {
     fetchEmployees();
   }, []);
-  
-  const fetchEmployees = async () => {
-  try {
-    const response = await fetch("http://192.168.8.186:5000/api/v1/employees");
-    const resData = await response.json();
-    
-    console.log("Fetched Employees:", resData.payload.data);
 
-    if (resData && resData.payload && resData.payload.data) {
-      // FIX: Filter for employees who are NOT deleted AND ARE available
-      const availableOnly = resData.payload.data.filter(
-        emp => !emp.isDeleted && emp.isAvailable === true
+  // --- Update filtered list when search query or employees change
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredEmployees(employees);
+    } else {
+      const filtered = employees.filter((emp) =>
+        emp.user?.name
+          ?.toLowerCase()
+          .includes(searchQuery.trim().toLowerCase())
       );
-      setEmployees(availableOnly);
+      setFilteredEmployees(filtered);
     }
-  } catch (error) {
-    console.error("Fetch employees error:", error);
-    Alert.alert("Error", "Failed to load employees.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const toggleEmployeeSelection = (id) => {
-    if (selectedEmployees.includes(id)) {
-      setSelectedEmployees(selectedEmployees.filter((empId) => empId !== id));
-    } else {
-      setSelectedEmployees([...selectedEmployees, id]);
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectedEmployees.length === employees.length) {
-      setSelectedEmployees([]);
-    } else {
-      setSelectedEmployees(employees.map((emp) => emp._id));
-    }
-  };
- 
-  const handleSaveTeam = async () => {
-    if (!teamName.trim()) {
-      Alert.alert("Validation Error", "Team name is required");
-      return;
-    }
-    if (selectedEmployees.length === 0) {
-      Alert.alert("Validation Error", "A team must have at least one employee");
-      return;
-    }
-
-    setSubmitting(true);
+  }, [searchQuery, employees]);
+  const fetchEmployees = async () => {
     try {
-      const response = await fetch("http://192.168.8.186:5000/api/v1/teams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: teamName,
-          employees: selectedEmployees,
-        }),
+      const response = await axios.get("/employees"); 
+
+      const resData = response.data; 
+      if (resData && resData.payload && resData.payload.data) {
+        const availableOnly = resData.payload.data.filter(
+          (emp) => !emp.isDeleted && emp.isAvailable === true
+        );
+        setEmployees(availableOnly);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to load employees.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleEmployeeSelection = (values, setFieldValue, id) => {
+    if (values.employees.includes(id)) {
+      setFieldValue(
+        "employees",
+        values.employees.filter((empId) => empId !== id)
+      );
+    } else {
+      setFieldValue("employees", [...values.employees, id]);
+    }
+  };
+
+  const handleSelectAll = (values, setFieldValue) => {
+    if (values.employees.length === employees.length) {
+      setFieldValue("employees", []);
+    } else {
+      setFieldValue(
+        "employees",
+        employees.map((emp) => emp._id)
+      );
+    }
+  };
+
+  const handleSaveTeam = async (values) => {
+    setSubmitting(true);
+
+    try {
+      const response = await axios.post("/teams", {   // CHANGED
+        name: values.name,
+        employees: values.employees,
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (response.status === 201 || response.status === 200) {
         Alert.alert("Success", "Team created successfully", [
           {
             text: "OK",
             onPress: () => {
-              // CHANGE: Navigate explicitly to the Team Directory index
-              // router.replace ensures the "Add" screen is removed from the history
               router.replace("/(protected)/(admin)/(team)");
             },
           },
         ]);
-      } else {
-        Alert.alert("Error", result.message || "Failed to create team");
       }
     } catch (error) {
-      Alert.alert("Error", "Network error. Please try again.");
+      const message =
+        error.response?.data?.message || "Failed to create team";
+
+      Alert.alert("Error", message);
     } finally {
       setSubmitting(false);
     }
   };
- 
-  
-  const renderEmployeeItem = ({ item }) => {
-  const isSelected = selectedEmployees.includes(item._id);
-  
-  // Because your backend uses .populate('user'), 
-  // the name and role are inside item.user
-  const displayName = item.user?.name || "Name Missing";
-  const displayRole = item.user?.role || "No Role Assigned";
 
-  return (
-    <TouchableOpacity
-      style={styles.employeeCard}
-      onPress={() => toggleEmployeeSelection(item._id)}
-    >
-      <View style={styles.avatarContainer}>
-        <Ionicons name="person-circle" size={40} color={colors.PRIMARY} />
-      </View>
-      <View style={styles.employeeInfo}>
-        <Text style={styles.employeeName}>{displayName}</Text>
-        <Text style={styles.employeeRole}>{displayRole}</Text>
-      </View>
-      <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-        {isSelected && <Ionicons name="checkmark" size={16} color={colors.LIGHT} />}
-      </View>
-    </TouchableOpacity>
-  );
-};
+  const renderEmployeeItem = (values, setFieldValue) => ({ item }) => {
+    const isSelected = values.employees.includes(item._id);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={28} color={colors.PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>NEW TEAM</Text>
-        <View style={{ width: 28 }} />
-      </View>*/}
+    const displayName = item.user?.name || "Name Missing";
+    const displayRole = item.user?.role || "No Role Assigned";
 
-      <View style={styles.content}>
-        {/* Team Name Input */}
-        <Text style={styles.label}>TEAM NAME</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g., Night Shift Detailing"
-          placeholderTextColor={colors.SECONDARY}
-          value={teamName}
-          onChangeText={setTeamName}
-        />
-
-        {/* Selection Header */}
-        <View style={styles.selectionHeader}>
-          <Text style={styles.sectionLabel}>
-            AVAILABLE EMPLOYEES ({employees.length})
-          </Text>
-          <TouchableOpacity onPress={handleSelectAll}>
-            <Text style={styles.selectAllText}>
-              {selectedEmployees.length === employees.length ? "Deselect All" : "Select All"}
-            </Text>
-          </TouchableOpacity>
+    return (
+      <TouchableOpacity
+        style={styles.employeeCard}
+        onPress={() =>
+          toggleEmployeeSelection(values, setFieldValue, item._id)
+        }
+      >
+        <View style={styles.avatarContainer}>
+          <Ionicons name="person-circle" size={40} color={colors.PRIMARY} />
         </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color={colors.PRIMARY} />
-        ) : (
-          <FlatList
-            data={employees}
-            renderItem={renderEmployeeItem}
-            keyExtractor={(item) => item._id}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
-
-      {/* Save Button */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.saveButton, submitting && { opacity: 0.7 }]}
-          onPress={handleSaveTeam}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color={colors.DARK} />
-          ) : (
-            <Text style={styles.saveButtonText}>SAVE TEAM</Text>
+        <View style={styles.employeeInfo}>
+          <Text style={styles.employeeName}>{displayName}</Text>
+          <Text style={styles.employeeRole}>{displayRole}</Text>
+        </View>
+        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+          {isSelected && (
+            <Ionicons name="checkmark" size={16} color={colors.LIGHT} />
           )}
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <Formik
+      initialValues={{
+        name: "",
+        employees: [],
+      }}
+      validationSchema={CreateTeamSchema}
+      onSubmit={handleSaveTeam}
+    >
+      {({
+        values,
+        handleChange,
+        handleSubmit,
+        setFieldValue,
+        errors,
+        touched,
+      }) => (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.content}>
+            {/* Team Name */}
+            <Text style={styles.label}>TEAM NAME</Text>
+            {errors.name && touched.name && (
+              <Text style={{ color: "red" }}>{errors.name}</Text>
+            )}
+            <TextInput
+              style={styles.input}
+              placeholder="e.g., Night Shift Detailing"
+              placeholderTextColor={colors.SECONDARY}
+              value={values.name}
+              onChangeText={handleChange("name")}
+            />
+
+            {/* Employee Selection */}
+            <View style={styles.selectionHeader}>
+              <Text style={styles.sectionLabel}>
+                AVAILABLE EMPLOYEES ({employees.length})
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleSelectAll(values, setFieldValue)}
+              >
+                <Text style={styles.selectAllText}>
+                  {values.employees.length === employees.length
+                    ? "Deselect All"
+                    : "Select All"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+             {errors.employees && touched.employees && (
+              <Text style={{ color: "red" }}>{errors.employees}</Text>
+            )}
+
+            {/* --- SEARCH BAR ADDED HERE --- */}
+            <TextInput
+              style={[styles.input, { marginBottom: 15 }]}
+              placeholder="Search employees..."
+              placeholderTextColor={colors.SECONDARY}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+
+            {loading ? (
+              <ActivityIndicator size="large" color={colors.PRIMARY} />
+            ) : (
+              <FlatList
+                data={filteredEmployees}
+                renderItem={renderEmployeeItem(values, setFieldValue)}
+                keyExtractor={(item) => item._id}
+                contentContainerStyle={styles.listContainer}
+                showsVerticalScrollIndicator={true}
+              />
+            )}
+          </View>
+
+          {/* Save Button */}
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[styles.saveButton, submitting && { opacity: 0.7 }]}
+              onPress={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator color={colors.DARK} />
+              ) : (
+                <Text style={styles.saveButtonText}>SAVE TEAM</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      )}
+    </Formik>
   );
 }
 

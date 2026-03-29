@@ -1,14 +1,24 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, TextInput, ActivityIndicator, SafeAreaView } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  SafeAreaView,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useFocusEffect } from "expo-router"; 
+import { useRouter, useFocusEffect } from "expo-router";
+import axios from "axios";
 import colors from "../../../../constants/colors";
 
 export default function EmployeeDirectory() {
   const [employees, setEmployees] = useState([]);
-  const [filteredEmployees, setFilteredEmployees] = useState([]); 
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); 
+  const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
@@ -23,133 +33,161 @@ export default function EmployeeDirectory() {
       setFilteredEmployees(employees);
     } else {
       const query = searchQuery.toLowerCase();
-      const filtered = employees.filter((item) =>
-        item.user?.name?.toLowerCase().includes(query) ||
-        item.user?.role?.toLowerCase().includes(query)
+
+      const filtered = employees.filter(
+        (item) =>
+          item.user?.name?.toLowerCase().includes(query) ||
+          item.user?.role?.toLowerCase().includes(query)
       );
       setFilteredEmployees(filtered);
     }
   }, [searchQuery, employees]);
-  
+
   const fetchEmployees = async () => {
-    setLoading(true);
     try {
-      let url = "http://192.168.8.186:5000/api/v1/employees";
+      setLoading(true);
+
+      let url = "/employees";
+
       if (filter === "available") {
         url += "?isAvailable=true";
       } else if (filter === "unavailable") {
         url += "?isAvailable=false";
       }
 
-      const response = await fetch(url);
-      const resData = await response.json();
+      const response = await axios.get(url);
 
-      console.log("Fetched Data:", resData);
+      const employeesData = response?.data?.payload?.data || [];
 
-      // CHANGE 1: Access resData.payload.data instead of resData.data
-      // Your terminal log shows: {"payload": {"data": [...]}}
-      if (resData && resData.payload && resData.payload.data) {
-        setEmployees(resData.payload.data);
-      } else if (resData && resData.data) {
-        // Fallback in case the backend structure varies
-        setEmployees(resData.data);
-      } else {
-        setEmployees([]);
-      }
+      console.log("Employees:", employeesData);
+
+      setEmployees(employeesData);
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.error("Employee fetch error:", error);
       setEmployees([]);
     } finally {
       setLoading(false);
     }
   };
 
-
   const renderEmployeeCard = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={() => router.push(`/(protected)/(admin)/(employee)/${item._id}`)}
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        router.push(`/(protected)/(admin)/(employee)/${item._id}`)
+      }
     >
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>
           {item.user?.name ? item.user.name.charAt(0).toUpperCase() : "?"}
         </Text>
       </View>
+
       <View style={styles.info}>
         <Text style={styles.name}>{item.user?.name || "Unknown Name"}</Text>
-        <Text style={styles.roleText}>{item.user?.role || "No Role Assigned"}</Text>
-        <Text style={[styles.statusText, { color: item.isAvailable ? "#4CAF50" : "#F44336" }]}>
+        <Text style={styles.roleText}>
+          {item.user?.role || "No Role Assigned"}
+        </Text>
+
+        <Text
+          style={[
+            styles.statusText,
+            { color: item.isAvailable ? "#4CAF50" : "#F44336" },
+          ]}
+        >
           {item.isAvailable ? "● Available" : "○ Unavailable"}
         </Text>
       </View>
+
       <Ionicons name="chevron-forward" size={20} color={colors.SECONDARY} />
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Search Header */}
+      {/* SEARCH */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={colors.SECONDARY} style={styles.searchIcon} />
-        <TextInput 
-          placeholder="Search by name or role..." 
-          style={styles.searchInput} 
+        <Ionicons
+          name="search"
+          size={20}
+          color={colors.SECONDARY}
+          style={styles.searchIcon}
+        />
+
+        <TextInput
+          placeholder="Search by name or role..."
+          style={styles.searchInput}
           placeholderTextColor={colors.SECONDARY}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
       </View>
 
-      {/* Tab Bar Filters */}
+      {/* FILTER TABS */}
       <View style={styles.tabBar}>
         {["all", "available", "unavailable"].map((t) => (
-          <TouchableOpacity 
-            key={t} 
-            onPress={() => setFilter(t)} 
+          <TouchableOpacity
+            key={t}
+            onPress={() => setFilter(t)}
             style={[styles.tab, filter === t && styles.activeTab]}
           >
-            <Text style={[styles.tabText, filter === t && styles.activeTabText]}>
+            <Text
+              style={[styles.tabText, filter === t && styles.activeTabText]}
+            >
               {t === "all" ? "ALL STAFF" : t.toUpperCase()}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* List Area */}
+      {/* EMPLOYEE LIST */}
       {loading ? (
-        <ActivityIndicator size="large" color={colors.PRIMARY} style={{ marginTop: 50 }} />
+        <ActivityIndicator
+          size="large"
+          color={colors.PRIMARY}
+          style={{ marginTop: 50 }}
+        />
       ) : (
         <FlatList
           data={filteredEmployees}
           renderItem={renderEmployeeCard}
-          keyExtractor={(item) => item._id || Math.random().toString()}
+          keyExtractor={(item) => item._id}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-               <Text style={styles.emptyText}>No employees found for this filter.</Text>
+              <Text style={styles.emptyText}>
+                No employees found for this filter.
+              </Text>
             </View>
           }
         />
       )}
 
-      {/* Floating Action Button - Positioned above Nav */}
-      <TouchableOpacity 
-        style={styles.fab} 
-        onPress={() => router.push("/(protected)/(admin)/(employee)/add")}
+      {/* FAB BUTTON */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() =>
+          router.push("/(protected)/(admin)/(employee)/add")
+        }
       >
         <Ionicons name="add" size={32} color={colors.DARK} />
       </TouchableOpacity>
 
-      {/* --- FIXED BOTTOM NAVIGATION BAR --- */}
+      {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push("/(protected)/(admin)/(team)")}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => router.push("/(protected)/(admin)/(team)")}
+        >
           <Ionicons name="people-outline" size={24} color={colors.SECONDARY} />
           <Text style={styles.navText}>Team</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.navItem}>
           <Ionicons name="person" size={24} color={colors.PRIMARY} />
-          <Text style={[styles.navText, { color: colors.PRIMARY }]}>Employee</Text>
+          <Text style={[styles.navText, { color: colors.PRIMARY }]}>
+            Employee
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

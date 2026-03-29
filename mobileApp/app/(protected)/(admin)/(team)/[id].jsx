@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import colors from "../../../../constants/colors";
+import axios from "axios";
 
 export default function EditTeam() {
   const router = useRouter();
@@ -23,21 +24,35 @@ export default function EditTeam() {
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchData();
   }, [id]);
 
+    // --- Filter employees whenever searchQuery or employees change
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredEmployees(employees);
+    } else {
+      const filtered = employees.filter((emp) =>
+        emp.user?.name
+          ?.toLowerCase()
+          .includes(searchQuery.trim().toLowerCase())
+      );
+      setFilteredEmployees(filtered);
+    }
+  }, [searchQuery, employees]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch All Available Employees
-      const empRes = await fetch("http://192.168.8.186:5000/api/v1/employees");
-      const empData = await empRes.json();
-      
-      // 2. Fetch Specific Team Details
-      const teamRes = await fetch(`http://192.168.8.186:5000/api/v1/teams/${id}`);
-      const teamData = await teamRes.json();
+      const empRes = await axios.get("/employees?isAvailable=true");
+      const empData = empRes.data;
+
+      const teamRes = await axios.get(`/teams/${id}`);
+      const teamData = teamRes.data;
 
       if (empData?.payload?.data) {
         // Only show employees that are not deleted
@@ -76,22 +91,22 @@ export default function EditTeam() {
     if (selectedEmployees.length === 0) return Alert.alert("Error", "Select at least one member");
 
     setSubmitting(true);
+
     try {
-      const response = await fetch(`http://192.168.8.186:5000/api/v1/teams/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: teamName,
-          employees: selectedEmployees,
-        }),
+      await axios.put(`/teams/${id}`, {
+        name: teamName,
+        employees: selectedEmployees,
       });
 
-      if (response.ok) {
-        Alert.alert("Success", "Team updated successfully", [
-          { text: "OK", onPress: () => router.replace("/(protected)/(admin)/(team)") }
-        ]);
-      }
+      Alert.alert("Success", "Team updated successfully", [
+        {
+          text: "OK",
+          onPress: () => router.replace("/(protected)/(admin)/(team)")
+        }
+      ]);
+
     } catch (error) {
+      console.log(error);
       Alert.alert("Error", "Update failed");
     } finally {
       setSubmitting(false);
@@ -99,23 +114,31 @@ export default function EditTeam() {
   };
 
   const handleDeleteTeam = () => {
-    Alert.alert("Delete Team", "Are you sure you want to remove this team?", [
-      { text: "Cancel", style: "cancel" },
-      { 
-        text: "Delete", 
-        style: "destructive", 
-        onPress: async () => {
-          try {
-            const response = await fetch(`http://192.168.8.186:5000/api/v1/teams/${id}`, { 
-              method: "DELETE" 
-            });
-            if (response.ok) {
-                router.replace("/(protected)/(admin)/(team)");
+
+    Alert.alert(
+      "Delete Team",
+      "Are you sure you want to remove this team?",
+      [
+        { text: "Cancel", style: "cancel" },
+
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+
+            try {
+              await axios.delete(`/teams/${id}`);
+
+              router.replace("/(protected)/(admin)/(team)");
+
+            } catch (error) {
+              Alert.alert("Error", "Delete failed");
             }
-          } catch (e) { Alert.alert("Error", "Delete failed"); }
-        } 
-      },
-    ]);
+
+          }
+        }
+      ]
+    );
   };
 
   const renderEmployeeItem = ({ item }) => {
@@ -168,11 +191,21 @@ export default function EditTeam() {
         />
 
         <Text style={styles.label}>MANAGE EMPLOYEES ({employees.length})</Text>
+
+        {/* --- SEARCH BAR ADDED --- */}
+        <TextInput
+          style={[styles.input, { marginBottom: 15 }]}
+          placeholder="Search employees..."
+          placeholderTextColor={colors.SECONDARY}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+
         <FlatList
-          data={employees}
+          data={filteredEmployees}
           renderItem={renderEmployeeItem}
           keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
           contentContainerStyle={{ paddingBottom: 20 }}
         />
       </View>

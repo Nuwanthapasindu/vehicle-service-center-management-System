@@ -1,139 +1,221 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../../../constants/colors";
 import enums from "../../../../constants/enums";
+import { Formik } from "formik";
+import AddEmployeeSchema from "../../../../schema/AddEmployeeSchema";
+import axios from "axios"; 
 
 export default function AddEmployee() {
+
   const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [form, setForm] = useState({
-    name: "", 
-    mobile: "", 
-    address: "", 
-    role: enums.USER_ROLES.MECHANIC,
-    dob: "", 
-    nic: "", 
-    skills: [], 
-    gender: "MALE", 
-    userName: "", 
-    password: ""
-  });
 
-  const availableSkills = ["Engine Repair", "Electrical", "Body Wash", "Diagnostics", "Tire Service"];
+  const availableSkills = [
+    "Engine Repair",
+    "Electrical",
+    "Body Wash",
+    "Diagnostics",
+    "Tire Service",
+  ];
 
-  const toggleSkill = (skill) => {
-    setForm(prev => ({
-      ...prev,
-      skills: prev.skills.includes(skill) 
-        ? prev.skills.filter(s => s !== skill) 
-        : [...prev.skills, skill]
-    }));
+  const toggleSkill = (values, setFieldValue, skill) => {
+    if (values.skills.includes(skill)) {
+      setFieldValue(
+        "skills",
+        values.skills.filter((s) => s !== skill)
+      );
+    } else {
+      setFieldValue("skills", [...values.skills, skill]);
+    }
   };
 
-  const handleCreate = async () => {
+  const handleCreate = async (values) => {
     try {
-      const response = await fetch("http://192.168.8.186:5000/api/v1/employees", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
 
-      if (response.ok) {
+      const response = await axios.post("/employees", values);
+
+      if (response.status === 201) {
         Alert.alert("Success", "Employee registered successfully");
-        // Use replace to force navigation back to the directory/index
-        router.replace("/(protected)/(admin)/(employee)"); 
-      } else {
-        const errorData = await response.json();
-        Alert.alert("Error", errorData.message || "Registration failed");
+
+        router.replace("/(protected)/(admin)/(employee)");
+    
       }
+
     } catch (error) {
-      Alert.alert("Error", "Connection to server failed");
+
+      console.log(error);
+
+      const message =
+        error?.response?.data?.payload?.message ||
+        "Employee registration failed";
+
+      Alert.alert("Error", message);
     }
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-      <Text style={styles.sectionLabel}>PERSONAL INFORMATION</Text>
-      <TextInput style={styles.input} placeholder="Full Name" onChangeText={(v) => setForm({...form, name: v})} />
-      <TextInput style={styles.input} placeholder="Mobile Number" keyboardType="phone-pad" onChangeText={(v) => setForm({...form, mobile: v})} />
-      <TextInput style={styles.input} placeholder="Address" onChangeText={(v) => setForm({...form, address: v})} />
-      <TextInput style={styles.input} placeholder="NIC" onChangeText={(v) => setForm({...form, nic: v})} />
-      
-      {/* Date of Birth Field */}
-      <TextInput 
-        style={styles.input} 
-        placeholder="Date of Birth (YYYY-MM-DD)" 
-        onChangeText={(v) => setForm({...form, dob: v})} 
-      />
+    <Formik
+      initialValues={{
+        name: "",
+        mobile: "",
+        address: "",
+        role: enums.USER_ROLES.MECHANIC,
+        dob: "",
+        nic: "",
+        skills: [],
+        gender: "MALE",
+        userName: "",
+        password: ""
+      }}
+      validationSchema={AddEmployeeSchema}
+      onSubmit={handleCreate}
+    >
+      {({ values, handleChange, handleSubmit, setFieldValue, errors, touched }) => (
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+        style={{ flex: 1 }}
+      >
+        <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
 
-      <Text style={styles.sectionLabel}>GENDER</Text>
-      <View style={styles.rowContainer}>
-        {["MALE", "FEMALE"].map((g) => (
-          <TouchableOpacity 
-            key={g} 
-            style={[styles.chip, form.gender === g && styles.activeChip]}
-            onPress={() => setForm({...form, gender: g})}
-          >
-            <Text style={[styles.chipText, form.gender === g && styles.activeChipText]}>{g}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+          <Text style={styles.sectionLabel}>PERSONAL INFORMATION</Text>
 
-      <Text style={styles.sectionLabel}>ASSIGN SKILLS</Text>
-      <View style={styles.rowContainer}>
-        {availableSkills.map((skill) => (
-          <TouchableOpacity 
-            key={skill} 
-            style={[styles.chip, form.skills.includes(skill) && styles.activeChip]}
-            onPress={() => toggleSkill(skill)}
-          >
-            <Text style={[styles.chipText, form.skills.includes(skill) && styles.activeChipText]}>{skill}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.sectionLabel}>ACCESS CONTROL</Text>
-      <View style={styles.rowContainer}>
-        {Object.values(enums.USER_ROLES).map((r) => (
-          <TouchableOpacity 
-            key={r} 
-            style={[styles.chip, form.role === r && styles.activeChip]}
-            onPress={() => setForm({...form, role: r})}
-          >
-            <Text style={[styles.chipText, form.role === r && styles.activeChipText]}>{r}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.sectionLabel}>SECURITY</Text>
-      <TextInput style={styles.input} placeholder="Username" onChangeText={(v) => setForm({...form, userName: v})} />
-      {/* --- CHANGED PLACE: PASSWORD FIELD WITH EYE ICON --- */}
-      <View style={styles.passwordContainer}>
-        <TextInput 
-          style={styles.passwordInput} 
-          placeholder="Password" 
-          secureTextEntry={!isPasswordVisible} // Toggle visibility
-          onChangeText={(v) => setForm({...form, password: v})} 
-        />
-        <TouchableOpacity 
-          style={styles.eyeIcon} 
-          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-        >
-          <Ionicons 
-            name={isPasswordVisible ? "eye-outline" : "eye-off-outline"} 
-            size={22} 
-            color={colors.SECONDARY} 
+          {errors.name && touched.name && <Text style={{ color: "red" }}>{errors.name}</Text>}
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            value={values.name}
+            onChangeText={handleChange("name")}
           />
-        </TouchableOpacity>
-      </View>  
+          
+          {errors.mobile && touched.mobile && <Text style={{ color: "red" }}>{errors.mobile}</Text>}
+          <TextInput
+            style={styles.input}
+            placeholder="Mobile Number"
+            keyboardType="phone-pad"
+            value={values.mobile}
+            onChangeText={handleChange("mobile")}
+          />
+          
+          {errors.address && touched.address && <Text style={{ color: "red" }}>{errors.address}</Text>}
+          <TextInput
+            style={styles.input}
+            placeholder="Address"
+            value={values.address}
+            onChangeText={handleChange("address")}
+          />
+          
+          {errors.nic && touched.nic && <Text style={{ color: "red" }}>{errors.nic}</Text>}
+          <TextInput
+            style={styles.input}
+            placeholder="NIC"
+            value={values.nic}
+            onChangeText={handleChange("nic")}
+          />
+          
+          {errors.dob && touched.dob && <Text style={{ color: "red" }}>{errors.dob}</Text>}
+          <TextInput
+            style={styles.input}
+            placeholder="Date of Birth (YYYY-MM-DD)"
+            value={values.dob}
+            onChangeText={handleChange("dob")}
+          />
+          
+          {errors.gender && touched.gender && <Text style={{ color: "red" }}>{errors.gender}</Text>}
+          <Text style={styles.sectionLabel}>GENDER</Text>
+          <View style={styles.rowContainer}>
+            {["MALE", "FEMALE"].map((g) => (
+              <TouchableOpacity
+                key={g}
+                style={[styles.chip, values.gender === g && styles.activeChip]}
+                onPress={() => setFieldValue("gender", g)}
+              >
+                <Text style={[styles.chipText, values.gender === g && styles.activeChipText]}>{g}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+  
+          <Text style={styles.sectionLabel}>ASSIGN SKILLS</Text>
+          <View style={styles.rowContainer}>
+            {availableSkills.map((skill) => (
+              <TouchableOpacity
+                key={skill}
+                style={[styles.chip, values.skills.includes(skill) && styles.activeChip]}
+                onPress={() => toggleSkill(values, setFieldValue, skill)}
+              >
+                <Text style={[styles.chipText, values.skills.includes(skill) && styles.activeChipText]}>{skill}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {errors.skills && touched.skills && <Text style={{ color: "red" }}>{errors.skills}</Text>}
+          
 
-      <TouchableOpacity style={styles.submitBtn} onPress={handleCreate}>
-        <Ionicons name="person-add-outline" size={20} color={colors.DARK} />
-        <Text style={styles.submitBtnText}>Create Employee</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <Text style={styles.sectionLabel}>ACCESS CONTROL</Text>
+          <View style={styles.rowContainer}>
+            {Object.values(enums.USER_ROLES).map((r) => (
+              <TouchableOpacity
+                key={r}
+                style={[styles.chip, values.role === r && styles.activeChip]}
+                onPress={() => setFieldValue("role", r)}
+              >
+                <Text style={[styles.chipText, values.role === r && styles.activeChipText]}>{r}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {errors.role && touched.role && <Text style={{ color: "red" }}>{errors.role}</Text>}
+
+          <Text style={styles.sectionLabel}>SECURITY</Text>
+          {errors.userName && touched.userName && <Text style={{ color: "red" }}>{errors.userName}</Text>}  
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            value={values.userName}
+            onChangeText={handleChange("userName")}
+          />
+          
+          {errors.password && touched.password && <Text style={{ color: "red" }}>{errors.password}</Text>}  
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Password"
+              secureTextEntry={!isPasswordVisible}
+              value={values.password}
+              onChangeText={handleChange("password")}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            >
+              <Ionicons
+                name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                size={22}
+                color={colors.SECONDARY}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+            <Ionicons name="person-add-outline" size={20} color={colors.DARK} />
+            <Text style={styles.submitBtnText}>Create Employee</Text>
+          </TouchableOpacity>
+
+        </ScrollView>
+       </KeyboardAvoidingView> 
+      )}
+    </Formik>
   );
 }
 
@@ -148,7 +230,7 @@ const styles = StyleSheet.create({
   activeChipText: { color: colors.DARK },
   submitBtn: { backgroundColor: colors.PRIMARY, padding: 18, borderRadius: 14, flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 30, marginBottom: 40, gap: 10 },
   submitBtnText: { fontSize: 18, fontWeight: "bold", color: colors.DARK },
-  // --- ADDED STYLES FOR PASSWORD CONTAINER ---
+  // ---STYLES FOR PASSWORD CONTAINER ---
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',

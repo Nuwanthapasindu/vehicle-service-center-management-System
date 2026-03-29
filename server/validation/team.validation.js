@@ -19,8 +19,8 @@ const createTeamValidationSchema = joi.object({
 });
 
 const updateTeamValidationSchema = joi.object({
-  name: joi.string().trim(),
-  employees: joi.array().items(joi.string().custom(objectId)),
+  name: joi.string().trim().optional(),
+  employees: joi.array().items(joi.string().custom(objectId)).optional(),
 });
 
 module.exports.validatedCreateTeam = validator(createTeamValidationSchema);

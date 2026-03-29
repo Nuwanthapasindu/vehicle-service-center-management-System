@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import colors from "../../../../constants/colors";
+import axios from "axios";
 
 export default function TeamDirectory() {
   const [teams, setTeams] = useState([]);
@@ -51,8 +52,9 @@ export default function TeamDirectory() {
   const fetchTeams = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://192.168.8.186:5000/api/v1/teams");
-      const resData = await response.json();
+      const response = await axios.get("/teams");
+
+      const resData = response.data;
 
       if (resData && resData.payload && resData.payload.data) {
         setTeams(resData.payload.data);
