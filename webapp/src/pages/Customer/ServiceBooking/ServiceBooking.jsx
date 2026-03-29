@@ -197,7 +197,7 @@ const ServiceBooking = () => {
                                             </div>
                                             <div className="vehicle-pick-info">
                                                 <h4>{v.make} {v.model}</h4>
-                                                <span>{v.year || v.type}</span>
+                                                <span>{v.year || 'N/A'} • {v.type}</span>
                                             </div>
                                             <div className="vehicle-check">
                                                 {values.vehicleId === v._id ? (
@@ -284,7 +284,11 @@ const ServiceBooking = () => {
                                 <div className="summary-details">
                                     <div className="detail-row">
                                         <span className="label">Vehicle</span>
-                                        <span className="value">{selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}` : 'Not selected'}</span>
+                                        <span className="value">
+                                            {selectedVehicle
+                                                ? `${selectedVehicle.make} ${selectedVehicle.model} (${selectedVehicle.year || 'N/A'})`
+                                                : 'Not selected'}
+                                        </span>
                                     </div>
                                     <div className="detail-row">
                                         <span className="label">Date</span>

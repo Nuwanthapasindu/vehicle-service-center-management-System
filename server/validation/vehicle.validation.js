@@ -19,6 +19,12 @@ const vehicleAddSchema = joi.object({
     "any.required": "Vehicle model is required",
     "string.empty": "Vehicle model cannot be empty",
   }),
+  year: joi.number().integer().min(1900).max(new Date().getFullYear() + 1).required().messages({
+    "any.required": "Manufacture year is required",
+    "number.base": "Manufacture year must be a number",
+    "number.min": "Invalid year",
+    "number.max": "Invalid year",
+  }),
   image: joi.any().optional(),
 });
 
@@ -36,6 +42,11 @@ const vehicleUpdateSchema = joi.object({
   }),
   model: joi.string().trim().messages({
     "string.empty": "Vehicle model cannot be empty",
+  }),
+  year: joi.number().integer().min(1900).max(new Date().getFullYear() + 1).messages({
+    "number.base": "Manufacture year must be a number",
+    "number.min": "Invalid year",
+    "number.max": "Invalid year",
   }),
   image: joi.any().optional(),
 });

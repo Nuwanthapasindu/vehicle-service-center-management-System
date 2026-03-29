@@ -55,6 +55,7 @@ describe("Booking Controller Tests", () => {
       type: "CAR",
       make: "Toyota",
       model: "Corolla",
+      year: 2022,
     }).save();
 
     mockSlot = await new Timeslot({
