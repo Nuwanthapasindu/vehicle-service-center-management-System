@@ -1,9 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Platform } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import colors from '../../../../constants/colors';
+import { getInvoiceHtmlContent } from '../../../../utils/invoicePdfGenerator';
 
 export default function ViewInvoice() {
+  const printQuote = async () => {
+    try {
+      await Print.printAsync({ html: getInvoiceHtmlContent() });
+    } catch (error) {
+      console.error('Error printing:', error);
+    }
+  };
+
+  const sharePDF = async () => {
+    try {
+      const { uri } = await Print.printToFileAsync({ html: getInvoiceHtmlContent() });
+      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+    } catch (error) {
+      console.error('Error sharing pdf:', error);
+    }
+  };
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -84,11 +103,11 @@ export default function ViewInvoice() {
       {/* Bottom Actions */}
       <View style={styles.bottomPanel}>
         <View style={styles.rowButtons}>
-          <TouchableOpacity style={[styles.halfBtn, { marginRight: 12 }]}>
+          <TouchableOpacity style={[styles.halfBtn, { marginRight: 12 }]} onPress={printQuote}>
             <Feather name="printer" size={16} color={colors.DARK} />
             <Text style={styles.halfBtnText}>Print Quote</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.halfBtn}>
+          <TouchableOpacity style={styles.halfBtn} onPress={sharePDF}>
             <Feather name="share" size={16} color={colors.DARK} />
             <Text style={styles.halfBtnText}>Share PDF</Text>
           </TouchableOpacity>
