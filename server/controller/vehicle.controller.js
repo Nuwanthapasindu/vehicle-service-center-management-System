@@ -64,10 +64,10 @@ module.exports.deleteVehicle = async (vehicleId, mobile) => {
     const vehicle = await Vehicle.findOne({ _id: vehicleId, ownerId: owner._id, isDeleted: false });
     if (!vehicle) throw new AppError("Vehicle not found", 404);
 
-    vehicle.isDeleted = true;
-    vehicle.deletedAt = new Date();
-
-    await vehicle.save();
+    await Vehicle.findByIdAndUpdate(vehicleId, {
+      isDeleted: true,
+      deletedAt: new Date()
+    });
     return "Vehicle deleted successfully";
   } catch (error) {
     if (error instanceof AppError) throw error;
