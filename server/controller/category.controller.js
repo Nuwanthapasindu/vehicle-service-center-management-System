@@ -1,85 +1,49 @@
 const Category = require('../model/Category');
-const AppError = require('../error/appError');
-const ResponseBuilder = require('../util/responseBuilder');
+const AppError = require('../error/AppError');
 const { categorySchema } = require('../validation/category.validation');
 
-exports.createCategory = async (req, res, next) => {
-    try {
+// CREATE
+module.exports.createCategory = async (payload) => {
+  const { error } = categorySchema.validate(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
 
-        const { error } = categorySchema.validate(req.body);
-        if (error) return next(new AppError(error.details[0].message, 400));
+  const category = await Category.create(payload);
 
-        const category = await Category.create(req.body);
-
-        const response = new ResponseBuilder(res);
-        response.setStatus(201);
-        response.buildResponse({
-            message: "Category created",
-            data: category
-        });
-
-    } catch (err) { next(err); }
+  return category;
 };
 
-exports.getAllCategories = async (req, res, next) => {
-    try {
+// GET ALL
+module.exports.getAllCategories = async () => {
+  const categories = await Category.find({ isDeleted: false }).lean();
 
-        const categories = await Category
-            .find({ isDeleted: false })
-            .lean();
-
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Categories fetched",
-            data: categories
-        });
-
-    } catch (err) { next(err); }
+  return categories;
 };
 
-exports.updateCategory = async (req, res, next) => {
-    try {
+// UPDATE
+module.exports.updateCategory = async (id, payload) => {
+  const { error } = categorySchema.validate(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
 
-        const { error } = categorySchema.validate(req.body);
-        if (error) return next(new AppError(error.details[0].message, 400));
+  const category = await Category.findOneAndUpdate(
+    { _id: id, isDeleted: false },
+    payload,
+    { new: true }
+  );
 
-        const category = await Category.findOneAndUpdate(
-            { _id: req.params.id, isDeleted: false },
-            req.body,
-            { new: true }
-        );
+  if (!category) throw new AppError("Category not found", 404);
 
-        if (!category)
-            return next(new AppError("Category not found", 404));
-
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Category updated",
-            data: category
-        });
-
-    } catch (err) { next(err); }
+  return category;
 };
 
-exports.deleteCategory = async (req, res, next) => {
-    try {
+// DELETE (SOFT DELETE)
+module.exports.deleteCategory = async (id) => {
+  const category = await Category.findOneAndUpdate(
+    { _id: id, isDeleted: false },
+    { isDeleted: true, deletedAt: new Date() },
+    { new: true }
+  );
 
-        const category = await Category.findOneAndUpdate(
-            { _id: req.params.id, isDeleted: false },
-            { isDeleted: true, deletedAt: new Date() },
-            { new: true }
-        );
+  if (!category) throw new AppError("Category not found", 404);
 
-        if (!category)
-            return next(new AppError("Category not found", 404));
-
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Category deleted"
-        });
-
-    } catch (err) { next(err); }
+  return true;
 };

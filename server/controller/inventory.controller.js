@@ -1,231 +1,187 @@
 const Inventory = require('../model/Inventory');
 const InventoryLog = require('../model/InventoryLog');
 const User = require('../model/User');
-const AppError = require('../error/appError');
-const ResponseBuilder = require('../util/responseBuilder');
+const AppError = require('../error/AppError');
 const { INVENTORY_ACTION_TYPES } = require('../util/constants');
-const { inventorySchema, stockAdjustmentSchema } = require('../validation/inventory.validation');
+const {
+  inventorySchema,
+  stockAdjustmentSchema,
+} = require('../validation/inventory.validation');
 
-const adjustStockInternal = async (inventoryId, change, actionType, userId, session = null) => {
+const adjustStockInternal = async (
+  inventoryId,
+  change,
+  actionType,
+  userId,
+  session = null
+) => {
+  const item = await Inventory.findOne({
+    _id: inventoryId,
+    isDeleted: false,
+  }).session(session);
 
-    const item = await Inventory.findOne({ _id: inventoryId, isDeleted: false }).session(session);
+  if (!item) throw new AppError(`Inventory item ${inventoryId} not found`, 404);
 
-    if (!item)
-        throw new AppError(`Inventory item ${inventoryId} not found`, 404);
+  const oldQty = item.qty;
 
-    const oldQty = item.qty;
+  if (oldQty + change < 0) throw new AppError("Insufficient stock", 400);
 
-    if (oldQty + change < 0)
-        throw new AppError("Insufficient stock", 400);
+  item.qty = oldQty + change;
 
-    item.qty = oldQty + change;
+  await item.save({ session });
 
-    await item.save({ session });
-
-    await InventoryLog.create([{
+  await InventoryLog.create(
+    [
+      {
         inventory: inventoryId,
         actionType,
         quantityChange: change,
         previousStock: oldQty,
         stockBalance: item.qty,
-        performedBy: userId
-    }], { session });
+        performedBy: userId,
+      },
+    ],
+    { session }
+  );
 
-    return item;
+  return item;
 };
 
-exports.adjustStockHelper = adjustStockInternal;
+module.exports.adjustStockHelper = adjustStockInternal;
 
-const getUserIdByMobile = async (mobileNumber) => {
-    if (!mobileNumber) {
-        throw new AppError("Mobile number is required", 400);
-    }
-    
-    const user = await User.findOne({ mobileNumber, isActive: true, isDeleted: false })
-        .select('_id')
-        .lean();
-    
-    if (!user) {
-        throw new AppError("User not found with this mobile number", 404);
-    }
-    
-    return user._id;
+const getUserIdByMobile = async (mobile) => {
+  if (!mobile) throw new AppError("Mobile number is required", 400);
+
+  const user = await User.findOne({
+    mobile,
+    isActive: true,
+    isDeleted: false,
+  })
+    .select("_id")
+    .lean();
+
+  if (!user) throw new AppError("User not found", 404);
+
+  return user._id;
 };
 
-exports.getInventory = async (req, res, next) => {
-    try {
-
-        const items = await Inventory
-            .find({ isDeleted: false })
-            .populate('category')
-            .lean();
-
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Inventory fetched successfully",
-            data: items
-        });
-
-    } catch (err) { next(err); }
+// GET INVENTORY
+module.exports.getInventory = async () => {
+  return await Inventory.find({ isDeleted: false })
+    .populate("category")
+    .lean();
 };
 
-exports.addItem = async (req, res, next) => {
-    try {
-        const { error } = inventorySchema.validate(req.body);
-        if (error) return next(new AppError(error.details[0].message, 400));
+// ADD ITEM
+module.exports.addItem = async (payload, authUser) => {
+  const { error } = inventorySchema.validate(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
 
-        const userId = await getUserIdByMobile(req.user.mobile);
-        
-        const item = await Inventory.create(req.body);
+  const userId = await getUserIdByMobile(authUser.mobile);
 
-        await InventoryLog.create({
-            inventory: item._id,
-            actionType: INVENTORY_ACTION_TYPES.RESTOCK,
-            quantityChange: item.qty,
-            previousStock: 0,
-            stockBalance: item.qty,
-            performedBy: userId
-        });
+  const item = await Inventory.create(payload);
 
-        const response = new ResponseBuilder(res);
-        response.setStatus(201);
-        response.buildResponse({
-            message: "Item added to inventory",
-            data: item
-        });
+  await InventoryLog.create({
+    inventory: item._id,
+    actionType: INVENTORY_ACTION_TYPES.RESTOCK,
+    quantityChange: item.qty,
+    previousStock: 0,
+    stockBalance: item.qty,
+    performedBy: userId,
+  });
 
-    } catch (err) { next(err); }
+  return item;
 };
 
-exports.manualAdjustment = async (req, res, next) => {
-    try {
-        const { error } = stockAdjustmentSchema.validate(req.body);
-        if (error) return next(new AppError(error.details[0].message, 400));
+// MANUAL ADJUSTMENT
+module.exports.manualAdjustment = async (id, payload, authUser) => {
+  const { error } = stockAdjustmentSchema.validate(payload);
+  if (error) throw new AppError(error.details[0].message, 400);
 
-        const userId = await getUserIdByMobile(req.user.mobile);
-        
-        const { id } = req.params;
-        const { quantityChange } = req.body;
+  const userId = await getUserIdByMobile(authUser.mobile);
 
-        const updatedItem = await adjustStockInternal(
-            id,
-            quantityChange,
-            INVENTORY_ACTION_TYPES.MANUAL_ADJUSTMENT,
-            userId
-        );
-
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Manual stock adjustment successful",
-            data: updatedItem
-        });
-
-    } catch (err) { next(err); }
+  return await adjustStockInternal(
+    id,
+    payload.quantityChange,
+    INVENTORY_ACTION_TYPES.MANUAL_ADJUSTMENT,
+    userId
+  );
 };
 
-exports.reduceStockByInvoice = async (req, res, next) => {
-    try {
-        const { items } = req.body;
+// REDUCE STOCK (INVOICE)
+module.exports.reduceStockByInvoice = async (payload, authUser) => {
+  const { items } = payload;
 
-        if (!items || !Array.isArray(items) || !items.length)
-            return next(new AppError("No items provided", 400));
+  if (!items || !Array.isArray(items) || !items.length)
+    throw new AppError("No items provided", 400);
 
-        const userId = await getUserIdByMobile(req.user.mobile);
+  const userId = await getUserIdByMobile(authUser.mobile);
 
-        const updatePromises = items.map(item => {
-            if (!item.inventoryId || !item.quantity)
-                throw new AppError("Invalid item structure", 400);
+  const promises = items.map((item) => {
+    if (!item.inventoryId || !item.quantity)
+      throw new AppError("Invalid item structure", 400);
 
-            return adjustStockInternal(
-                item.inventoryId,
-                -Math.abs(item.quantity),
-                INVENTORY_ACTION_TYPES.INVOICE_SALE,
-                userId
-            );
-        });
+    return adjustStockInternal(
+      item.inventoryId,
+      -Math.abs(item.quantity),
+      INVENTORY_ACTION_TYPES.INVOICE_SALE,
+      userId
+    );
+  });
 
-        await Promise.all(updatePromises);
+  await Promise.all(promises);
 
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Stock reduced for invoice items"
-        });
-
-    } catch (err) { next(err); }
+  return true;
 };
 
-exports.increaseStockByPO = async (req, res, next) => {
-    try {
-        const { items } = req.body;
+// INCREASE STOCK (PO)
+module.exports.increaseStockByPO = async (payload, authUser) => {
+  const { items } = payload;
 
-        if (!items || !Array.isArray(items) || !items.length)
-            return next(new AppError("No items provided", 400));
+  if (!items || !Array.isArray(items) || !items.length)
+    throw new AppError("No items provided", 400);
 
-        const userId = await getUserIdByMobile(req.user.mobile);
+  const userId = await getUserIdByMobile(authUser.mobile);
 
-        const updatePromises = items.map(item => {
-            if (!item.inventoryId || !item.quantityReceived)
-                throw new AppError("Invalid item structure", 400);
+  const promises = items.map((item) => {
+    if (!item.inventoryId || !item.quantityReceived)
+      throw new AppError("Invalid item structure", 400);
 
-            return adjustStockInternal(
-                item.inventoryId,
-                Math.abs(item.quantityReceived),
-                INVENTORY_ACTION_TYPES.PO_RECEIVE,
-                userId
-            );
-        });
+    return adjustStockInternal(
+      item.inventoryId,
+      Math.abs(item.quantityReceived),
+      INVENTORY_ACTION_TYPES.PO_RECEIVE,
+      userId
+    );
+  });
 
-        await Promise.all(updatePromises);
+  await Promise.all(promises);
 
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Stock increased for received Order items"
-        });
-
-    } catch (err) { next(err); }
+  return true;
 };
 
-exports.updateItem = async (req, res, next) => {
-    try {
-        const item = await Inventory.findOneAndUpdate(
-            { _id: req.params.id, isDeleted: false },
-            req.body,
-            { new: true }
-        );
+// UPDATE ITEM
+module.exports.updateItem = async (id, payload) => {
+  const item = await Inventory.findOneAndUpdate(
+    { _id: id, isDeleted: false },
+    payload,
+    { new: true }
+  );
 
-        if (!item)
-            return next(new AppError("Item not found", 404));
+  if (!item) throw new AppError("Item not found", 404);
 
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Item details updated",
-            data: item
-        });
-
-    } catch (err) { next(err); }
+  return item;
 };
 
-exports.deleteItem = async (req, res, next) => {
-    try {
-        const item = await Inventory.findOneAndUpdate(
-            { _id: req.params.id, isDeleted: false },
-            { isDeleted: true, deletedAt: new Date() },
-            { new: true }
-        );
+// DELETE ITEM
+module.exports.deleteItem = async (id) => {
+  const item = await Inventory.findOneAndUpdate(
+    { _id: id, isDeleted: false },
+    { isDeleted: true, deletedAt: new Date() },
+    { new: true }
+  );
 
-        if (!item)
-            return next(new AppError("Item not found", 404));
+  if (!item) throw new AppError("Item not found", 404);
 
-        const response = new ResponseBuilder(res);
-        response.setStatus(200);
-        response.buildResponse({
-            message: "Item removed from inventory"
-        });
-
-    } catch (err) { next(err); }
+  return true;
 };
