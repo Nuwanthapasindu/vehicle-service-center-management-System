@@ -4,7 +4,11 @@ const InventorySchema = Yup.object().shape({
   name: Yup.string()
     .trim()
     .required("Item name is required")
-    .min(2, "Item name must be at least 2 characters"),
+    .min(2, "Item name must be at least 2 characters")
+    .matches(
+      /^[a-zA-Z0-9\s\-&]+$/,
+      "Item name can only contain letters, numbers, spaces, hyphens, and ampersands"
+    ),
   
   category: Yup.string()
     .required("Category is required"),
