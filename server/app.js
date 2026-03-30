@@ -19,6 +19,9 @@ const categoryRouter = require("./routes/category.route");
 const serviceRouter = require("./routes/service.route");
 const packageRouter = require("./routes/package.route");
 const userRouter = require("./routes/user.route");
+const vehicleRouter = require("./routes/vehicle.route");
+const bookingRouter = require("./routes/booking.route");
+const timeslotRouter = require("./routes/timeslot.route");
 
 // CONFIGURE EXPRESS APP
 const app = express();
@@ -34,7 +37,7 @@ app.use(
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   })
 );
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(log);
 // Serve Swagger documentation
 if (process.env.NODE_ENV !== "production") {
@@ -45,7 +48,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // STATIC FOLDER
-app.use("/api/v1/storage/uploads",express.static(path.join(process.cwd(),"storage","uploads")));
+app.use("/api/v1/storage/uploads", express.static(path.join(process.cwd(), "storage", "uploads")));
 
 // ROUTES
 app.use("/api/v1/auth", authRouter);
@@ -55,6 +58,9 @@ app.use("/api/v1/inventory", inventoryRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/package", packageRouter);
+app.use("/api/v1/vehicle", vehicleRouter);
+app.use("/api/v1/booking", bookingRouter);
+app.use("/api/v1/timeslot", timeslotRouter);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {
