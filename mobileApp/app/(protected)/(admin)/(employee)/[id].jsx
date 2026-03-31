@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../../../constants/colors";
 import { Formik } from "formik";
+import Toast from "react-native-toast-message";
 import UpdateEmployeeSchema from "../../../../schema/UpdateEmployeeSchema";
 import axios from "axios";
 
@@ -77,8 +78,13 @@ export default function EditEmployee() {
 
       console.log(error);
 
-      Alert.alert("Error", "Failed to load employee details");
-
+      //Alert.alert("Error", "Failed to load employee details");
+      // show error toast instead of Alert
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to load employee details",
+      });
     } finally {
 
       setLoading(false);
@@ -111,7 +117,13 @@ export default function EditEmployee() {
 
       if (response.status === 200) {
 
-        Alert.alert("Success", "Employee updated successfully");
+        //Alert.alert("Success", "Employee updated successfully");
+        // success toast instead of Alert
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Employee updated successfully",
+        });
 
         router.back();
       }
@@ -124,7 +136,13 @@ export default function EditEmployee() {
         error?.response?.data?.payload?.message ||
         "Employee update failed";
 
-      Alert.alert("Error", message);
+      //Alert.alert("Error", message);
+      // show error toast instead of Alert
+      Toast.show({
+         type: "error",
+         text1: "Error",
+         text2: message,
+      });
 
     } finally {
 
@@ -154,7 +172,13 @@ export default function EditEmployee() {
 
               if (response.status === 200) {
 
-                Alert.alert("Success", "Employee deleted successfully");
+                //Alert.alert("Success", "Employee deleted successfully");
+                // success toast instead of Alert
+                Toast.show({
+                  type: "success",
+                  text1: "Success",
+                  text2: "Employee deleted successfully",
+                });
 
                 router.replace("/(protected)/(admin)/(employee)");
               }
@@ -163,8 +187,13 @@ export default function EditEmployee() {
 
               console.log(error);
 
-              Alert.alert("Error", "Delete failed");
-
+              //Alert.alert("Error", "Delete failed");
+              //error toast instead of Alert
+              Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: "Delete failed",
+              });
             }
           },
         },

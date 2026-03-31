@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import colors from "../../../../constants/colors";
 import axios from "axios";
@@ -72,7 +73,12 @@ export default function EditTeam() {
       }
     } catch (error) {
       console.error("Fetch error:", error);
-      Alert.alert("Error", "Failed to load team details");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to load team details",
+      });
+
     } finally {
       setLoading(false);
     }
@@ -98,16 +104,24 @@ export default function EditTeam() {
         employees: selectedEmployees,
       });
 
-      Alert.alert("Success", "Team updated successfully", [
-        {
-          text: "OK",
-          onPress: () => router.replace("/(protected)/(admin)/(team)")
-        }
-      ]);
+      //success toast
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Team updated successfully",
+      });
+
+      router.replace("/(protected)/(admin)/(team)");
 
     } catch (error) {
       console.log(error);
-      Alert.alert("Error", "Update failed");
+      //Alert.alert("Error", "Update failed");
+      //error toast
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Update failed",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -129,10 +143,22 @@ export default function EditTeam() {
             try {
               await axios.delete(`/teams/${id}`);
 
+              //success toast
+              Toast.show({
+                type: "success",
+                text1: "Deleted",
+                text2: "Team deleted successfully",
+              });
+
               router.replace("/(protected)/(admin)/(team)");
 
             } catch (error) {
-              Alert.alert("Error", "Delete failed");
+               //error toast
+              Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: "Delete failed",
+              });
             }
 
           }

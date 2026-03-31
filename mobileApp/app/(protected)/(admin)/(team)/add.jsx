@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import colors from "../../../../constants/colors";
 import { Formik } from "formik";
+import Toast from "react-native-toast-message";
 import CreateTeamSchema from "../../../../schema/CreateTeamSchema";
 import axios from "axios";
 
@@ -54,7 +55,13 @@ export default function CreateTeam() {
         setEmployees(availableOnly);
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to load employees.");
+      //Alert.alert("Error", "Failed to load employees.");
+      //show error toast instead of Alert
+      Toast.show({
+         type: "error",
+         text1: "Error",
+         text2: "Failed to load employees.",
+      });
     } finally {
       setLoading(false);
     }
@@ -92,20 +99,26 @@ export default function CreateTeam() {
       });
 
       if (response.status === 201 || response.status === 200) {
-        Alert.alert("Success", "Team created successfully", [
-          {
-            text: "OK",
-            onPress: () => {
-              router.replace("/(protected)/(admin)/(team)");
-            },
-          },
-        ]);
+        // success toast instead of Alert
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Team created successfully",
+        });
+
+        // navigate after toast
+        router.replace("/(protected)/(admin)/(team)");
       }
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to create team";
 
-      Alert.alert("Error", message);
+        //Alert.alert("Error", message);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: message,
+        });
     } finally {
       setSubmitting(false);
     }

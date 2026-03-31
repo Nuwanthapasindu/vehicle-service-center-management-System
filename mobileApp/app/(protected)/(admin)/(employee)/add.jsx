@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import colors from "../../../../constants/colors";
 import enums from "../../../../constants/enums";
 import { Formik } from "formik";
+import Toast from 'react-native-toast-message';
 import AddEmployeeSchema from "../../../../schema/AddEmployeeSchema";
 import axios from "axios"; 
 
@@ -48,7 +49,12 @@ export default function AddEmployee() {
       const response = await axios.post("/employees", values);
 
       if (response.status === 201) {
-        Alert.alert("Success", "Employee registered successfully");
+        // show success toast instead of Alert
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Employee registered successfully",
+        });
 
         router.replace("/(protected)/(admin)/(employee)");
     
@@ -62,7 +68,12 @@ export default function AddEmployee() {
         error?.response?.data?.payload?.message ||
         "Employee registration failed";
 
-      Alert.alert("Error", message);
+      // show error toast instead of Alert
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: message,
+      });
     }
   };
 
