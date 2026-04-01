@@ -10,6 +10,8 @@ const CategorySchema = Yup.object().shape({
       /^[a-zA-Z0-9\s\-&]+$/,
       "Category name can only contain letters, numbers, spaces, hyphens, and ampersands"
     ),
+  count: Yup.number()
+    .max(0, "Cannot delete category with associated inventory items. Please remove or reassign items first.")
 });
 
 export default CategorySchema;
