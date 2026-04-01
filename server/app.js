@@ -6,7 +6,6 @@ const errorHandling = require("./middleware/errorHandling");
 const swaggerUI = require("swagger-ui-express");
 const swaggerSpec = require("./config/document.config");
 const AppError = require("./error/AppError");
-const jobCardRoutes = require("./routes/jobCard.route");
 const path = require("path");
 const process = require("process");
 require("dotenv").config();
@@ -16,6 +15,8 @@ const authRouter = require("./routes/auth.route");
 const log = require("./middleware/log");
 const fileRouter = require("./routes/file.route");
 const employeeRouter = require("./routes/employee.route");
+const teamRouter = require("./routes/team.route");
+const jobCardRoutes = require("./routes/jobCard.route");
 const serviceRouter = require("./routes/service.route");
 const packageRouter = require("./routes/package.route");
 
@@ -52,8 +53,8 @@ app.use("/api/v1/storage/uploads",express.static(path.join(process.cwd(),"storag
 // ROUTES
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/file", fileRouter);
-app.use("/api/v1/employees", require("./routes/employee.route"));
-app.use("/api/v1/teams", require("./routes/team.route"));
+app.use("/api/v1/employees", employeeRouter);
+app.use("/api/v1/teams", teamRouter);
 app.use("/api/v1/job-cards", jobCardRoutes);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/package", packageRouter);
