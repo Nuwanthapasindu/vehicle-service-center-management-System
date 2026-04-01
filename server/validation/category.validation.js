@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const Inventory = require('../model/Inventory');
 
 const categorySchema = Joi.object({
     name: Joi.string()
@@ -16,4 +17,26 @@ const categorySchema = Joi.object({
         })
 });
 
-module.exports = { categorySchema };
+const categoryIdSchema = Joi.string().hex().length(24).required().messages({
+    'string.hex': 'Invalid category ID format',
+    'string.length': 'Invalid category ID length',
+    'any.required': 'Category ID is required'
+});
+
+const deleteCategoryValidation = async (id) => {
+    const { error: idError } = categoryIdSchema.validate(id);
+    if (idError) throw idError;
+
+    const itemCount = await Inventory.countDocuments({ 
+        category: id, 
+        isDeleted: false 
+    });
+
+    if (itemCount > 0) {
+        const error = new Error("Cannot delete category with associated inventory items");
+        error.isBusinessRule = true;
+        throw error;
+    }
+};
+
+module.exports = { categorySchema, deleteCategoryValidation };

@@ -1,6 +1,6 @@
 const Category = require('../model/Category');
 const AppError = require('../error/AppError');
-const { categorySchema } = require('../validation/category.validation');
+const { categorySchema, deleteCategoryValidation } = require('../validation/category.validation');
 
 // CREATE
 module.exports.createCategory = async (payload) => {
@@ -37,6 +37,15 @@ module.exports.updateCategory = async (id, payload) => {
 
 // DELETE (SOFT DELETE)
 module.exports.deleteCategory = async (id) => {
+  try {
+    await deleteCategoryValidation(id);
+  } catch (error) {
+    if (error.isBusinessRule || error.isJoi) {
+      throw new AppError(error.message || error.details[0].message, 400);
+    }
+    throw error;
+  }
+
   const category = await Category.findOneAndUpdate(
     { _id: id, isDeleted: false },
     { isDeleted: true, deletedAt: new Date() },

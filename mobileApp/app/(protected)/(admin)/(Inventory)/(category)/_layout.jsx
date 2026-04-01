@@ -5,7 +5,7 @@ export default function CategoryLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="addCategory" />
-      <Stack.Screen name="editCategory" />
+      <Stack.Screen name="categoryList" />
     </Stack>
   );
 }
