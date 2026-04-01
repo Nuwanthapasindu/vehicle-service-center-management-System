@@ -98,7 +98,7 @@ exports.updateEmployee = async (id, payload) => {
         if (existingNic) throw new AppError("NIC already exist", 400);
 
         // CHECK USERNAME ALREADY EXIST
-        const existingUserName = await Auth.exists({ userName: userName, _id: { $ne: employee.user } });
+        const existingUserName = await Auth.exists({ userName: userName, user: { $ne: employee.user } });
         if (existingUserName) throw new AppError("Username already exist", 400);
 
         // Update User info
@@ -136,6 +136,7 @@ exports.toggleAvailability = async (id) => {
     if (!mongoose.Types.ObjectId.isValid(id)) throw new AppError("Invalid employee ID", 400);
     try {
         const employee = await Employee.findById(id);
+        if (!employee) throw new AppError("Employee not found", 404);
         employee.isAvailable = !employee.isAvailable;
         await employee.save();
 
