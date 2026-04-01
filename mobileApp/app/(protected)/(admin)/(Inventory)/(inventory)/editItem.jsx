@@ -1,27 +1,22 @@
-import React, { useState, useEffect } from "react";
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Alert,
-} from "react-native";
+import { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Formik } from "formik";
 import Toast from 'react-native-toast-message';
 import colors from "../../../../../constants/colors";
-import enums from "../../../../../constants/enums";
-import CustomInput from "../../../../../components/CustomInput";
-import DropdownInput from "../../../../../components/DropdownInput";
-import axios from "axios";
-import InventorySchema from "../../../../../schema/inventorySchema";
+import { inventoryService } from "../../../../../services/inventory/inventory.service";
+import InventoryForm from "../../../../../components/inventory/InventoryForm";
+import { inventoryStyles as styles } from "../../../../../components/inventory/inventory.styles";
 
 export default function EditItem() {
-  const { id } = useLocalSearchParams();
+  const { id, itemData } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [existingItems, setExistingItems] = useState([]);
   const [error, setError] = useState(null);
   const [initialValues, setInitialValues] = useState({
     name: "",
@@ -32,26 +27,37 @@ export default function EditItem() {
     sellingPrice: "",
   });
 
-  const unitOptions = Object.values(enums.INVENTORY_UNIT_TYPES);
-
   useEffect(() => {
     fetchCategories();
     fetchItemDetails();
+    fetchInventory();
   }, []);
+
+  const fetchInventory = async () => {
+    try {
+      const data = await inventoryService.fetchInventory();
+      setExistingItems(data);
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error.response?.data?.payload?.message || 'Error fetching inventory',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+    }
+  };
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("/categories");
-      const catData = response?.data?.payload?.data || response?.data?.data || [];
-
+      const data = await inventoryService.fetchCategories();
       setCategories(
-        catData.map(c => ({
+        data.map(c => ({
           label: c.name,
           value: c._id || c.id,
         }))
       );
     } catch (err) {
-      console.log("Category error:", err);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -65,16 +71,13 @@ export default function EditItem() {
   const fetchItemDetails = async () => {
     try {
       let item = null;
-      
-      try {
-        const response = await axios.get(`/inventory/${id}`);
-        item = response?.data?.payload?.data || response?.data?.data;
-      } catch (singleItemError) {
-        const allItemsResponse = await axios.get("/inventory");
-        const allItems = allItemsResponse?.data?.payload?.data || allItemsResponse?.data?.data || [];
+      if (itemData) {
+        item = JSON.parse(itemData);
+      } else {
+        const allItems = await inventoryService.fetchInventory();
         item = allItems.find(i => i._id === id || i.id === id);
       }
-      
+
       if (!item) {
         throw new Error("Item not found");
       }
@@ -88,20 +91,12 @@ export default function EditItem() {
         sellingPrice: String(item.sellingPrice || ""),
       });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Item Loaded',
-        text2: `${item.name} loaded successfully`,
-        position: 'top',
-        visibilityTime: 2000,
-      });
     } catch (err) {
-      console.log("Fetch item error:", err);
       setError(err.message);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: err.response?.data?.payload?.message || 'Failed to load item details. The item may not exist.',
+        text2: err.response?.data?.payload?.message || 'Failed to load item details',
         position: 'top',
         visibilityTime: 3000,
       });
@@ -110,8 +105,26 @@ export default function EditItem() {
     }
   };
 
-  const handleUpdate = async (values, { resetForm }) => {
+  const handleUpdate = async (values) => {
     setLoading(true);
+
+    const lowercaseName = values.name.trim().toLowerCase();
+    const isDuplicate = existingItems.some(item => 
+      item.name.toLowerCase() === lowercaseName && 
+      (item._id !== id && item.id !== id)
+    );
+
+    if (isDuplicate) {
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Another item with this name already exists in inventory',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+      return;
+    }
 
     try {
       const payload = {
@@ -123,7 +136,7 @@ export default function EditItem() {
         sellingPrice: parseFloat(values.sellingPrice),
       };
 
-      const response = await axios.patch(`/inventory/${id}`, payload);
+      await inventoryService.updateItem(id, payload);
 
       Toast.show({
         type: 'success',
@@ -132,12 +145,11 @@ export default function EditItem() {
         position: 'top',
         visibilityTime: 3000,
       });
-      
+
       setTimeout(() => {
         router.back();
       }, 1500);
     } catch (err) {
-      console.log(err);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -171,7 +183,7 @@ export default function EditItem() {
   const confirmDelete = async () => {
     setLoading(true);
     try {
-      const response = await axios.delete(`/inventory/${id}`);
+      await inventoryService.deleteItem(id);
 
       Toast.show({
         type: 'success',
@@ -180,12 +192,11 @@ export default function EditItem() {
         position: 'top',
         visibilityTime: 3000,
       });
-      
+
       setTimeout(() => {
         router.back();
       }, 1500);
     } catch (err) {
-      console.log(err);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -212,7 +223,7 @@ export default function EditItem() {
         <Ionicons name="alert-circle-outline" size={64} color={colors.DANGER_COLOR} />
         <Text style={styles.errorTitle}>Unable to Load Item</Text>
         <Text style={styles.errorMessage}>The item could not be found or may have been deleted.</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.goBackBtn}
           onPress={() => router.back()}
         >
@@ -225,310 +236,28 @@ export default function EditItem() {
   return (
     <>
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+        <View style={styles.topHeader}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
             <Ionicons name="chevron-back" size={28} color={colors.DARK} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>EDIT ITEM</Text>
-          <View style={{ width: 40 }} />
+          <View style={styles.headerRightSpace} />
         </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <Formik
-            initialValues={initialValues}
-            validationSchema={InventorySchema}
-            onSubmit={handleUpdate}
-            enableReinitialize={true}
-          >
-            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
-              <ScrollView 
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-              >
-                <View style={styles.sectionCard}>
-                  <View style={styles.sectionHeader}>
-                    <MaterialCommunityIcons name="information-outline" size={20} color={colors.PRIMARY} />
-                    <Text style={styles.sectionTitle}>GENERAL INFORMATION</Text>
-                  </View>
+        <InventoryForm
+          initialValues={initialValues}
+          onSubmit={handleUpdate}
+          categories={categories}
+          existingItems={existingItems}
+          itemId={id}
+          loading={loading}
+          btnLabel="Update Item"
+          isEdit={true}
+          onDelete={handleDelete}
+        />
 
-                  <CustomInput
-                    label="Item Name"
-                    placeholder="Enter item name"
-                    value={values.name}
-                    onChangeText={handleChange("name")}
-                    onBlur={handleBlur("name")}
-                    error={errors.name}
-                    touched={touched.name}
-                    icon={<Ionicons name="cube-outline" size={20} color={colors.SECONDARY} />}
-                  />
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Category</Text>
-                    <DropdownInput
-                      value={categories.find(c => c.value === values.category)?.label || ""}
-                      options={categories.map(c => c.label)}
-                      onSelect={(label) => {
-                        const selected = categories.find(c => c.label === label);
-                        setFieldValue("category", selected?.value || "");
-                      }}
-                      placeholder="Select a category"
-                    />
-                    {touched.category && errors.category && (
-                      <Text style={styles.errorText}>{errors.category}</Text>
-                    )}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Unit Type</Text>
-                    <DropdownInput
-                      value={values.unitType}
-                      options={unitOptions}
-                      onSelect={(v) => setFieldValue("unitType", v)}
-                      placeholder="Select unit type"
-                    />
-                    {touched.unitType && errors.unitType && (
-                      <Text style={styles.errorText}>{errors.unitType}</Text>
-                    )}
-                  </View>
-                </View>
-
-                <View style={styles.sectionCard}>
-                  <View style={styles.sectionHeader}>
-                    <MaterialCommunityIcons name="package-variant" size={20} color={colors.PRIMARY} />
-                    <Text style={styles.sectionTitle}>INVENTORY & STOCK</Text>
-                  </View>
-
-                  <CustomInput
-                    label="Reorder Level"
-                    placeholder="Enter reorder level"
-                    keyboardType="numeric"
-                    value={values.reorderLevel}
-                    onChangeText={handleChange("reorderLevel")}
-                    onBlur={handleBlur("reorderLevel")}
-                    error={errors.reorderLevel}
-                    touched={touched.reorderLevel}
-                    icon={<MaterialCommunityIcons name="alert-circle-outline" size={20} color={colors.SECONDARY} />}
-                  />
-                </View>
-
-                <View style={styles.sectionCard}>
-                  <View style={styles.sectionHeader}>
-                    <MaterialCommunityIcons name="currency-usd" size={20} color={colors.PRIMARY} />
-                    <Text style={styles.sectionTitle}>PRICING</Text>
-                  </View>
-
-                  <View style={styles.priceRow}>
-                    <View style={{ flex: 1, marginRight: 10 }}>
-                      <CustomInput
-                        label="Buying Price (LKR)"
-                        placeholder="Enter buying price"
-                        keyboardType="numeric"
-                        value={values.buyingPrice}
-                        onChangeText={handleChange("buyingPrice")}
-                        onBlur={handleBlur("buyingPrice")}
-                        error={errors.buyingPrice}
-                        touched={touched.buyingPrice}
-                        icon={<Ionicons name="cash-outline" size={20} color={colors.SECONDARY} />}
-                      />
-                    </View>
-
-                    <View style={{ flex: 1 }}>
-                      <CustomInput
-                        label="Selling Price (LKR)"
-                        placeholder="Enter selling price"
-                        keyboardType="numeric"
-                        value={values.sellingPrice}
-                        onChangeText={handleChange("sellingPrice")}
-                        onBlur={handleBlur("sellingPrice")}
-                        error={errors.sellingPrice}
-                        touched={touched.sellingPrice}
-                        icon={<Ionicons name="cash-outline" size={20} color={colors.SECONDARY} />}
-                      />
-                    </View>
-                  </View>
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.updateBtn, loading && styles.btnDisabled]}
-                  onPress={handleSubmit}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="small" color={colors.DARK} />
-                      <Text style={styles.updateBtnText}> Updating...</Text>
-                    </View>
-                  ) : (
-                    <>
-                      <MaterialCommunityIcons name="check-circle" size={20} color={colors.DARK} />
-                      <Text style={styles.updateBtnText}> Update Item</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.deleteBtn, loading && styles.btnDisabled]}
-                  onPress={handleDelete}
-                  disabled={loading}
-                >
-                  <Ionicons name="trash-outline" size={20} color={colors.LIGHT} />
-                  <Text style={styles.deleteBtnText}>
-                    Delete Item
-                  </Text>
-                </TouchableOpacity>
-
-              </ScrollView>
-            )}
-          </Formik>
-        </KeyboardAvoidingView>
       </View>
       <Toast />
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.BACKGROUND_COLOR 
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  header: {
-    height: 60,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    backgroundColor: colors.LIGHT,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.BORDER_COLOR,
-  },
-  headerTitle: { 
-    fontSize: 16, 
-    fontWeight: "900",
-    color: colors.DARK,
-    letterSpacing: 0.5,
-  },
-  scrollContent: { 
-    padding: 20, 
-    paddingBottom: 40 
-  },
-  sectionCard: {
-    backgroundColor: colors.LIGHT,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: colors.SECONDARY,
-    letterSpacing: 1,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.DARK,
-    marginBottom: 8,
-  },
-  inputGroup: {
-    marginTop: 16,
-  },
-  priceRow: { 
-    flexDirection: "row",
-    marginTop: 16,
-  },
-  updateBtn: {
-    backgroundColor: colors.PRIMARY,
-    height: 55,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-    flexDirection: "row",
-    shadowColor: colors.PRIMARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  updateBtnText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: colors.DARK,
-  },
-  deleteBtn: {
-    backgroundColor: colors.DANGER_COLOR,
-    height: 55,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 15,
-    flexDirection: "row",
-    gap: 8,
-  },
-  deleteBtnText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: colors.LIGHT,
-  },
-  btnDisabled: {
-    opacity: 0.7,
-  },
-  loadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: colors.DARK,
-    marginTop: 16,
-  },
-  errorMessage: {
-    fontSize: 14,
-    color: colors.SECONDARY,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  goBackBtn: {
-    backgroundColor: colors.PRIMARY,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  goBackBtnText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: colors.DARK,
-  },
-  errorText: {
-    fontSize: 12,
-    color: colors.DANGER_COLOR,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-});
