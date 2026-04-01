@@ -1,0 +1,222 @@
+.vehicle-card {
+    background-color: var(--light, #FFFFFF);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-color, #E2E8F0);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.card-image-wrapper {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.vehicle-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.vehicle-card:hover .vehicle-card-img {
+    transform: scale(1.05);
+}
+
+.type-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.7rem;
+    font-weight: 850;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+}
+
+.card-content {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+.vehicle-basic-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.vehicle-title {
+    font-size: 1.2rem;
+    font-weight: 850;
+    color: var(--dark, #1A1D23);
+    margin: 0;
+}
+
+.year-label {
+    font-size: 0.9rem;
+    color: #94A3B8;
+    font-weight: 700;
+}
+
+.vehicle-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--secondary, #64748B);
+    font-weight: 600;
+}
+
+.meta-item.plate span {
+    background-color: #F1F5F9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    color: var(--dark, #1A1D23);
+    font-weight: 750;
+    font-size: 0.75rem;
+}
+
+.meta-item i {
+    color: #CBD5E1;
+}
+
+.card-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.view-details-link {
+    background: none;
+    border: none;
+    color: var(--primary-color, #8EDB00);
+    font-size: 0.85rem;
+    font-weight: 850;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: none;
+    transition: gap 0.2s ease;
+}
+
+.view-details-link:hover {
+    opacity: 0.8;
+    gap: 0.75rem;
+}
+
+.action-icons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: #94A3B8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+    background-color: #F8FAFC;
+    color: var(--dark, #1A1D23);
+}
+
+.icon-btn.delete:hover {
+    color: var(--danger-color, #EF4444);
+    background-color: #FEF2F2;
+}
+
+/* Add Placeholder Card */
+.add-placeholder-card {
+    border: 2px dashed #CBD5E1;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.4);
+    min-height: 350px;
+    text-decoration: none;
+    height: 100%;
+}
+
+.add-placeholder-card:hover {
+    border-color: var(--primary-color, #8EDB00);
+    background-color: rgba(142, 219, 0, 0.02);
+    transform: translateY(-5px);
+}
+
+.placeholder-content {
+    text-align: center;
+}
+
+.plus-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #F8FAFC;
+    color: #94A3B8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.add-placeholder-card:hover .plus-circle {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+}
+
+.placeholder-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--dark, #1A1D23);
+    margin: 0 0 0.5rem 0;
+}
+
+.placeholder-text {
+    font-size: 0.85rem;
+    color: var(--secondary, #64748B);
+    max-width: 200px;
+    margin: 0 auto;
+    line-height: 1.4;
+    font-weight: 500;
+}

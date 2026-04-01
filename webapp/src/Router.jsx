@@ -12,6 +12,9 @@ import VehicleDetails from "./pages/Customer/MyGarage/VehicleDetails";
 import ServiceHistory from "./pages/Customer/ServiceHistory/ServiceHistory";
 import ServiceBooking from "./pages/Customer/ServiceBooking/ServiceBooking";
 import Profile from "./pages/Customer/Profile/Profile";
+import AboutPage from "./pages/AboutPage/AboutPage";
+import ContactPage from "./pages/ContactPage/ContactPage";
+import ReviewsPage from "./pages/ReviewsPage/ReviewsPage";
 
 import AuthGuard from "./guards/AuthGuard";
 import PublicAuthGuard from "./guards/PublicAuthGuard";
@@ -19,7 +22,13 @@ import PublicAuthGuard from "./guards/PublicAuthGuard";
 function Router() {
   return (
     <Routes>
+      {/* Public Pages */}
+
       <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/reviews" element={<ReviewsPage />} />
+
       <Route
         path="/login"
         element={
@@ -118,6 +127,7 @@ function Router() {
           </AuthGuard>
         }
       />
+
 
       {/* TODO: ADD OTHER ROUTES */}
       {/* DEFAULT ROUTE 404 ROUTE */}
