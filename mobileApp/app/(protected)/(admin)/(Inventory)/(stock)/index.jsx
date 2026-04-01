@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
   ActivityIndicator,
   TouchableOpacity,
@@ -12,10 +11,11 @@ import { DrawerActions } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
-import StockList from "./stockList";
-import StockAdjust from "./stockAdjust";
 import colors from "../../../../../constants/colors";
-import axios from "axios";
+import { stockService } from "../../../../../services/stock/stock.service";
+import StockList from "../../../../../components/stock/StockList";
+import StockAdjustModal from "../../../../../components/stock/StockAdjustModal";
+import { stockStyles as styles } from "../../../../../components/stock/stock.styles";
 
 export default function StockIndex() {
   const insets = useSafeAreaInsets();
@@ -27,14 +27,13 @@ export default function StockIndex() {
   const [refreshing, setRefreshing] = useState(false);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   const fetchStock = async () => {
     try {
-      const response = await axios.get("/inventory");
+      const data = await stockService.fetchStock();
       
-      const rawItems = response?.data?.payload?.data || response?.data?.data || [];
-
-      const formattedItems = rawItems
+      const formattedItems = data
         .filter((item) => item?.isDeleted !== true)
         .map((item) => ({
           id: item._id || item.id,
@@ -52,15 +51,16 @@ export default function StockIndex() {
 
       setItems(formattedItems);
       
-      Toast.show({
-        type: 'success',
-        text1: 'Stock Updated',
-        text2: `${formattedItems.length} items loaded`,
-        position: 'top',
-        visibilityTime: 2000,
-      });
+      if (!refreshing) {
+        Toast.show({
+          type: 'success',
+          text1: 'Stock Updated',
+          text2: `${formattedItems.length} items loaded`,
+          position: 'top',
+          visibilityTime: 3000,
+        });
+      }
     } catch (error) {
-      console.log("Stock fetch error:", error);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -112,15 +112,33 @@ export default function StockIndex() {
     });
   };
 
-  const handleStockUpdateSuccess = () => {
-    fetchStock();
-    Toast.show({
-      type: 'success',
-      text1: 'Stock Updated',
-      text2: 'Inventory levels have been adjusted',
-      position: 'top',
-      visibilityTime: 3000,
-    });
+  const handleStockAdjust = async (values, { resetForm }) => {
+    setUpdateLoading(true);
+    try {
+      await stockService.adjustStock(selectedItem.id, values.adjustment);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: `Stock ${values.adjustment > 0 ? 'increased' : 'decreased'} by ${Math.abs(values.adjustment)} units`,
+        position: 'top',
+        visibilityTime: 3000,
+      });
+      
+      resetForm();
+      setAdjustModalVisible(false);
+      fetchStock();
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: err.response?.data?.payload?.message || 'Update failed',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+    } finally {
+      setUpdateLoading(false);
+    }
   };
 
   return (
@@ -177,84 +195,15 @@ export default function StockIndex() {
           />
         )}
 
-        <StockAdjust
+        <StockAdjustModal
           visible={adjustModalVisible}
           item={selectedItem}
           onClose={() => setAdjustModalVisible(false)}
-          onSuccess={handleStockUpdateSuccess}
+          onSubmit={handleStockAdjust}
+          loading={updateLoading}
         />
       </View>
       <Toast />
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.BACKGROUND_COLOR,
-  },
-
-  topHeader: {
-    backgroundColor: colors.LIGHT,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.BORDER_COLOR,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-  },
-
-  headerBtn: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: colors.DARK,
-    marginBottom: 4,
-  },
-
-  headerRightSpace: {
-    width: 40,
-  },
-
-  searchBox: {
-    marginHorizontal: 12,
-    marginTop: 14,
-    backgroundColor: colors.LIGHT,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    paddingHorizontal: 12,
-    height: 44,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  searchInput: {
-    flex: 1,
-    height: "100%",
-    fontSize: 14,
-    paddingVertical: 0,
-    color: colors.DARK,
-    marginLeft: 8,
-    includeFontPadding: false,
-    textAlignVertical: "center",
-  },
-
-  clearSearchBtn: {
-    padding: 4,
-    marginLeft: 4,
-  },
-
-  loaderWrap: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
