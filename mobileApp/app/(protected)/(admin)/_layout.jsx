@@ -35,7 +35,7 @@ function CustomDrawerContent(props) {
         <View style={styles.drawerItemsWrapper}>
           {props.state.routes.map((route, index) => {
             const { options } = props.descriptors[route.key];
-            
+
             // --- THE FIX: THIS HIDES ALL THOSE EXTRA FILES ---
             // If the screen doesn't have a specific drawerLabel, don't render it in the menu!
             if (!options.drawerLabel) {
@@ -138,7 +138,6 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
-
         <Drawer.Screen
           name="Profile"
           options={{
@@ -150,13 +149,23 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="supplychain/index" 
+          name="supplychain/index"
           options={{
             headerShown: false, // Prevents duplicate headers
             drawerLabel: "Supply Chain",
             title: "Supply Chain",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="cube-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="timeslots"
+          options={{
+            drawerLabel: "Time Slots",
+            title: "Time Slot Configuration",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="time-outline" size={size} color={color} />
             ),
           }}
         />
@@ -169,7 +178,7 @@ const styles = StyleSheet.create({
   drawerHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 64, 
+    paddingTop: 64,
     paddingBottom: 24,
     paddingHorizontal: 24,
     backgroundColor: colors.LIGHT,

@@ -1,6 +1,18 @@
 const Booking = require("../model/Booking");
 const Timeslot = require("../model/Timeslot");
 const AppError = require("../error/AppError");
+const { validateTimeslot } = require("../validation/timeslot.validation");
+
+module.exports.getTimeslotById = async (id) => {
+    try {
+        const slot = await Timeslot.findById(id);
+        if (!slot || slot.isDeleted) throw new AppError("Timeslot not found", 404);
+        return slot;
+    } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw new AppError(error.message, 500);
+    }
+};
 
 module.exports.getAvailableTimeslots = async (dateStr) => {
     if (!dateStr) throw new AppError("Date is required", 400);
@@ -34,5 +46,61 @@ module.exports.getAvailableTimeslots = async (dateStr) => {
         return slotAvailability;
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500);
+    }
+};
+
+module.exports.getAllTimeslots = async () => {
+    try {
+        return await Timeslot.find({ isDeleted: false }).sort({ startTime: 1 });
+    } catch (error) {
+        throw new AppError(error.message, 500);
+    }
+};
+
+module.exports.createTimeslot = async (payload) => {
+    const { error, value } = validateTimeslot(payload);
+    if (error) {
+        throw new AppError(error.details[0].message, 400);
+    }
+
+    try {
+        const newSlot = new Timeslot(value);
+        return await newSlot.save();
+    } catch (error) {
+        throw new AppError(error.message, 500);
+    }
+};
+
+module.exports.updateTimeslot = async (id, payload) => {
+    try {
+        const slot = await Timeslot.findById(id);
+        if (!slot || slot.isDeleted) throw new AppError("Timeslot not found", 404);
+
+        if (payload.isActive === undefined) {
+            const { error, value } = validateTimeslot(payload);
+            if (error) throw new AppError(error.details[0].message, 400);
+            Object.assign(slot, value);
+        } else {
+            slot.isActive = payload.isActive;
+        }
+
+        return await slot.save();
+    } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw new AppError(error.message, 500);
+    }
+};
+
+module.exports.deleteTimeslot = async (id) => {
+    try {
+        const slot = await Timeslot.findById(id);
+        if (!slot) throw new AppError("Timeslot not found", 404);
+
+        slot.isDeleted = true;
+        slot.deletedAt = new Date();
+        return await slot.save();
+    } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw new AppError(error.message, 500);
     }
 };
