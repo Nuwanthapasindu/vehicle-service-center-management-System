@@ -32,6 +32,11 @@ module.exports.createBooking = async (payload, mobile) => {
             isDeleted: false
         });
 
+        const isVehicleAlreadyBooked = existingBookings.some(b => b.vehicle.toString() === vehicle.toString());
+        if (isVehicleAlreadyBooked) {
+            throw new AppError("This vehicle is already booked for this specific time slot on the selected date.", 400);
+        }
+
         if (existingBookings.length >= slotDoc.maxCapacity) {
             throw new AppError("This timeslot is fully booked for the selected date", 400);
         }
