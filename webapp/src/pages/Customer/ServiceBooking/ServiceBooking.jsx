@@ -8,6 +8,7 @@ import './ServiceBooking.css';
 import getImageUrl from '../../../util/getImageUrl';
 import { useFormik } from 'formik';
 import { bookingSchema } from '../../../schemas/booking';
+import { formatLongDate } from '../../../util/dateFormatter';
 import BookingCalendar from '../../../components/Customer/Calendar/BookingCalendar';
 
 const ServiceBooking = () => {
@@ -276,7 +277,7 @@ const ServiceBooking = () => {
                                         <span className="label">Date</span>
                                         <span className="value">
                                             {selectedDate
-                                                ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
+                                                ? formatLongDate(selectedDate)
                                                 : 'Not selected'}
                                         </span>
                                     </div>

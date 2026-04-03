@@ -3,6 +3,7 @@ const Booking = require("../model/Booking");
 const JobCard = require("../model/JobCard");
 const User = require("../model/User");
 const AppError = require("../error/AppError");
+const mongoose = require("mongoose");
 const { validateReviewAdd, validateReviewUpdate } = require("../validation/review.validation");
 
 module.exports.addReview = async (payload, mobile) => {
@@ -31,7 +32,7 @@ module.exports.addReview = async (payload, mobile) => {
     return "Review submitted successfully";
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to submit review", 500);
+    throw new AppError(error.message || "Failed to submit review", error.statusCode || 500);
   }
 };
 
@@ -64,7 +65,7 @@ module.exports.getBookingDetailsForReview = async (bookingId, mobile) => {
     };
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to fetch booking details for review", 500);
+    throw new AppError(error.message || "Failed to fetch booking details for review", error.statusCode || 500);
   }
 };
 
@@ -90,7 +91,7 @@ module.exports.getMyReviews = async (mobile, filterType = 'all') => {
     const enrichedReviews = await Promise.all(reviews.map(async (review) => {
       const jobCard = await JobCard.findOne({ booking: review.booking?._id, isDeleted: false })
         .populate("selectedPackage");
-      
+
       const reviewObj = review.toObject();
       return {
         ...reviewObj,
@@ -102,27 +103,33 @@ module.exports.getMyReviews = async (mobile, filterType = 'all') => {
     return enrichedReviews;
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to fetch reviews", 500);
+    throw new AppError(error.message || "Failed to fetch reviews", error.statusCode || 500);
   }
 };
 
 module.exports.getReviewById = async (reviewId, mobile) => {
-    try {
-      const customer = await User.findOne({ mobile, isDeleted: false });
-      if (!customer) throw new AppError("Customer not found", 404);
-  
-      const review = await Review.findOne({ _id: reviewId, customer: customer._id, isDeleted: false });
-      if (!review) throw new AppError("Review not found", 404);
-  
-      return review;
-    } catch (error) {
-      if (error instanceof AppError) throw error;
-      throw new AppError(error.message || "Failed to fetch review", 500);
+  try {
+    if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+      throw new AppError("Invalid review ID", 400);
     }
+    const customer = await User.findOne({ mobile, isDeleted: false });
+    if (!customer) throw new AppError("Customer not found", 404);
+
+    const review = await Review.findOne({ _id: reviewId, customer: customer._id, isDeleted: false });
+    if (!review) throw new AppError("Review not found", 404);
+
+    return review;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(error.message || "Failed to fetch review", error.statusCode || 500);
+  }
 };
 
 module.exports.updateReview = async (reviewId, mobile, payload) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+      throw new AppError("Invalid review ID", 400);
+    }
     const { error } = validateReviewUpdate(payload);
     if (error) throw new AppError(error.details[0].message, 400);
 
@@ -132,26 +139,37 @@ module.exports.updateReview = async (reviewId, mobile, payload) => {
     const review = await Review.findOne({ _id: reviewId, customer: customer._id, isDeleted: false });
     if (!review) throw new AppError("Review not found", 404);
 
+    if (review.isApproved) {
+      throw new AppError("Approved reviews cannot be updated", 403);
+    }
+
     if (payload.rating) review.rating = payload.rating;
     if (payload.comment !== undefined) review.comment = payload.comment;
-    
+
     review.isApproved = false;
 
     await review.save();
     return "Review updated successfully";
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to update review", 500);
+    throw new AppError(error.message || "Failed to update review", error.statusCode || 500);
   }
 };
 
 module.exports.deleteReview = async (reviewId, mobile) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+      throw new AppError("Invalid review ID", 400);
+    }
     const customer = await User.findOne({ mobile, isDeleted: false });
     if (!customer) throw new AppError("Customer not found", 404);
 
     const review = await Review.findOne({ _id: reviewId, customer: customer._id, isDeleted: false });
     if (!review) throw new AppError("Review not found", 404);
+
+    if (review.isApproved) {
+      throw new AppError("Approved reviews cannot be deleted", 403);
+    }
 
     review.isDeleted = true;
     review.deletedAt = new Date();
@@ -160,6 +178,6 @@ module.exports.deleteReview = async (reviewId, mobile) => {
     return "Review deleted successfully";
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to delete review", 500);
+    throw new AppError(error.message || "Failed to delete review", error.statusCode || 500);
   }
 };

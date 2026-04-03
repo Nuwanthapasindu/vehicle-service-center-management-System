@@ -51,7 +51,7 @@ module.exports.createBooking = async (payload, mobile) => {
     }
 };
 
-module.exports.getBookingHistory = async (mobile) => {
+module.exports.getBookingHistory = async (mobile, filters = {}) => {
     try {
         const owner = await User.findOne({ mobile, isDeleted: false });
         if (!owner) throw new AppError("Customer not found", 404);
@@ -62,7 +62,7 @@ module.exports.getBookingHistory = async (mobile) => {
             .sort({ date: -1 });
 
         // For each booking, check for a JobCard and its status
-        const history = await Promise.all(bookings.map(async (booking) => {
+        let history = await Promise.all(bookings.map(async (booking) => {
             const jobCard = await JobCard.findOne({ booking: booking._id, isDeleted: false })
                 .populate("selectedPackage");
 
@@ -76,6 +76,27 @@ module.exports.getBookingHistory = async (mobile) => {
                 canViewDetails: !!jobCard
             };
         }));
+
+        // Server-Side Filtering
+        const { search, status, vehicle } = filters;
+
+        if (search) {
+            const lowerSearch = search.toLowerCase();
+            history = history.filter(item =>
+                item.vehicle.toLowerCase().includes(lowerSearch) ||
+                item.service.toLowerCase().includes(lowerSearch) ||
+                item.licensePlate.toLowerCase().includes(lowerSearch)
+            );
+        }
+
+        if (status && status !== 'all') {
+            history = history.filter(item => item.status === status);
+        }
+
+        if (vehicle && vehicle !== 'all') {
+            const lowerVehicle = vehicle.toLowerCase();
+            history = history.filter(item => item.vehicle.toLowerCase().includes(lowerVehicle));
+        }
 
         return history;
     } catch (error) {

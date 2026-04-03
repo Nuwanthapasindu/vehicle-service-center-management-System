@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import getImageUrl from '../../../util/getImageUrl';
+import { formatDate } from '../../../util/dateFormatter';
 import './MyGarage.css';
 
 const MyGarage = () => {
@@ -119,7 +120,7 @@ const MyGarage = () => {
                                         </div>
                                         <div className="meta-item time">
                                             <i className="fa-regular fa-calendar-check"></i>
-                                            <span>{new Date(vehicle.createdAt).toLocaleDateString()} added</span>
+                                            <span>{formatDate(vehicle.createdAt)} added</span>
                                         </div>
                                     </div>
                                 </div>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import useAuthentication from '../../../hooks/auth';
 import getImageUrl from '../../../util/getImageUrl';
+import { formatDate, formatLongDate, formatShortDate } from '../../../util/dateFormatter';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -80,7 +81,7 @@ const Dashboard = () => {
                         <span className="stat-label">ACTIVE BOOKINGS</span>
                         <h3 className="stat-value">{stats.activeBookings}</h3>
                         <p className="stat-description">
-                            {upcoming ? `Next: ${new Date(upcoming.date).toLocaleDateString()}` : "No upcoming service"}
+                            {upcoming ? `Next: ${formatDate(upcoming.date)}` : "No upcoming service"}
                         </p>
                     </div>
                     <div className="stat-icon-bg">
@@ -168,7 +169,7 @@ const Dashboard = () => {
                             <div className="card-body">
                                 <div className="booking-info-item">
                                     <i className="fa-regular fa-calendar"></i>
-                                    <span>{new Date(upcoming.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                    <span>{formatLongDate(upcoming.date)}</span>
                                 </div>
                                 <div className="booking-info-item">
                                     <i className="fa-regular fa-clock"></i>
@@ -214,11 +215,7 @@ const Dashboard = () => {
                                 {dashboardData.recentHistory.map((item) => (
                                     <tr key={item.id}>
                                         <td className="date-cell">
-                                            {new Date(item.date).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
+                                            {formatShortDate(item.date)}
                                         </td>
                                         <td className="vehicle-cell">{item.vehicle}</td>
                                         <td>{item.service}</td>

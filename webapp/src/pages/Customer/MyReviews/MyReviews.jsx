@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import reviewService from '../../../services/reviewService';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
+import StarRating from '../../../components/Customer/StarRating/StarRating';
+import { formatLongDate } from '../../../util/dateFormatter';
 import './MyReviews.css';
 
 const MyReviews = () => {
@@ -22,8 +24,7 @@ const MyReviews = () => {
             const response = await reviewService.getMyReviews(activeTab);
             setReviews(response.data.payload || []);
         } catch (error) {
-            console.error('Error fetching reviews:', error);
-            toast.error(error.response?.data?.message || 'Failed to load reviews');
+            toast.error(error.response?.data?.payload?.message || 'Failed to load reviews');
         } finally {
             setLoading(false);
         }
@@ -33,11 +34,10 @@ const MyReviews = () => {
         if (window.confirm("Are you sure you want to delete this review? This action cannot be undone.")) {
             try {
                 await reviewService.deleteReview(reviewId);
-                setReviews(prev => prev.filter(r => r._id !== reviewId));
+                await fetchReviews();
                 toast.success('Review deleted successfully');
             } catch (error) {
-                console.error('Error deleting review:', error);
-                toast.error(error.response?.data?.message || 'Failed to delete review');
+                toast.error(error.response?.data?.payload?.message || 'Failed to delete review');
             }
         }
     };
@@ -51,18 +51,7 @@ const MyReviews = () => {
         setVisibleCount(prev => prev + 3);
     };
 
-    const renderStars = (rating) => {
-        return (
-            <div className="review-star-rating">
-                {[1, 2, 3, 4, 5].map((star) => (
-                    <i
-                        key={star}
-                        className={`fa-star mini-star ${star <= rating ? 'fa-solid' : 'fa-regular'}`}
-                    ></i>
-                ))}
-            </div>
-        );
-    };
+
 
     return (
         <CustomerLayout title="My Reviews">
@@ -123,16 +112,12 @@ const MyReviews = () => {
                                     <div className="review-card" key={review._id}>
                                         <div className="review-card-header">
                                             <div>
-                                                {renderStars(review.rating)}
+                                                <StarRating rating={review.rating} />
                                                 <h2 className="review-service-title">
                                                     {review.booking?.vehicle?.make} {review.booking?.vehicle?.model} - {review.packageDetails}
                                                 </h2>
                                                 <p className="review-service-date">
-                                                    Service Date: {new Date(review.serviceDate).toLocaleDateString('en-US', {
-                                                        month: 'long',
-                                                        day: 'numeric',
-                                                        year: 'numeric'
-                                                    })}
+                                                    Service Date: {formatLongDate(review.serviceDate)}
                                                 </p>
                                             </div>
                                             <span className="verified-badge">VERIFIED SERVICE</span>
