@@ -1,8 +1,14 @@
 import { Redirect, Stack } from "expo-router";
 import useAuthentication from "../../hooks/useAuth";
+import enums from "../../constants/enums";
+
 export default function AuthLayout() {
-  const { isAuthenticated } = useAuthentication();
+  const { isAuthenticated, profile } = useAuthentication();
+
   if (isAuthenticated) {
+    if (profile?.role === enums.USER_ROLES.MECHANIC) {
+      return <Redirect href="/(protected)/(mechanic)/Home" />;
+    }
     return <Redirect href="/(protected)/(admin)/Dashboard" />;
   }
 
