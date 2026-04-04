@@ -7,10 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  SafeAreaView,
-  Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import colors from "../../../../constants/colors";
 import { Formik } from "formik";
@@ -113,8 +110,6 @@ export default function CreateTeam() {
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to create team";
-
-        //Alert.alert("Error", message);
         Toast.show({
           type: "error",
           text1: "Error",

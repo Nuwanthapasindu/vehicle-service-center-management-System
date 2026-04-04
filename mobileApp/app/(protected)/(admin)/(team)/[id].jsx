@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  SafeAreaView,
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -114,7 +113,6 @@ export default function EditTeam() {
 
       router.replace("/(protected)/(admin)/(team)");
     } catch (error) {
-      //Alert.alert("Error", "Update failed");
       //error toast
       Toast.show({
         type: "error",
@@ -178,18 +176,7 @@ export default function EditTeam() {
     );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header 
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => router.push("/(protected)/(admin)/(team)")} // Forces navigation to Team Directory
-          style={styles.backButton}
-        >
-          <Ionicons name="chevron-back" size={28} color={colors.PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>EDIT TEAM</Text>
-        <View style={{ width: 28 }} /> 
-      </View>*/}
+    <View style={styles.container}>
 
       <View style={styles.content}>
         <Text style={styles.label}>TEAM NAME</Text>
@@ -247,7 +234,7 @@ export default function EditTeam() {
           <Text style={styles.deleteText}>Delete Team</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
