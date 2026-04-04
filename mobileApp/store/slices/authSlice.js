@@ -45,16 +45,19 @@ export const fetchUser = (personalAccessToken) => async (dispatch) => {
           type: "error",
           text1: "You are not authorized to access this application",
         });
+        await deleteItem(storageKeys.PERSONAL_ACCESS_TOKEN);
         await deleteItem(storageKeys.REFRESH_TOKEN);
         dispatch(setToken(null));
         dispatch(setUser(null));
       }
     } else {
+      await deleteItem(storageKeys.PERSONAL_ACCESS_TOKEN);
       await deleteItem(storageKeys.REFRESH_TOKEN);
       dispatch(setToken(null));
       dispatch(setUser(null));
     }
   } catch (error) {
+    await deleteItem(storageKeys.PERSONAL_ACCESS_TOKEN);
     await deleteItem(storageKeys.REFRESH_TOKEN);
     dispatch(setToken(null));
     dispatch(setUser(null));
