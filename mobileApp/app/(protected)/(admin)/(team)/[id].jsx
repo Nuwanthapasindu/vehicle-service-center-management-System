@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import colors from "../../../../constants/colors";
+import EmployeeCard from "../../../../components/EmployeeCard";
 import axios from "axios";
 
 export default function EditTeam() {
@@ -160,25 +161,12 @@ export default function EditTeam() {
   const renderEmployeeItem = ({ item }) => {
     const isSelected = selectedEmployees.includes(item._id);
     return (
-      <TouchableOpacity
-        style={styles.employeeCard}
+      <EmployeeCard
+        item={item}
+        selectable={true}
+        selected={isSelected}
         onPress={() => toggleEmployeeSelection(item._id)}
-      >
-        <Ionicons name="person-circle" size={44} color={colors.PRIMARY} />
-        <View style={styles.employeeInfo}>
-          <Text style={styles.employeeName}>
-            {item.user?.name || "Unknown Employee"}
-          </Text>
-          <Text style={styles.employeeRole}>
-            {item.user?.role || "No Role Assigned"}
-          </Text>
-        </View>
-        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-          {isSelected && (
-            <Ionicons name="checkmark" size={16} color={colors.LIGHT} />
-          )}
-        </View>
-      </TouchableOpacity>
+      />
     );
   };
 
@@ -287,36 +275,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.BACKGROUND_COLOR,
     borderRadius: 12,
     padding: 15,
-    borderWidth: 1,
     borderColor: colors.BORDER_COLOR,
     marginBottom: 20,
     color: colors.DARK,
-  },
-  employeeCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    backgroundColor: colors.LIGHT,
-  },
-  employeeInfo: { flex: 1, marginLeft: 12 },
-  employeeName: { fontSize: 15, fontWeight: "700", color: colors.DARK },
-  employeeRole: { fontSize: 12, color: colors.SECONDARY, marginTop: 2 },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: colors.BORDER_COLOR,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkboxSelected: {
-    backgroundColor: colors.PRIMARY,
-    borderColor: colors.PRIMARY,
   },
   footer: {
     padding: 20,

@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import axios from "axios";
 import colors from "../../../../constants/colors";
+import EmployeeCard from "../../../../components/EmployeeCard";
 
 export default function EmployeeDirectory() {
   const [employees, setEmployees] = useState([]);
@@ -68,36 +69,7 @@ export default function EmployeeDirectory() {
   };
 
   const renderEmployeeCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        router.push(`/(protected)/(admin)/(employee)/${item._id}`)
-      }
-    >
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>
-          {item.user?.name ? item.user.name.charAt(0).toUpperCase() : "?"}
-        </Text>
-      </View>
-
-      <View style={styles.info}>
-        <Text style={styles.name}>{item.user?.name || "Unknown Name"}</Text>
-        <Text style={styles.roleText}>
-          {item.user?.role || "No Role Assigned"}
-        </Text>
-
-        <Text
-          style={[
-            styles.statusText,
-            { color: item.isAvailable ? "#4CAF50" : "#F44336" },
-          ]}
-        >
-          {item.isAvailable ? "● Available" : "○ Unavailable"}
-        </Text>
-      </View>
-
-      <Ionicons name="chevron-forward" size={20} color={colors.SECONDARY} />
-    </TouchableOpacity>
+    <EmployeeCard item={item} />
   );
 
   return (
@@ -214,25 +186,6 @@ const styles = StyleSheet.create({
     padding: 16, 
     paddingBottom: 100 // Ensures last item is not hidden behind the fixed bottom nav
   },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.LIGHT,
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  avatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.PRIMARY + "30", justifyContent: "center", alignItems: "center" },
-  avatarText: { color: colors.PRIMARY, fontWeight: "bold", fontSize: 18 },
-  info: { flex: 1, marginLeft: 16 },
-  name: { fontSize: 16, fontWeight: "bold", color: colors.DARK },
-  roleText: { color: colors.SECONDARY, fontSize: 14, marginBottom: 4 },
-  statusText: { fontSize: 12, fontWeight: "600" },
   fab: {
     position: "absolute",
     bottom: 90, // Adjusted to sit above the Bottom Nav

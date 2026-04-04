@@ -16,6 +16,7 @@ import colors from "../../../../constants/colors";
 import { Formik } from "formik";
 import Toast from "react-native-toast-message";
 import CreateTeamSchema from "../../../../schema/CreateTeamSchema";
+import EmployeeCard from "../../../../components/EmployeeCard";
 import axios from "axios";
 
 export default function CreateTeam() {
@@ -127,29 +128,13 @@ export default function CreateTeam() {
   const renderEmployeeItem = (values, setFieldValue) => ({ item }) => {
     const isSelected = values.employees.includes(item._id);
 
-    const displayName = item.user?.name || "Name Missing";
-    const displayRole = item.user?.role || "No Role Assigned";
-
     return (
-      <TouchableOpacity
-        style={styles.employeeCard}
-        onPress={() =>
-          toggleEmployeeSelection(values, setFieldValue, item._id)
-        }
-      >
-        <View style={styles.avatarContainer}>
-          <Ionicons name="person-circle" size={40} color={colors.PRIMARY} />
-        </View>
-        <View style={styles.employeeInfo}>
-          <Text style={styles.employeeName}>{displayName}</Text>
-          <Text style={styles.employeeRole}>{displayRole}</Text>
-        </View>
-        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-          {isSelected && (
-            <Ionicons name="checkmark" size={16} color={colors.LIGHT} />
-          )}
-        </View>
-      </TouchableOpacity>
+      <EmployeeCard
+        item={item}
+        selectable={true}
+        selected={isSelected}
+        onPress={() => toggleEmployeeSelection(values, setFieldValue, item._id)}
+      />
     );
   };
 
@@ -170,7 +155,7 @@ export default function CreateTeam() {
         errors,
         touched,
       }) => (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
           <View style={styles.content}>
             {/* Team Name */}
             <Text style={styles.label}>TEAM NAME</Text>
@@ -240,7 +225,7 @@ export default function CreateTeam() {
               )}
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
+        </View>
       )}
     </Formik>
   );
@@ -285,33 +270,6 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 12, fontWeight: "700", color: colors.DARK },
   selectAllText: { color: colors.PRIMARY, fontWeight: "bold", fontSize: 13 },
   listContainer: { paddingBottom: 20 },
-  employeeCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.LIGHT,
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-  },
-  avatarContainer: { marginRight: 12 },
-  employeeInfo: { flex: 1 },
-  employeeName: { fontSize: 15, fontWeight: "700", color: colors.DARK },
-  employeeRole: { fontSize: 12, color: colors.SECONDARY, marginTop: 2 },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: colors.BORDER_COLOR,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkboxSelected: {
-    backgroundColor: colors.PRIMARY,
-    borderColor: colors.PRIMARY,
-  },
   footer: {
     padding: 20,
     borderTopWidth: 1,
