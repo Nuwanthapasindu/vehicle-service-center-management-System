@@ -37,7 +37,8 @@ export const fetchUser = (personalAccessToken) => async (dispatch) => {
       dispatch(setToken(personalAccessToken));
       await saveItem(storageKeys.PERSONAL_ACCESS_TOKEN, personalAccessToken);
       const response = await axios.get("/auth/me");
-      if(response.data.payload?.authenticatedUser?.role !== enums.USER_ROLES.CUSTOMER){
+      const userRole = response.data.payload?.authenticatedUser?.role;
+      if(userRole === enums.USER_ROLES.ADMIN || userRole === enums.USER_ROLES.MECHANIC){
         dispatch(setUser(response.data.payload?.authenticatedUser));
       }else{
         Toast.show({
