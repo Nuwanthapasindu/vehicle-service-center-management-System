@@ -40,6 +40,13 @@ const enums = Object.freeze({
     PROMOTIONAL: "PROMOTIONAL",
     TRANSACTIONAL: "TRANSACTIONAL",
   },
+  AVAILABLE_SKILLS: [
+    "Engine Repair",
+    "Electrical",
+    "Body Wash",
+    "Diagnostics",
+    "Tire Service",
+  ],
 });
 
 export default enums;

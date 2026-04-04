@@ -16,6 +16,7 @@ import { Formik } from "formik";
 import Toast from "react-native-toast-message";
 import UpdateEmployeeSchema from "../../../../schema/UpdateEmployeeSchema";
 import axios from "axios";
+import enums from "../../../../constants/enums";
 
 export default function EditEmployee() {
   const { id } = useLocalSearchParams();
@@ -37,13 +38,7 @@ export default function EditEmployee() {
     password: "",
   });
 
-  const availableSkills = [
-    "Engine Repair",
-    "Electrical",
-    "Body Wash",
-    "Diagnostics",
-    "Tire Service",
-  ];
+
 
   useEffect(() => {
     fetchEmployeeDetails();
@@ -329,7 +324,7 @@ export default function EditEmployee() {
             {/* Skills */}
             <Text style={styles.sectionLabel}>ASSIGNED SKILLS</Text>
             <View style={styles.chipContainer}>
-              {availableSkills.map((skill) => (
+              {enums.AVAILABLE_SKILLS.map((skill) => (
                 <TouchableOpacity
                   key={skill}
                   onPress={() => toggleSkill(skill, values, setFieldValue)}

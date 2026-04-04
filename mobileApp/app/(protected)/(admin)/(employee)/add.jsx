@@ -6,7 +6,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -23,13 +22,7 @@ export default function AddEmployee() {
   const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  const availableSkills = [
-    "Engine Repair",
-    "Electrical",
-    "Body Wash",
-    "Diagnostics",
-    "Tire Service",
-  ];
+
 
   const toggleSkill = (values, setFieldValue, skill) => {
     if (values.skills.includes(skill)) {
@@ -184,7 +177,7 @@ export default function AddEmployee() {
 
             <Text style={styles.sectionLabel}>ASSIGN SKILLS</Text>
             <View style={styles.rowContainer}>
-              {availableSkills.map((skill) => (
+              {enums.AVAILABLE_SKILLS.map((skill) => (
                 <TouchableOpacity
                   key={skill}
                   style={[
@@ -210,7 +203,7 @@ export default function AddEmployee() {
 
             <Text style={styles.sectionLabel}>ACCESS CONTROL</Text>
             <View style={styles.rowContainer}>
-              {Object.values(enums.USER_ROLES).map((r) => (
+              {Object.values(enums.USER_ROLES).filter(r=>r !== enums.USER_ROLES.CUSTOMER).map((r) => (
                 <TouchableOpacity
                   key={r}
                   style={[styles.chip, values.role === r && styles.activeChip]}
