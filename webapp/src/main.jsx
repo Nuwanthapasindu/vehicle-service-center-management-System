@@ -22,6 +22,8 @@ import "@fontsource/poppins/600.css";
 import "@fontsource/poppins/700.css";
 import "@fontsource/poppins/800.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 storeSubscribe();
 tokenRefresh();
@@ -31,6 +33,7 @@ createRoot(document.getElementById("root")).render(
       <BrowserRouter>
         <AuthProvider>
           <Router />
+          <ToastContainer position="top-right" autoClose={3000} />
         </AuthProvider>
       </BrowserRouter>
     </Provider>

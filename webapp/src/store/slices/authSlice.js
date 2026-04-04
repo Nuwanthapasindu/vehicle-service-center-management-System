@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { CONFIGURATION } from "../../constants/enum";
+import { CONFIGURATION, enums } from "../../constants/enum";
 // INITIAL STATE
 const initialState = {
   user: null,
@@ -33,7 +33,15 @@ export const fetchUser = (personalAccessToken) => async (dispatch) => {
       sessionStorage.setItem(CONFIGURATION.ACCESS_TOKEN_KEY, personalAccessToken);
       dispatch(setToken(personalAccessToken));
       const response = await axios.get("/auth/me");
-      dispatch(setUser(response.data.payload?.authenticatedUser));
+      const authenticatedUser = response.data.payload?.authenticatedUser;
+      if (authenticatedUser && authenticatedUser.role === enums.USER_ROLES.CUSTOMER) {
+        dispatch(setUser(authenticatedUser));
+      }else{
+        localStorage.removeItem(CONFIGURATION.REFRESH_TOKEN_KEY);
+        sessionStorage.removeItem(CONFIGURATION.ACCESS_TOKEN_KEY);
+        dispatch(setToken(null));
+        dispatch(setUser(null));
+      }
     } else {
       localStorage.removeItem(CONFIGURATION.REFRESH_TOKEN_KEY);
       sessionStorage.removeItem(CONFIGURATION.ACCESS_TOKEN_KEY);

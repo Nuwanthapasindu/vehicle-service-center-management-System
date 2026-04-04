@@ -1,27 +1,105 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import './ServiceBooking.css';
+import getImageUrl from '../../../util/getImageUrl';
+import defaultCarImg from '../../../assets/imgs/default-car.png';
+import { useFormik } from 'formik';
+import { bookingSchema } from '../../../schemas/booking';
+import BookingCalendar from '../../../components/Customer/Calendar/BookingCalendar';
 
 const ServiceBooking = () => {
-    const [selectedDate, setSelectedDate] = useState(6);
-    const [selectedSlot, setSelectedSlot] = useState(1);
+    const [vehicles, setVehicles] = useState([]);
+    const [loadingVehicles, setLoadingVehicles] = useState(true);
 
-    const timeSlots = [
-        { id: 1, time: '09:00 AM - 01:00 PM', label: 'Morning Session' },
-        { id: 2, time: '10:30 AM - 02:30 PM', label: 'Mid-Morning Session' },
-        { id: 3, time: '01:00 PM - 05:00 PM', label: 'Afternoon Session' },
-        { id: 4, time: '02:30 PM - 06:30 PM', label: 'Late Afternoon Session' },
-    ];
+    const formik = useFormik({
+        initialValues: {
+            vehicleId: '',
+            slotId: '',
+            date: null
+        },
+        validationSchema: bookingSchema,
+        onSubmit: async (values, { resetForm }) => {
+            try {
+                const yyyy = values.date.getFullYear();
+                const mm = String(values.date.getMonth() + 1).padStart(2, '0');
+                const dd = String(values.date.getDate()).padStart(2, '0');
+                const dateStr = `${yyyy}-${mm}-${dd}`;
 
-    const calendarDays = [
-        null, null, null, null, null, 1, 2, 3, 4,
-        5, 6, 7, 8, 9, 10, 11,
-        12, 13, 14, 15, 16, 17, 18,
-        19, 20, 21, 22, 23, 24, 25,
-        26, 27, 28, 29, 30, 31
-    ];
+                const slotDetails = timeSlots.find(s => s.id === values.slotId);
+
+                await axios.post('/booking', {
+                    vehicle: values.vehicleId,
+                    slot: values.slotId,
+                    date: dateStr
+                });
+
+                const vehicleDetails = vehicles.find(v => v._id === values.vehicleId);
+                toast.success(`Booking confirmed for ${vehicleDetails.make} ${vehicleDetails.model} on ${dateStr} at ${slotDetails?.time.split(' - ')[0]}`);
+
+                resetForm();
+            } catch (error) {
+                toast.error(error.response?.data?.payload?.message || "Failed to confirm booking.");
+            }
+        }
+    });
+
+    const { values, errors, setFieldValue, submitForm } = formik;
+    const selectedDate = values.date;
+    const selectedSlot = values.slotId;
+    const selectedVehicle = vehicles.find(v => v._id === values.vehicleId);
+
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [timeSlots, setTimeSlots] = useState([]);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchVehicles = async () => {
+            try {
+                setLoadingVehicles(true);
+                const response = await axios.get('/vehicle/my-vehicles');
+                setVehicles(response.data.payload.vehicles || []);
+            } catch (error) {
+                toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
+            } finally {
+                setLoadingVehicles(false);
+            }
+        };
+        fetchVehicles();
+    }, []);
+
+    useEffect(() => {
+        if (!selectedDate) {
+            setTimeSlots([]);
+            setFieldValue('slotId', ''); // Reset slot selection
+            return;
+        }
+
+        const fetchSlots = async () => {
+            setLoadingSlots(true);
+            try {
+                const yyyy = selectedDate.getFullYear();
+                const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                const dd = String(selectedDate.getDate()).padStart(2, '0');
+                const dateStr = `${yyyy}-${mm}-${dd}`;
+
+                const response = await axios.get(`/timeslot?date=${dateStr}`);
+                setTimeSlots(response.data.payload.slots || []);
+                setFieldValue('slotId', ''); // Reset slot selection when date changes
+            } catch (error) {
+                toast.error(error.response?.data?.payload?.message || "Failed to fetch timeslots.");
+            } finally {
+                setLoadingSlots(false);
+            }
+        };
+        fetchSlots();
+    }, [selectedDate, setFieldValue]);
+
+    const handleConfirmBooking = () => submitForm();
+
 
     return (
         <div className="customer-portal-wrapper">
@@ -33,16 +111,17 @@ const ServiceBooking = () => {
                 <main className="booking-main-content">
                     {/* Breadcrumbs */}
                     <nav className="breadcrumbs">
-                        <Link to="/customer/dashboard">Home</Link>
+                        <Link to="/customer/dashboard">
+                            <i className="fa-solid fa-house"></i>
+                            Dashboard
+                        </Link>
                         <i className="fa-solid fa-chevron-right"></i>
-                        <span>Booking</span>
-                        <i className="fa-solid fa-chevron-right"></i>
-                        <span className="active">Select Slot</span>
+                        <span className="active">Service Booking</span>
                     </nav>
 
                     {/* Page Header */}
                     <section className="page-title-section">
-                        <h2 className="page-title">Book a Service Slot</h2>
+                        <h1 className="page-title">Book a Service Slot</h1>
                         <p className="page-subtitle">
                             Select your preferred date and time for a premium professional detailing session. Our master technicians will ensure your vehicle looks brand new.
                         </p>
@@ -79,51 +158,57 @@ const ServiceBooking = () => {
                         </div>
                     </div>
 
-                    {/* Calendar Section */}
-                    <div className="calendar-card">
-                        <div className="calendar-header">
-                            <h3 className="month-year">
-                                <i className="fa-regular fa-calendar-days"></i>
-                                October 2023
-                            </h3>
-                            <div className="calendar-nav">
-                                <button className="nav-btn"><i className="fa-solid fa-chevron-left"></i></button>
-                                <button className="nav-btn"><i className="fa-solid fa-chevron-right"></i></button>
-                            </div>
-                        </div>
+                    {/* Pickers Row */}
+                    <div className="picker-row">
+                        {/* Calendar Section */}
+                        <BookingCalendar
+                            selectedDate={selectedDate}
+                            onDateSelect={(date) => setFieldValue('date', date)}
+                        />
 
-                        <div className="calendar-grid">
-                            <div className="day-name">SUN</div>
-                            <div className="day-name">MON</div>
-                            <div className="day-name">TUE</div>
-                            <div className="day-name">WED</div>
-                            <div className="day-name">THU</div>
-                            <div className="day-name">FRI</div>
-                            <div className="day-name">SAT</div>
-
-                            {calendarDays.map((day, index) => (
-                                <div
-                                    key={index}
-                                    className={`calendar-day ${day === null ? 'empty' : ''} ${day === selectedDate ? 'selected' : ''} ${day === 17 ? 'unavailable' : ''}`}
-                                    onClick={() => day !== null && day !== 17 && setSelectedDate(day)}
-                                >
-                                    {day}
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="calendar-legend">
-                            <div className="legend-item">
-                                <span className="dot selected"></span>
-                                <span>Selected</span>
+                        {/* Vehicle Picker Section */}
+                        <div className="vehicle-picker-card">
+                            <div className="vehicle-picker-header">
+                                <h2 className="section-title">Select Vehicle</h2>
                             </div>
-                            <div className="legend-item">
-                                <span className="dot available"></span>
-                                <span>Available</span>
-                            </div>
-                            <div className="legend-item">
-                                <span className="dot unavailable"></span>
-                                <span>Not Available</span>
+                            <div className="vehicle-row-list">
+                                {loadingVehicles ? (
+                                    <div className="loading-state-container">
+                                        <i className="fa-solid fa-spinner fa-spin"></i>
+                                        <p>Loading your vehicles...</p>
+                                    </div>
+                                ) : vehicles.length === 0 ? (
+                                    <div className="empty-state-container">
+                                        <div className="empty-state-icon">
+                                            <i className="fa-solid fa-car-rear"></i>
+                                        </div>
+                                        <p className="empty-state-text">No records found.</p>
+                                        <Link to="/customer/my-garage" className="empty-state-btn">Add Vehicle</Link>
+                                    </div>
+                                ) : (
+                                    vehicles.map(v => (
+                                        <div
+                                            key={v._id}
+                                            className={`vehicle-pick-item ${values.vehicleId === v._id ? 'selected' : ''}`}
+                                            onClick={() => setFieldValue('vehicleId', v._id)}
+                                        >
+                                            <div className="vehicle-pick-img-wrapper">
+                                                <img src={getImageUrl(v.image?.filePath) || defaultCarImg} alt={v.model} />
+                                            </div>
+                                            <div className="vehicle-pick-info">
+                                                <h4>{v.make} {v.model}</h4>
+                                                <span>{v.year || 'N/A'} • {v.type}</span>
+                                            </div>
+                                            <div className="vehicle-check">
+                                                {values.vehicleId === v._id ? (
+                                                    <i className="fa-solid fa-circle-check"></i>
+                                                ) : (
+                                                    <i className="fa-regular fa-circle"></i>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
@@ -132,30 +217,58 @@ const ServiceBooking = () => {
                     <div className="slots-summary-grid">
                         {/* Time Slots Selection */}
                         <div className="time-slots-section">
-                            <div className="section-title">
+                            <h2 className="section-title">
                                 <i className="fa-regular fa-clock"></i>
-                                <span>Available Time Slots</span>
-                            </div>
+                                Available Time Slots
+                            </h2>
                             <div className="slots-list">
-                                {timeSlots.map((slot) => (
-                                    <div
-                                        key={slot.id}
-                                        className={`slot-card ${selectedSlot === slot.id ? 'active' : ''}`}
-                                        onClick={() => setSelectedSlot(slot.id)}
-                                    >
-                                        <div className="slot-info">
-                                            <h4>{slot.time}</h4>
-                                            <p>{slot.label}</p>
-                                        </div>
-                                        <div className="slot-check">
-                                            {selectedSlot === slot.id ? (
-                                                <i className="fa-solid fa-circle-check"></i>
-                                            ) : (
-                                                <i className="fa-regular fa-circle-plus"></i>
-                                            )}
-                                        </div>
+                                {!selectedDate ? (
+                                    <div className="booking-note-alert" style={{ backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}>
+                                        <i className="fa-regular fa-calendar" style={{ color: '#64748B' }}></i>
+                                        <p>Please select a date first to view available time slots.</p>
                                     </div>
-                                ))}
+                                ) : loadingSlots ? (
+                                    <div className="booking-note-alert" style={{ backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}>
+                                        <i className="fa-solid fa-spinner fa-spin" style={{ color: '#64748B' }}></i>
+                                        <p>Loading available slots...</p>
+                                    </div>
+                                ) : timeSlots.length === 0 ? (
+                                    <div className="booking-note-alert" style={{ backgroundColor: '#FFF5F5', borderColor: '#FED7D7' }}>
+                                        <i className="fa-solid fa-circle-exclamation" style={{ color: '#E53E3E' }}></i>
+                                        <p>No time slots available for this date.</p>
+                                    </div>
+                                ) : (
+                                    timeSlots.map((slot) => {
+                                        const disabled = slot.isFull || !selectedVehicle;
+                                        return (
+                                            <div
+                                                key={slot.id}
+                                                className={`slot-card ${selectedSlot === slot.id ? 'active' : ''}`}
+                                                style={disabled ? { opacity: 0.6, cursor: 'not-allowed', backgroundColor: '#F1F5F9' } : {}}
+                                                onClick={() => {
+                                                    if (!disabled) setFieldValue('slotId', slot.id);
+                                                    else if (!selectedVehicle) toast.warning("Please select a vehicle first.");
+                                                }}
+                                            >
+                                                <div className="slot-info">
+                                                    <h4>{slot.time}</h4>
+                                                    <p style={{ color: slot.isFull ? '#E53E3E' : 'var(--secondary)' }}>
+                                                        {slot.isFull ? 'Fully Booked' : `${slot.maxCapacity - slot.booked} slots remaining`}
+                                                    </p>
+                                                </div>
+                                                <div className="slot-check">
+                                                    {selectedSlot === slot.id ? (
+                                                        <i className="fa-solid fa-circle-check"></i>
+                                                    ) : slot.isFull ? (
+                                                        <i className="fa-solid fa-ban" style={{ color: '#E53E3E' }}></i>
+                                                    ) : (
+                                                        <i className="fa-regular fa-circle-plus"></i>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
 
                             <div className="booking-note-alert">
@@ -170,25 +283,35 @@ const ServiceBooking = () => {
                                 <h4 className="summary-title">BOOKING SUMMARY</h4>
                                 <div className="summary-details">
                                     <div className="detail-row">
-                                        <span className="label">Service</span>
-                                        <span className="value">Ultimate Exterior Detailing</span>
+                                        <span className="label">Vehicle</span>
+                                        <span className="value">
+                                            {selectedVehicle
+                                                ? `${selectedVehicle.make} ${selectedVehicle.model} (${selectedVehicle.year || 'N/A'})`
+                                                : 'Not selected'}
+                                        </span>
                                     </div>
                                     <div className="detail-row">
                                         <span className="label">Date</span>
-                                        <span className="value">Friday, Oct 6th, 2023</span>
+                                        <span className="value">
+                                            {selectedDate
+                                                ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
+                                                : 'Not selected'}
+                                        </span>
                                     </div>
                                     <div className="detail-row">
                                         <span className="label">Time</span>
-                                        <span className="value">09:00 AM</span>
+                                        <span className="value">
+                                            {timeSlots.find(s => s.id === selectedSlot)?.time.split(' - ')[0] || 'Not selected'}
+                                        </span>
                                     </div>
                                 </div>
 
-                                <div className="estimate-row">
-                                    <span className="label">Total Estimate</span>
-                                    <span className="price">$189.00</span>
-                                </div>
-
-                                <button className="confirm-booking-btn">
+                                <button
+                                    className="confirm-booking-btn"
+                                    disabled={!selectedDate || !selectedVehicle || !selectedSlot}
+                                    style={{ opacity: (!selectedDate || !selectedVehicle || !selectedSlot) ? 0.5 : 1, cursor: (!selectedDate || !selectedVehicle || !selectedSlot) ? 'not-allowed' : 'pointer', marginTop: '1.5rem' }}
+                                    onClick={handleConfirmBooking}
+                                >
                                     <span>CONFIRM BOOKING</span>
                                     <i className="fa-solid fa-arrow-right"></i>
                                 </button>

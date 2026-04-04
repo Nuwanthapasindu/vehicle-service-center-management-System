@@ -27,6 +27,10 @@ const vehicleSchema = new Schema(
       type: String,
       required: true,
     },
+    year: {
+      type: Number,
+      required: true,
+    },
     image: {
       type: Schema.Types.ObjectId,
       ref: "File",

@@ -5,26 +5,7 @@
     gap: 1.5rem;
 }
 
-/* Breadcrumbs */
-.breadcrumbs {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-    color: var(--secondary, #64748B);
-    font-weight: 500;
-    margin-top: 1rem;
-}
 
-.breadcrumbs i {
-    font-size: 0.7rem;
-    opacity: 0.6;
-}
-
-.breadcrumbs .active {
-    color: var(--dark, #1A1D23);
-    font-weight: 750;
-}
 
 /* Page Header */
 .page-title-section {
@@ -34,23 +15,13 @@
     margin-bottom: 1rem;
 }
 
-.page-title {
-    font-size: 2.5rem;
-    font-weight: 850;
-    color: var(--dark, #1A1D23);
-    margin: 0;
-}
+
 
 .page-title .highlight {
     color: var(--primary-color, #8EDB00);
 }
 
-.page-subtitle {
-    color: var(--secondary, #64748B);
-    font-size: 1.05rem;
-    font-weight: 500;
-    max-width: 800px;
-}
+
 
 /* Add Vehicle Card */
 .add-vehicle-card {
@@ -64,17 +35,10 @@
 }
 
 .card-header-text .card-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--dark, #1A1D23);
-    margin: 0 0 0.5rem 0;
+    margin: 0;
 }
 
-.card-header-text .card-subtitle {
-    font-size: 0.95rem;
-    color: var(--secondary, #64748B);
-    font-weight: 500;
-}
+
 
 /* Form Styling */
 .add-vehicle-form {
@@ -95,7 +59,7 @@
     gap: 0.75rem;
 }
 
-.form-group label {
+.add-vehicle-main-content .form-group label {
     font-size: 0.9rem;
     font-weight: 800;
     color: var(--dark, #1A1D23);
@@ -108,8 +72,8 @@
     align-items: center;
 }
 
-.input-with-icon input,
-.select-wrapper select {
+.add-vehicle-main-content .input-with-icon input,
+.add-vehicle-main-content .select-wrapper select {
     width: 100%;
     padding: 1rem 1.25rem;
     border: 1px solid var(--border-color, #E2E8F0);
@@ -123,8 +87,8 @@
     appearance: none;
 }
 
-.input-with-icon input:focus,
-.select-wrapper select:focus {
+.add-vehicle-main-content .input-with-icon input:focus,
+.add-vehicle-main-content .select-wrapper select:focus {
     border-color: var(--primary-color, #8EDB00);
     box-shadow: 0 0 0 4px rgba(142, 219, 0, 0.1);
 }
