@@ -273,7 +273,7 @@ export default function EditEmployee() {
             {/* Gender */}
             <Text style={styles.sectionLabel}>GENDER</Text>
             <View style={styles.chipContainer}>
-              {["MALE", "FEMALE"].map((g) => (
+              {Object.values(enums.GENDERS).map((g) => (
                 <TouchableOpacity
                   key={g}
                   style={[

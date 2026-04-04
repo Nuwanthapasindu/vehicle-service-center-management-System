@@ -154,7 +154,7 @@ export default function AddEmployee() {
             )}
             <Text style={styles.sectionLabel}>GENDER</Text>
             <View style={styles.rowContainer}>
-              {["MALE", "FEMALE"].map((g) => (
+              {Object.values(enums.GENDERS).map((g) => (
                 <TouchableOpacity
                   key={g}
                   style={[
