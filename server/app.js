@@ -13,6 +13,9 @@ require("dotenv").config();
 const authRouter = require("./routes/auth.route");
 const log = require("./middleware/log");
 const fileRouter = require("./routes/file.route");
+const employeeRouter = require("./routes/employee.route");
+const teamRouter = require("./routes/team.route");
+const jobCardRoutes = require("./routes/jobCard.route");
 const serviceRouter = require("./routes/service.route");
 const packageRouter = require("./routes/package.route");
 const userRouter = require("./routes/user.route");
@@ -47,6 +50,9 @@ app.use("/api/v1/storage/uploads", express.static(path.join(process.cwd(), "stor
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/file", fileRouter);
+app.use("/api/v1/employees", employeeRouter);
+app.use("/api/v1/teams", teamRouter);
+app.use("/api/v1/job-cards", jobCardRoutes);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/package", packageRouter);
 

@@ -149,6 +149,43 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
+
+        <Drawer.Screen
+            name="(employee)"
+            options={{
+              headerShown: false,
+              drawerLabel: "Employee", 
+              title: "EMPLOYEE DIRECTORY", 
+              drawerIcon: ({ color, size }) => (
+                <Ionicons name="person-outline" size={size} color={color} />
+              ),
+            }}
+        />
+
+        {/* Hidden Team Route - Shows in header but hidden from Drawer Menu */}
+        <Drawer.Screen
+           name="(team)"
+           options={{
+             headerShown: false,
+             drawerLabel: "Teams", // This removes it from the sidebar
+             title: "TEAM DIRECTORY",             // This shows only in the header
+             drawerIcon: ({ color, size }) => (
+                <Ionicons name="people-outline" size={size} color={color} />
+              ),
+            }}
+        />
+        
+        <Drawer.Screen
+           name="(jobcard)"
+           options={{
+             headerShown: false,
+             drawerLabel: "Jobcard", // This removes it from the sidebar
+             title: "Jobcard DIRECTORY",             // This shows only in the header
+             drawerIcon: ({ color, size }) => (
+                <Ionicons name="clipboard-outline" size={size} color={color} />
+              ),
+            }}
+        /> 
         <Drawer.Screen
           name="supplychain/index" 
           options={{
