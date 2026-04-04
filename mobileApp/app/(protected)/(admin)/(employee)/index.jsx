@@ -58,9 +58,6 @@ export default function EmployeeDirectory() {
       const response = await axios.get(url);
 
       const employeesData = response?.data?.payload?.data || [];
-
-      console.log("Employees:", employeesData);
-
       setEmployees(employeesData);
     } catch (error) {
       console.error("Employee fetch error:", error);

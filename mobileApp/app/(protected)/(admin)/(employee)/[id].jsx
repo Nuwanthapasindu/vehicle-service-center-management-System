@@ -48,11 +48,10 @@ export default function EditEmployee() {
   useEffect(() => {
     fetchEmployeeDetails();
   }, [id]);
-  
+
   // FETCH EMPLOYEE DETAILS
   const fetchEmployeeDetails = async () => {
     try {
-
       const response = await axios.get("/employees");
 
       const employees = response?.data?.payload?.data || [];
@@ -73,11 +72,7 @@ export default function EditEmployee() {
           password: "",
         });
       }
-
     } catch (error) {
-
-      console.log(error);
-
       //Alert.alert("Error", "Failed to load employee details");
       // show error toast instead of Alert
       Toast.show({
@@ -86,15 +81,12 @@ export default function EditEmployee() {
         text2: "Failed to load employee details",
       });
     } finally {
-
       setLoading(false);
-
     }
   };
 
   // SKILL TOGGLE
   const toggleSkill = (skill, values, setFieldValue) => {
-
     const updatedSkills = values.skills.includes(skill)
       ? values.skills.filter((s) => s !== skill)
       : [...values.skills, skill];
@@ -104,11 +96,9 @@ export default function EditEmployee() {
 
   // UPDATE EMPLOYEE
   const handleUpdate = async (values) => {
-
     setProcessing(true);
 
     try {
-
       let payload = { ...values };
 
       if (!payload.password) delete payload.password;
@@ -116,7 +106,6 @@ export default function EditEmployee() {
       const response = await axios.put(`/employees/${id}`, payload);
 
       if (response.status === 200) {
-
         //Alert.alert("Success", "Employee updated successfully");
         // success toast instead of Alert
         Toast.show({
@@ -127,33 +116,24 @@ export default function EditEmployee() {
 
         router.back();
       }
-
     } catch (error) {
-
-      console.log(error);
-
       const message =
-        error?.response?.data?.payload?.message ||
-        "Employee update failed";
+        error?.response?.data?.payload?.message || "Employee update failed";
 
       //Alert.alert("Error", message);
       // show error toast instead of Alert
       Toast.show({
-         type: "error",
-         text1: "Error",
-         text2: message,
+        type: "error",
+        text1: "Error",
+        text2: message,
       });
-
     } finally {
-
       setProcessing(false);
-
     }
   };
 
   // DELETE EMPLOYEE
   const handleDelete = () => {
-
     Alert.alert(
       "Delete Employee",
       "Are you sure you want to delete this employee?",
@@ -165,13 +145,10 @@ export default function EditEmployee() {
           style: "destructive",
 
           onPress: async () => {
-
             try {
-
               const response = await axios.delete(`/employees/${id}`);
 
               if (response.status === 200) {
-
                 //Alert.alert("Success", "Employee deleted successfully");
                 // success toast instead of Alert
                 Toast.show({
@@ -182,11 +159,7 @@ export default function EditEmployee() {
 
                 router.replace("/(protected)/(admin)/(employee)");
               }
-
             } catch (error) {
-
-              console.log(error);
-
               //Alert.alert("Error", "Delete failed");
               //error toast instead of Alert
               Toast.show({
@@ -197,10 +170,11 @@ export default function EditEmployee() {
             }
           },
         },
-      ]
+      ],
     );
   };
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} color={colors.PRIMARY} />;
+  if (loading)
+    return <ActivityIndicator style={{ flex: 1 }} color={colors.PRIMARY} />;
 
   return (
     <Formik
@@ -209,7 +183,14 @@ export default function EditEmployee() {
       validationSchema={UpdateEmployeeSchema}
       onSubmit={handleUpdate}
     >
-      {({ handleChange, handleSubmit, values, errors, touched, setFieldValue }) => (
+      {({
+        handleChange,
+        handleSubmit,
+        values,
+        errors,
+        touched,
+        setFieldValue,
+      }) => (
         <View style={styles.mainContainer}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             {/* Personal Information */}
@@ -221,7 +202,9 @@ export default function EditEmployee() {
               value={values.name}
               onChangeText={handleChange("name")}
             />
-            {touched.name && errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+            {touched.name && errors.name && (
+              <Text style={styles.errorText}>{errors.name}</Text>
+            )}
 
             <Text style={styles.fieldLabel}>MOBILE NUMBER</Text>
             <TextInput
@@ -230,7 +213,9 @@ export default function EditEmployee() {
               keyboardType="phone-pad"
               onChangeText={handleChange("mobile")}
             />
-            {touched.mobile && errors.mobile && <Text style={styles.errorText}>{errors.mobile}</Text>}
+            {touched.mobile && errors.mobile && (
+              <Text style={styles.errorText}>{errors.mobile}</Text>
+            )}
 
             <Text style={styles.fieldLabel}>ADDRESS</Text>
             <TextInput
@@ -238,7 +223,9 @@ export default function EditEmployee() {
               value={values.address}
               onChangeText={handleChange("address")}
             />
-            {touched.address && errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
+            {touched.address && errors.address && (
+              <Text style={styles.errorText}>{errors.address}</Text>
+            )}
 
             <Text style={styles.fieldLabel}>USERNAME</Text>
             <TextInput
@@ -246,7 +233,9 @@ export default function EditEmployee() {
               value={values.userName}
               onChangeText={handleChange("userName")}
             />
-            {touched.userName && errors.userName && <Text style={styles.errorText}>{errors.userName}</Text>}
+            {touched.userName && errors.userName && (
+              <Text style={styles.errorText}>{errors.userName}</Text>
+            )}
 
             <Text style={styles.fieldLabel}>PASSWORD</Text>
             <TextInput
@@ -256,7 +245,9 @@ export default function EditEmployee() {
               placeholder="Leave blank to keep current password"
               onChangeText={handleChange("password")}
             />
-            {touched.password && errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            {touched.password && errors.password && (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            )}
 
             <View style={styles.rowInputs}>
               <View style={{ flex: 1, marginRight: 10 }}>
@@ -266,7 +257,9 @@ export default function EditEmployee() {
                   value={values.nic}
                   onChangeText={handleChange("nic")}
                 />
-                {touched.nic && errors.nic && <Text style={styles.errorText}>{errors.nic}</Text>}
+                {touched.nic && errors.nic && (
+                  <Text style={styles.errorText}>{errors.nic}</Text>
+                )}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.fieldLabel}>DATE OF BIRTH</Text>
@@ -276,7 +269,9 @@ export default function EditEmployee() {
                   value={values.dob}
                   onChangeText={handleChange("dob")}
                 />
-                {touched.dob && errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
+                {touched.dob && errors.dob && (
+                  <Text style={styles.errorText}>{errors.dob}</Text>
+                )}
               </View>
             </View>
 
@@ -286,14 +281,26 @@ export default function EditEmployee() {
               {["MALE", "FEMALE"].map((g) => (
                 <TouchableOpacity
                   key={g}
-                  style={[styles.chip, values.gender === g && styles.activeChip]}
+                  style={[
+                    styles.chip,
+                    values.gender === g && styles.activeChip,
+                  ]}
                   onPress={() => setFieldValue("gender", g)}
                 >
-                  <Text style={[styles.chipText, values.gender === g && styles.activeChipText]}>{g}</Text>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      values.gender === g && styles.activeChipText,
+                    ]}
+                  >
+                    {g}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
-            {touched.gender && errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
+            {touched.gender && errors.gender && (
+              <Text style={styles.errorText}>{errors.gender}</Text>
+            )}
 
             {/* Availability */}
             <Text style={styles.sectionLabel}>AVAILABILITY STATUS</Text>
@@ -301,10 +308,18 @@ export default function EditEmployee() {
               {[true, false].map((status) => (
                 <TouchableOpacity
                   key={status.toString()}
-                  style={[styles.chip, values.isAvailable === status && styles.activeChip]}
+                  style={[
+                    styles.chip,
+                    values.isAvailable === status && styles.activeChip,
+                  ]}
                   onPress={() => setFieldValue("isAvailable", status)}
                 >
-                  <Text style={[styles.chipText, values.isAvailable === status && styles.activeChipText]}>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      values.isAvailable === status && styles.activeChipText,
+                    ]}
+                  >
                     {status ? "AVAILABLE" : "UNAVAILABLE"}
                   </Text>
                 </TouchableOpacity>
@@ -318,14 +333,24 @@ export default function EditEmployee() {
                 <TouchableOpacity
                   key={skill}
                   onPress={() => toggleSkill(skill, values, setFieldValue)}
-                  style={[styles.chip, values.skills.includes(skill) && styles.activeChip]}
+                  style={[
+                    styles.chip,
+                    values.skills.includes(skill) && styles.activeChip,
+                  ]}
                 >
-                  <Text style={[styles.chipText, values.skills.includes(skill) && styles.activeChipText]}>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      values.skills.includes(skill) && styles.activeChipText,
+                    ]}
+                  >
                     {skill}
                   </Text>
                 </TouchableOpacity>
               ))}
-              {touched.skills && errors.skills && <Text style={styles.errorText}>{errors.skills}</Text>}
+              {touched.skills && errors.skills && (
+                <Text style={styles.errorText}>{errors.skills}</Text>
+              )}
             </View>
 
             {/* Buttons */}
@@ -339,7 +364,11 @@ export default function EditEmployee() {
                   <ActivityIndicator color={colors.DARK} />
                 ) : (
                   <>
-                    <Ionicons name="save-outline" size={20} color={colors.DARK} />
+                    <Ionicons
+                      name="save-outline"
+                      size={20}
+                      color={colors.DARK}
+                    />
                     <Text style={styles.saveBtnText}>SAVE CHANGES</Text>
                   </>
                 )}
@@ -368,7 +397,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     letterSpacing: 1,
   },
-  fieldLabel: { fontSize: 11, fontWeight: "700", color: colors.SECONDARY, marginBottom: 8, marginLeft: 4 },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.SECONDARY,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
   input: {
     backgroundColor: colors.LIGHT,
     padding: 15,
@@ -380,15 +415,44 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   rowInputs: { flexDirection: "row", justifyContent: "space-between" },
-  chipContainer: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 10 },
-  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 25, backgroundColor: colors.LIGHT, borderWidth: 1, borderColor: colors.BORDER_COLOR },
+  chipContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 10,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 25,
+    backgroundColor: colors.LIGHT,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+  },
   activeChip: { backgroundColor: colors.PRIMARY, borderColor: colors.PRIMARY },
   chipText: { fontSize: 13, fontWeight: "600", color: colors.SECONDARY },
   activeChipText: { color: colors.DARK },
   buttonContainer: { marginTop: 40, marginBottom: 30 },
-  saveBtn: { backgroundColor: colors.PRIMARY, padding: 18, borderRadius: 14, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 10, marginBottom: 12 },
+  saveBtn: {
+    backgroundColor: colors.PRIMARY,
+    padding: 18,
+    borderRadius: 14,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 12,
+  },
   saveBtnText: { color: colors.DARK, fontWeight: "800", fontSize: 16 },
-  deleteBtn: { backgroundColor: colors.DANGER_COLOR, padding: 18, borderRadius: 14, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 10 },
+  deleteBtn: {
+    backgroundColor: colors.DANGER_COLOR,
+    padding: 18,
+    borderRadius: 14,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+  },
   deleteBtnText: { color: colors.LIGHT, fontWeight: "800", fontSize: 16 },
   errorText: { color: "red", fontSize: 12, marginBottom: 8, marginLeft: 4 },
 });
