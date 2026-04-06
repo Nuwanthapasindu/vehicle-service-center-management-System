@@ -52,6 +52,9 @@ module.exports.createBooking = async (payload, mobile) => {
         const savedBooking = await newBooking.save();
         return savedBooking;
     } catch (error) {
+        if (error.code === 11000) {
+            throw new AppError("This vehicle is already booked for this specific time slot on the selected date.", 409);
+        }
         throw new AppError(error.message, error.statusCode || 500);
     }
 };
