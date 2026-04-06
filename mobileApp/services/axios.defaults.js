@@ -9,7 +9,11 @@ axios.defaults.timeout = 10000;
 axios.interceptors.request.use(async (config) => {
   // GET PERSONAL ACCESS TOKEN
   const personalAccessToken = await getItem(storageKeys.PERSONAL_ACCESS_TOKEN);
-  config.headers.Authorization = `Bearer ${personalAccessToken}`;
+  if (personalAccessToken) {
+    config.headers.Authorization = `Bearer ${personalAccessToken}`;
+  } else {
+    delete config.headers.Authorization;
+  }
   return config;
 });
 axios.interceptors.response.use(

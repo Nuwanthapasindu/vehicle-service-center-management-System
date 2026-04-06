@@ -11,7 +11,7 @@ const RecentVehicleCard = ({ vehicle }) => {
             </div>
             <div className="vehicle-details">
                 <h5 className="vehicle-name">{vehicle.make} {vehicle.model}</h5>
-                <span className="vehicle-year">{vehicle.licensePlate}</span>
+                <span className="vehicle-year">{vehicle.year || 'N/A'} • {vehicle.licensePlate}</span>
             </div>
             <div className="service-status">
                 <span className="dot"></span>

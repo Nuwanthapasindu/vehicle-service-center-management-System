@@ -40,7 +40,13 @@ const ServiceHistory = () => {
             ? vehicles.find(v => v._id === vehicleFilter)
             : null;
 
-        exportHistoryToPDF(historyData, selectedVehicle);
+        const activeFilters = {
+            search: searchTerm,
+            status: statusFilter,
+            duration: durationFilter
+        };
+
+        exportHistoryToPDF(historyData, selectedVehicle, activeFilters);
     };
 
     useEffect(() => {
@@ -167,8 +173,24 @@ const ServiceHistory = () => {
                             <option value="all">All Time</option>
                             <option value="6m">Last 6 Months</option>
                             <option value="1y">Last Year</option>
-                            <option value="2y">Last 2 Year</option>
-                            <option value="5y">Last 5 Year</option>
+                            <option value="2y">Last 2 Years</option>
+                            <option value="5y">Last 5 Years</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+
+                    <div className="filter-select">
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="all">All Status</option>
+                            {/* Fetch status from enums or define manually if not available */}
+                            <option value="PENDING">Pending</option>
+                            <option value="CONFIRMED">Confirmed</option>
+                            <option value="IN_PROGRESS">In-Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="CANCELLED">Cancelled</option>
                         </select>
                         <i className="fa-solid fa-chevron-down"></i>
                     </div>
