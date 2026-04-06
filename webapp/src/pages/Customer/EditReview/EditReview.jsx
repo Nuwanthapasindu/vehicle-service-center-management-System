@@ -2,20 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Formik, Form, Field } from 'formik';
-import * as Yup from 'yup';
+import { ReviewSchema as EditReviewSchema } from '../../../schemas/review';
 import reviewService from '../../../services/reviewService';
 import getImageUrl from '../../../util/getImageUrl';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
+import StarRating from '../../../components/Customer/StarRating/StarRating';
 import { formatShortDate } from '../../../util/dateFormatter';
+import { enums } from '../../../constants/enum';
 import './EditReview.css';
-
-const EditReviewSchema = Yup.object().shape({
-    rating: Yup.number()
-        .min(1, 'Please select a star rating to rate your detail')
-        .required('Rating is required'),
-    comment: Yup.string()
-});
 
 const EditReview = () => {
     const { reviewId } = useParams();
@@ -127,7 +122,7 @@ const EditReview = () => {
                                 />
                             </div>
                             <div className="service-info">
-                                <span className="status-badge">{status?.toUpperCase() || 'COMPLETED SERVICE'}</span>
+                                <span className="status-badge">{status?.toUpperCase() || enums.JOBCARD_STATUS.FINISH}</span>
                                 <h2>{vehicleName} - {packageName}</h2>
                                 <div className="service-date">
                                     <i className="fa-regular fa-calendar"></i>
@@ -146,17 +141,13 @@ const EditReview = () => {
                                 <>
                                     <div className="rating-section">
                                         <h3>How would you rate your detail?</h3>
-                                        <div className="stars-container">
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <i
-                                                    key={star}
-                                                    className={`fa-star star-icon ${(hoverRating || values.rating) >= star ? 'fa-solid filled' : 'fa-regular'}`}
-                                                    onClick={() => setFieldValue('rating', star)}
-                                                    onMouseEnter={() => setHoverRating(star)}
-                                                    onMouseLeave={() => setHoverRating(0)}
-                                                ></i>
-                                            ))}
-                                        </div>
+                                        <StarRating 
+                                            rating={values.rating}
+                                            hoverRating={hoverRating}
+                                            interactive={true}
+                                            onRatingChange={(star) => setFieldValue('rating', star)}
+                                            onHoverChange={setHoverRating}
+                                        />
                                         {errors.rating && touched.rating ? (
                                             <span className="error-text" style={{ color: 'red', fontSize: '13px', fontWeight: 'bold' }}>{errors.rating}</span>
                                         ) : (

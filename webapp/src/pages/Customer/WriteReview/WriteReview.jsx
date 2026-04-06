@@ -2,21 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Formik, Form, Field } from 'formik';
-import * as Yup from 'yup';
+import { ReviewSchema } from '../../../schemas/review';
 import reviewService from '../../../services/reviewService';
 import getImageUrl from '../../../util/getImageUrl';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import StarRating from '../../../components/Customer/StarRating/StarRating';
 import { formatShortDate } from '../../../util/dateFormatter';
+import { enums } from '../../../constants/enum';
 import './WriteReview.css';
 
-const ReviewSchema = Yup.object().shape({
-    rating: Yup.number()
-        .min(1, 'Please select a star rating to rate your detail')
-        .required('Rating is required'),
-    comment: Yup.string()
-});
 
 const WriteReview = () => {
     const { bookingId } = useParams();
@@ -144,7 +139,7 @@ const WriteReview = () => {
                                 />
                             </div>
                             <div className="service-info">
-                                <span className="status-badge">{status?.toUpperCase() || 'COMPLETED SERVICE'}</span>
+                                <span className="status-badge">{status?.toUpperCase() || enums.JOBCARD_STATUS.FINISH}</span>
                                 <h2>{vehicleName} - {packageName}</h2>
                                 <div className="service-date">
                                     <i className="fa-regular fa-calendar"></i>
