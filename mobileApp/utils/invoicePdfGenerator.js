@@ -1,9 +1,35 @@
 import { Image } from 'react-native';
 import colors from '../constants/colors';
 
-export const getInvoiceHtmlContent = () => {
+export const getInvoiceHtmlContent = (invoiceData = {}) => {
+    // Setting defaults so the UI prints correctly if no data is passed
+    const {
+        invoiceDate = new Date().toLocaleDateString(),
+        vehicleMakeModel = "Tesla Model 3",
+        vehicleYear = "2022",
+        vehicleNumber = "ABC-1234",
+        currentMileage = "15,204 km",
+        status = "WORK IN PROGRESS",
+        billedItems = [
+            { id: 1, title: "Full Synthetic Oil Change", subtitle: "Labor & Materials", amount: "$85.00" },
+            { id: 2, title: "Premium Oil Filter", subtitle: "Part #OF-992-B", amount: "$22.50" },
+            { id: 3, title: "Brake Pad Set (Front)", subtitle: "Ceramic Performance", amount: "$145.00" }
+        ],
+        totalAmount = "LKR 22,520.50"
+    } = invoiceData;
+
     const logoSource = Image.resolveAssetSource(require('../assets/logo.png'));
     const logoUri = logoSource ? logoSource.uri : '';
+
+    const itemsHtml = billedItems.map(item => `
+        <tr>
+          <td>
+            <div class="item-title">${item.title}</div>
+            <div class="item-subtitle">${item.subtitle}</div>
+          </td>
+          <td class="item-price">${item.amount}</td>
+        </tr>
+    `).join('');
 
     return `
 <!DOCTYPE html>
@@ -17,22 +43,28 @@ export const getInvoiceHtmlContent = () => {
       .logo { height: 48px; margin-right: 12px; }
       .title { font-size: 24px; font-weight: 900; color: ${colors.DARK}; }
       .brand { font-size: 28px; font-weight: 900; color: ${colors.PRIMARY}; }
+      
       .card { background-color: ${colors.LIGHT}; border: 1px solid ${colors.BORDER_COLOR}; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-      .wip-tag { color: #F59E0B; font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px; }
-      .vehicle-title { font-size: 20px; font-weight: bold; color: ${colors.DARK}; margin-bottom: 4px; }
-      .vehicle-subtitle { font-size: 14px; color: ${colors.SECONDARY}; }
+      .wip-tag { color: #F59E0B; font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
+      
+      .info-grid { display: flex; flex-wrap: wrap; margin-bottom: -15px; }
+      .info-item { width: 50%; margin-bottom: 15px; }
+      .info-label { font-size: 11px; color: ${colors.SECONDARY}; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; letter-spacing: 0.5px; }
+      .info-value { font-size: 15px; color: ${colors.DARK}; font-weight: bold; }
+      
       .section-title { font-size: 14px; font-weight: 800; color: ${colors.SECONDARY}; letter-spacing: 1px; margin-bottom: 15px; text-transform: uppercase; }
       table { width: 100%; border-collapse: collapse; background-color: ${colors.LIGHT}; border: 1px solid ${colors.BORDER_COLOR}; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
       th, td { padding: 15px; text-align: left; }
       th { background-color: ${colors.BACKGROUND_COLOR}; color: ${colors.SECONDARY}; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid ${colors.BORDER_COLOR}; }
       td { border-bottom: 1px solid ${colors.BORDER_COLOR}; }
       .item-title { font-size: 16px; font-weight: bold; color: ${colors.DARK}; }
-      .item-subtitle { font-size: 12px; color: ${colors.SECONDARY}; }
+      .item-subtitle { font-size: 12px; color: ${colors.SECONDARY}; margin-top: 4px; }
       .item-price { font-size: 16px; font-weight: bold; color: ${colors.DARK}; text-align: right; }
+      
       .total-card { background-color: #111827; border-radius: 16px; padding: 24px; color: ${colors.LIGHT}; display: flex; justify-content: space-between; align-items: center; }
       .total-label { color: #9CA3AF; font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; }
       .total-value { font-size: 32px; font-weight: 900; color: ${colors.LIGHT}; }
-      .footer { margin-top: 50px; text-align: center; color: ${colors.SECONDARY}; font-size: 12px; }
+      .footer { margin-top: 50px; text-align: center; color: ${colors.SECONDARY}; font-size: 12px; line-height: 1.6; }
     </style>
   </head>
   <body>
@@ -45,9 +77,29 @@ export const getInvoiceHtmlContent = () => {
     </div>
     
     <div class="card">
-      <div class="wip-tag">• WORK IN PROGRESS</div>
-      <div class="vehicle-title">Vehicle: ABC-1234</div>
-      <div class="vehicle-subtitle">2022 Tesla Model 3 • Silver</div>
+      <div class="wip-tag">• ${status}</div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Invoice Date</div>
+          <div class="info-value">${invoiceDate}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Vehicle Number</div>
+          <div class="info-value">${vehicleNumber}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Make & Model</div>
+          <div class="info-value">${vehicleMakeModel}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Vehicle Year</div>
+          <div class="info-value">${vehicleYear}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Current Mileage</div>
+          <div class="info-value">${currentMileage}</div>
+        </div>
+      </div>
     </div>
 
     <div class="section-title">Billed Items</div>
@@ -59,34 +111,14 @@ export const getInvoiceHtmlContent = () => {
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>
-            <div class="item-title">Full Synthetic Oil Change</div>
-            <div class="item-subtitle">Labor & Materials</div>
-          </td>
-          <td class="item-price">$85.00</td>
-        </tr>
-        <tr>
-          <td>
-            <div class="item-title">Premium Oil Filter</div>
-            <div class="item-subtitle">Part #OF-992-B</div>
-          </td>
-          <td class="item-price">$22.50</td>
-        </tr>
-        <tr>
-          <td>
-            <div class="item-title">Brake Pad Set (Front)</div>
-            <div class="item-subtitle">Ceramic Performance</div>
-          </td>
-          <td class="item-price">$145.00</td>
-        </tr>
+        ${itemsHtml}
       </tbody>
     </table>
 
     <div class="total-card">
       <div>
         <div class="total-label">RUNNING TOTAL AMOUNT</div>
-        <div class="total-value">LKR 22,520.50</div>
+        <div class="total-value">${totalAmount}</div>
       </div>
     </div>
     
