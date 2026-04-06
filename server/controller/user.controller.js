@@ -3,6 +3,7 @@ const Auth = require("../model/Auth");
 const AppError = require("../error/AppError");
 const { hashPassword, comparePassword } = require("../util/password");
 const { validatedUpdateProfile } = require("../validation/user.validation");
+const { USER_ROLES } = require("../util/constants");
 
 module.exports.updateProfile = async (payload, mobile) => {
   const { error } = validatedUpdateProfile(payload);
@@ -41,7 +42,7 @@ module.exports.searchCustomersByMobile = async (mobile) => {
 
   const customers = await User.find({
     mobile: { $regex: `^${mobile}`, $options: "i" },
-    role: "CUSTOMER",
+    role: USER_ROLES.CUSTOMER,
     isDeleted: false,
   }).select("-__v -createdAt -updatedAt -isDeleted");
 
