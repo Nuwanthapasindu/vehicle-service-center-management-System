@@ -16,6 +16,7 @@ const employeeSchema = new Schema(
     nic: {
       type: String,
       required: true,
+      unique: true,
     },
     skills: [
       {
