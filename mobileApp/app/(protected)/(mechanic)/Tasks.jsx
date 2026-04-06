@@ -16,9 +16,7 @@ import useAuthentication from '../../../hooks/useAuth';
 import axios from "axios"; 
 
 export default function Tasks() {
-  // Extract loading from your auth hook to prevent "Token not available" loop
-  const { profile, logout, token, loading: authLoading } = useAuthentication(); 
-  
+  const { profile, logout } = useAuthentication();
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,42 +24,15 @@ export default function Tasks() {
 
   const firstName = profile?.name ? profile.name.split(" ")[0] : "Mechanic";
 
-  // Define fetch function
- const fetchMyTasks = useCallback(async () => {
-  if (!token) return;
-  setLoading(true);
-
-  try {
-    const API_URL = process.env.EXPO_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/job-cards/my-tasks`, {
-        headers: { "Authorization": `Bearer ${token}` },
-    });
-
-    const json = await response.json();
-    
-    // According to your Postman, the data is in json.payload.data
-    const taskList = json.data || [];
-    console.log("API RESPONSE:", json);
-    console.log("Tasks found:", taskList.length);
-    console.log("Tasks found:", taskList.length);
-    setTasks(taskList);
-    setFilteredTasks(taskList);
-  } catch (error) {
-    console.error("Network Error:", error);
-  } finally {
-    setLoading(false);
-  }
-}, [token]);
-
-  // ✅ Using axios instead of fetch
-/*const fetchMyTasks = useCallback(async () => {
+  // Using axios instead of fetch
+const fetchMyTasks = useCallback(async () => {
   setLoading(true);
 
   try {
     const response = await axios.get("/job-cards/my-tasks"); 
     // baseURL + token automatically added by interceptor
 
-    const taskList = response.data?.data || [];
+    const taskList = response.data?.payload?.data || [];
 
     console.log("API RESPONSE:", response.data);
     console.log("Tasks found:", taskList.length);
@@ -74,28 +45,12 @@ export default function Tasks() {
   } finally {
     setLoading(false);
   }
-}, []);*/
+}, []);
 
-  // Trigger fetch only when auth is ready and token exists
   useEffect(() => {
-    console.log("USE EFFECT RUNNING");
-    console.log("authLoading:", authLoading);
-    console.log("token:", token);
-    if (!authLoading && token) {
-      console.log("CALLING FETCH...");
-      fetchMyTasks();
-    }
-  }, [token, authLoading, fetchMyTasks]);
-
-  // Handle Loading Screen for Authentication
-  if (authLoading) {
-    return (
-      <View style={styles.loadingCenter}>
-        <ActivityIndicator size="large" color="#F59E0B" />
-        <Text style={styles.loadingText}>Initializing Session...</Text>
-      </View>
-    );
-  }
+     console.log("FETCHING TASKS...");
+     fetchMyTasks();
+  }, [fetchMyTasks]);
 
   // Inside handleSearch
 const handleSearch = (text) => {
