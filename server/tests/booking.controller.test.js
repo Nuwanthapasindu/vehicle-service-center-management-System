@@ -128,6 +128,27 @@ describe("Booking Controller Tests", () => {
 
        await expect(createBooking(payload, mockMobile)).rejects.toThrow("This timeslot is fully booked for the selected date");
     });
+
+    test("should fail if the same vehicle tries to book the same slot on the same day twice", async () => {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+
+        // First booking
+        await createBooking({
+            vehicle: mockVehicle._id.toString(),
+            slot: mockSlot._id.toString(),
+            date: date.toISOString(),
+        }, mockMobile);
+
+        // Second booking (same vehicle, same slot, same date)
+        const payload = {
+            vehicle: mockVehicle._id.toString(),
+            slot: mockSlot._id.toString(),
+            date: date.toISOString(),
+        };
+
+        await expect(createBooking(payload, mockMobile)).rejects.toThrow("This vehicle is already booked for this specific time slot on the selected date.");
+    });
   });
 
   describe("getBookingHistory", () => {
