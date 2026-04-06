@@ -178,7 +178,6 @@ const ServiceHistory = () => {
                         </select>
                         <i className="fa-solid fa-chevron-down"></i>
                     </div>
-                </div>
 
                     <div className="filter-select">
                         <select
@@ -186,12 +185,9 @@ const ServiceHistory = () => {
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
                             <option value="all">All Status</option>
-                            {/* Fetch status from enums or define manually if not available */}
-                            <option value="PENDING">Pending</option>
-                            <option value="CONFIRMED">Confirmed</option>
-                            <option value="IN_PROGRESS">In-Progress</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="CANCELLED">Cancelled</option>
+                            <option value={enums.JOBCARD_STATUS.PENDING}>Pending</option>
+                            <option value={enums.JOBCARD_STATUS.START}>In-Progress</option>
+                            <option value={enums.JOBCARD_STATUS.FINISH}>Completed</option>
                         </select>
                         <i className="fa-solid fa-chevron-down"></i>
                     </div>
