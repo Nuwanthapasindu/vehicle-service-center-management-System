@@ -4,6 +4,7 @@ const {
     getAllTimeslots, 
     createTimeslot, 
     updateTimeslot, 
+    updateTimeslotState,
     deleteTimeslot,
     getTimeslotById
 } = require("../controller/timeslot.controller");
@@ -73,6 +74,19 @@ router.put("/:id", authTokenMiddleware, (req, res, next) => {
         .then((slot) => {
             responseBuilder.setStatus(200);
             responseBuilder.buildResponse({ message: "Timeslot updated successfully", slot });
+        })
+        .catch((error) => next(error));
+});
+
+// Admin toggle state
+router.patch("/:id/state", authTokenMiddleware, (req, res, next) => {
+    if (req.user.role !== USER_ROLES.ADMIN) return next(new AppError("Unauthorized", 403));
+    const responseBuilder = new responseBuild(res);
+
+    updateTimeslotState(req.params.id, req.body.isActive)
+        .then((slot) => {
+            responseBuilder.setStatus(200);
+            responseBuilder.buildResponse({ message: "Timeslot status updated successfully", slot });
         })
         .catch((error) => next(error));
 });

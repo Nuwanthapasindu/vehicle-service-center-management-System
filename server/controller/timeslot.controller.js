@@ -76,13 +76,27 @@ module.exports.updateTimeslot = async (id, payload) => {
         const slot = await Timeslot.findById(id);
         if (!slot || slot.isDeleted) throw new AppError("Timeslot not found", 404);
 
-        if (payload.isActive === undefined) {
-            const { error, value } = validateTimeslot(payload);
-            if (error) throw new AppError(error.details[0].message, 400);
-            Object.assign(slot, value);
-        } else {
-            slot.isActive = payload.isActive;
+        const { error, value } = validateTimeslot(payload);
+        if (error) throw new AppError(error.details[0].message, 400);
+        Object.assign(slot, value);
+
+        return await slot.save();
+    } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw new AppError(error.message, 500);
+    }
+};
+
+module.exports.updateTimeslotState = async (id, isActive) => {
+    try {
+        const slot = await Timeslot.findById(id);
+        if (!slot || slot.isDeleted) throw new AppError("Timeslot not found", 404);
+
+        if (typeof isActive !== "boolean") {
+            throw new AppError("isActive must be a boolean", 400);
         }
+
+        slot.isActive = isActive;
 
         return await slot.save();
     } catch (error) {

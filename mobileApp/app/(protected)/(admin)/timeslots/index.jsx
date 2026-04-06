@@ -54,7 +54,7 @@ export default function TimeslotConfiguration() {
   const handleToggle = async (id, currentStatus) => {
     try {
       setTogglingId(id);
-      await axios.put(`/timeslot/${id}`, { isActive: !currentStatus });
+      await axios.patch(`/timeslot/${id}/state`, { isActive: !currentStatus });
       
       // Optimized local state update
       setTimeslots(prev =>
