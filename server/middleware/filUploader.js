@@ -12,13 +12,14 @@ module.exports.fileUploader = multer({
             "image/png",
             "image/jpg",
             "image/jpeg",
-            "application/pdf"
+            "application/pdf",
+            "image/webp",
         ];
-        
+
         if (allowedMimeTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new AppError("Only .png, .jpg, .jpeg and .pdf format allowed!", 400));
+            cb(new AppError("Only .png, .jpg, .jpeg .webp and .pdf format allowed!", 400));
         }
     }
 });

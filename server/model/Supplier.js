@@ -22,8 +22,7 @@ const supplierSchema = new Schema(
     ],
     items: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "Inventory",
+        type: String,
       },
     ],
     isDeleted: {

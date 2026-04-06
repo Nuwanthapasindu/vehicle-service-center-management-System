@@ -1,21 +1,105 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
+import { enums } from '../../../constants/enum';
 import { formatShortDate } from '../../../util/dateFormatter';
 import { getStatusClass, getStatusText } from '../../../util/statusFormatter';
-import { enums } from '../../../constants/enum';
+import { toast } from 'react-toastify';
+import { exportHistoryToPDF } from '../../../util/historyExporter';
 import './ServiceHistory.css';
 
 const ServiceHistory = () => {
-    const navigate = useNavigate();
+    const location = useLocation();
     const [historyData, setHistoryData] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [vehicleFilter, setVehicleFilter] = useState('all');
+    const [vehicleFilter, setVehicleFilter] = useState(location.state?.vehicleId || 'all');
+    const [durationFilter, setDurationFilter] = useState('all');
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    // Sync filter with router state (deep-linking from other pages)
+    useEffect(() => {
+        const vehicleId = location.state?.vehicleId || 'all';
+        setVehicleFilter(vehicleId);
+        setCurrentPage(1);
+    }, [location.state?.vehicleId]);
+
+    const handleExport = () => {
+        if (historyData.length === 0) {
+            toast.info("No records to export.");
+            return;
+        }
+
+        const selectedVehicle = vehicleFilter !== 'all'
+            ? vehicles.find(v => v._id === vehicleFilter)
+            : null;
+
+        const activeFilters = {
+            search: searchTerm,
+            status: statusFilter,
+            duration: durationFilter
+        };
+
+        exportHistoryToPDF(historyData, selectedVehicle, activeFilters);
+    };
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get('/booking/my-history', {
+                    params: {
+                        search: searchTerm,
+                        status: statusFilter,
+                        vehicle: vehicleFilter,
+                        duration: durationFilter
+                    }
+                });
+                setHistoryData(response.data.payload.history || []);
+                setCurrentPage(1); // Reset to first page on new search/filter
+            } catch (error) {
+                toast.error("Failed to fetch service history");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            fetchHistory();
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timer);
+    }, [searchTerm, statusFilter, vehicleFilter, durationFilter]);
+
+    // Pagination calculations
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = historyData.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(historyData.length / itemsPerPage);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+    // Get visible page range (max 5)
+    const getPageNumbers = () => {
+        const pageNumbers = [];
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+
+        if (endPage - startPage < 4) {
+            startPage = Math.max(1, endPage - 4);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pageNumbers.push(i);
+        }
+        return pageNumbers;
+    };
 
     useEffect(() => {
         const fetchVehicles = async () => {
@@ -23,117 +107,124 @@ const ServiceHistory = () => {
                 const vehiclesRes = await axios.get('/vehicle/my-vehicles');
                 setVehicles(vehiclesRes.data.payload.vehicles || []);
             } catch (error) {
-                const errorMsg = error.response?.data?.payload?.message || "Failed to fetch vehicles";
-                toast.error(errorMsg);
+                toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
             }
         };
         fetchVehicles();
     }, []);
 
-    useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                setLoading(true);
-                const params = {};
-                if (searchTerm) params.search = searchTerm;
-                if (statusFilter !== 'all') params.status = statusFilter;
-                if (vehicleFilter !== 'all') params.vehicle = vehicleFilter;
-
-                const historyRes = await axios.get('/booking/my-history', { params });
-                setHistoryData(historyRes.data.payload.history || []);
-            } catch (error) {
-                const errorMsg = error.response?.data?.payload?.message || "Failed to fetch history data";
-                toast.error(errorMsg);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const timerId = setTimeout(() => {
-            fetchHistory();
-        }, 300);
-
-        return () => clearTimeout(timerId);
-    }, [searchTerm, statusFilter, vehicleFilter]);
-
-
     return (
-        <CustomerLayout title="Customer Dashboard">
-            <div className="history-main-content">
-                {/* Breadcrumbs */}
-                <nav className="breadcrumbs">
-                    <Link to="/customer/dashboard">Home</Link>
-                    <i className="fa-solid fa-chevron-right"></i>
-                    <span className="active">Service History</span>
-                </nav>
+        <CustomerLayout title="Service History">
+            {/* Breadcrumbs */}
+            <nav className="breadcrumbs">
+                <Link to="/customer/dashboard">
+                    <i className="fa-solid fa-house"></i>
+                    Dashboard
+                </Link>
+                <i className="fa-solid fa-chevron-right"></i>
+                <span className="active">Service History</span>
+            </nav>
 
-                {/* Page Title Section */}
-                <section className="page-title-section">
-                    <div className="title-text-box">
-                        <h2 className="page-title">Service History</h2>
-                        <p className="page-subtitle">
-                            Manage and review all your professional detailing records in one place.
-                        </p>
-                    </div>
-                    <Link to="/customer/service-booking" className="book-new-btn">
-                        <i className="fa-solid fa-circle-plus"></i>
-                        <span>BOOK NEW SERVICE</span>
-                    </Link>
-                </section>
+            {/* Page Title Section */}
+            <section className="page-title-section">
+                <div className="title-text-box">
+                    <h1 className="page-title">Service History</h1>
+                    <p className="page-subtitle">
+                        Manage and review all your professional detailing records in one place.
+                    </p>
+                </div>
+                <Link to="/customer/service-booking" className="book-new-btn">
+                    <i className="fa-solid fa-circle-plus"></i>
+                    <span>BOOK NEW SERVICE</span>
+                </Link>
+            </section>
 
-                {/* Filter Section */}
-                <div className="filter-card">
-                    <div className="search-box">
-                        <i className="fa-solid fa-magnifying-glass"></i>
-                        <input
-                            type="text"
-                            placeholder="Search by vehicle, plate or service..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+            {/* Filter Section */}
+            <div className="filter-card">
+                <div className="search-box">
+                    <i className="fa-solid fa-magnifying-glass"></i>
+                    <input
+                        type="text"
+                        placeholder="Search by vehicle, plate or service..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="select-filters">
+                    <div className="filter-select">
+                        <select
+                            value={vehicleFilter}
+                            onChange={(e) => setVehicleFilter(e.target.value)}
+                        >
+                            <option value="all">All Vehicles</option>
+                            {vehicles.map(v => (
+                                <option key={v._id} value={v._id}>
+                                    {v.make} {v.model}
+                                </option>
+                            ))}
+                        </select>
+                        <i className="fa-solid fa-chevron-down"></i>
                     </div>
-                    <div className="select-filters">
-                        <div className="filter-select">
-                            <select
-                                value={vehicleFilter}
-                                onChange={(e) => setVehicleFilter(e.target.value)}
-                            >
-                                <option value="all">All Vehicles</option>
-                                {vehicles.map(v => (
-                                    <option key={v._id} value={`${v.make} ${v.model}`}>
-                                        {v.make} {v.model}
-                                    </option>
-                                ))}
-                            </select>
-                            <i className="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div className="filter-select">
-                            <select defaultValue="6m">
-                                <option value="all">All Time</option>
-                                <option value="6m">Date Range: Last 6 Months</option>
-                                <option value="1y">Last Year</option>
-                            </select>
-                            <i className="fa-solid fa-chevron-down"></i>
-                        </div>
+                    <div className="filter-select">
+                        <select
+                            value={durationFilter}
+                            onChange={(e) => setDurationFilter(e.target.value)}
+                        >
+                            <option value="all">All Time</option>
+                            <option value="6m">Last 6 Months</option>
+                            <option value="1y">Last Year</option>
+                            <option value="2y">Last 2 Years</option>
+                            <option value="5y">Last 5 Years</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down"></i>
                     </div>
                 </div>
 
-                {/* History Table Card */}
-                <div className="history-table-card">
-                    <div className="card-header">
-                        <h3 className="card-title">Service History Preview</h3>
+                    <div className="filter-select">
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="all">All Status</option>
+                            {/* Fetch status from enums or define manually if not available */}
+                            <option value="PENDING">Pending</option>
+                            <option value="CONFIRMED">Confirmed</option>
+                            <option value="IN_PROGRESS">In-Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="CANCELLED">Cancelled</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down"></i>
                     </div>
-                    <div className="table-responsive">
-                        {loading ? (
-                            <div style={{ textAlign: 'center', padding: '3rem' }}>
-                                <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-                                <p style={{ marginTop: '1rem' }}>Loading history...</p>
+                </div>
+            </div>
+
+            {/* History Table Card */}
+            <div className="history-table-card">
+                <div className="card-header">
+                    <h3 className="card-title">Service History Preview</h3>
+                    <div className="items-count-badge">
+                        {historyData.length === 0
+                            ? "Showing 0 of 0 records"
+                            : `Showing ${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, historyData.length)} of ${historyData.length} records`
+                        }
+                    </div>
+                </div>
+                <div className="table-responsive">
+                    {loading ? (
+                        <div className="loading-state-container">
+                            <i className="fa-solid fa-spinner fa-spin"></i>
+                            <p>Loading history...</p>
+                        </div>
+                    ) : currentItems.length === 0 ? (
+                        <div className="empty-state-container">
+                            <div className="empty-state-icon">
+                                <i className="fa-solid fa-clock-rotate-left"></i>
                             </div>
-                        ) : historyData.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '3rem' }}>
-                                <p>No records found.</p>
-                            </div>
-                        ) : (
+                            <p className="empty-state-text">No service history yet.</p>
+                            <Link to="/customer/service-booking" className="empty-state-btn">Book Your First Service</Link>
+                        </div>
+                    ) : (
+                        <>
                             <table className="history-table">
                                 <thead>
                                     <tr>
@@ -145,7 +236,7 @@ const ServiceHistory = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {historyData.map((item) => (
+                                    {currentItems.map((item) => (
                                         <tr key={item.id}>
                                             <td className="date-cell">
                                                 {formatShortDate(item.date)}
@@ -161,55 +252,89 @@ const ServiceHistory = () => {
                                                 </span>
                                             </td>
                                             <td>
-                                                {item.status === enums.JOBCARD_STATUS.FINISH ? (
-                                                    <button
-                                                        className="review-link-btn"
-                                                        onClick={() => navigate(`/customer/reviews/write/${item._id || item.id}`)}
-                                                    >
-                                                        Review <i className="fa-solid fa-star"></i>
-                                                    </button>
-                                                ) : (
-                                                    <span style={{ color: '#94A3B8', fontSize: '0.9rem', fontStyle: 'italic' }}>N/A</span>
-                                                )}
+                                                <button className="review-link-btn">
+                                                    Review <i className="fa-solid fa-star"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
+
+                            {/* Pagination Controls */}
+                            {totalPages > 1 && (
+                                <div className="pagination-wrapper">
+                                    <button
+                                        className="pagination-btn arrow"
+                                        onClick={() => paginate(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                    >
+                                        <i className="fa-solid fa-chevron-left"></i>
+                                    </button>
+
+                                    <div className="page-numbers">
+                                        {getPageNumbers().map((pageNumber) => (
+                                            <button
+                                                key={pageNumber}
+                                                className={`pagination-btn ${currentPage === pageNumber ? 'active' : ''}`}
+                                                onClick={() => paginate(pageNumber)}
+                                            >
+                                                {pageNumber}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        className="pagination-btn arrow"
+                                        onClick={() => paginate(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        <i className="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Features Grid at Bottom */}
+            <div className="features-info-grid">
+                <div className="feature-info-card certified">
+                    <div className="info-icon-box">
+                        <i className="fa-solid fa-certificate"></i>
+                    </div>
+                    <div className="info-text-box">
+                        <h4>Certified Detailing</h4>
+                        <p>Every service record is cryptographically signed for resale value protection.</p>
+                    </div>
+                </div>
+
+                <div
+                    className={`feature-info-card ${historyData.length === 0 ? 'disabled' : ''}`}
+                    onClick={handleExport}
+                    style={{ cursor: historyData.length > 0 ? 'pointer' : 'not-allowed' }}
+                >
+                    <div className="info-icon-box blue">
+                        <i className="fa-regular fa-file-pdf"></i>
+                    </div>
+                    <div className="info-text-box">
+                        <h4>Export History</h4>
+                        {historyData.length > 0 ? (
+                            <p>Download a full PDF report of your vehicle's care history for insurance or sales.</p>
+                        ) : (
+                            <p>No records available to export at this time.</p>
                         )}
                     </div>
                 </div>
 
-                {/* Features Grid at Bottom */}
-                <div className="features-info-grid">
-                    <div className="feature-info-card certified">
-                        <div className="info-icon-box">
-                            <i className="fa-solid fa-certificate"></i>
-                        </div>
-                        <div className="info-text-box">
-                            <h4>Certified Detailing</h4>
-                            <p>Every service record is cryptographically signed for resale value protection.</p>
-                        </div>
+                <div className="feature-info-card">
+                    <div className="info-icon-box purple">
+                        <i className="fa-regular fa-bell"></i>
                     </div>
-
-                    <div className="feature-info-card">
-                        <div className="info-icon-box blue">
-                            <i className="fa-regular fa-file-pdf"></i>
-                        </div>
-                        <div className="info-text-box">
-                            <h4>Export History</h4>
-                            <p>Download a full PDF report of your vehicle's care history for insurance or sales.</p>
-                        </div>
-                    </div>
-
-                    <div className="feature-info-card">
-                        <div className="info-icon-box purple">
-                            <i className="fa-regular fa-bell"></i>
-                        </div>
-                        <div className="info-text-box">
-                            <h4>Service Alerts</h4>
-                            <p>Receive smart reminders based on your vehicle's specific ceramic coating lifespan.</p>
-                        </div>
+                    <div className="info-text-box">
+                        <h4>Service Alerts</h4>
+                        <p>Receive smart reminders based on your vehicle's specific ceramic coating lifespan.</p>
                     </div>
                 </div>
             </div>

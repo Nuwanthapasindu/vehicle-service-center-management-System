@@ -3,6 +3,7 @@ const Auth = require("../model/Auth");
 const AppError = require("../error/AppError");
 const { hashPassword, comparePassword } = require("../util/password");
 const { validatedUpdateProfile } = require("../validation/user.validation");
+const { USER_ROLES } = require("../util/constants");
 
 module.exports.updateProfile = async (payload, mobile) => {
   const { error } = validatedUpdateProfile(payload);
@@ -17,19 +18,14 @@ module.exports.updateProfile = async (payload, mobile) => {
   }
 
   if (payload.newPassword) {
-    if (!payload.currentPassword) {
-      throw new AppError("Current password is required to set a new password", 400);
-    }
     const auth = await Auth.findOne({ user: user._id });
     if (!auth) throw new AppError("Auth credentials not found", 404);
 
-    const passwordCheck = comparePassword(payload.currentPassword, auth.password);
-    if (!passwordCheck) throw new AppError("Invalid current password", 400);
+    const isMatch = comparePassword(payload.currentPassword, auth.password);
+    if (!isMatch) throw new AppError("Incorrect current password", 400);
 
     auth.password = hashPassword(payload.newPassword);
     await auth.save();
-  } else if (payload.currentPassword) {
-    throw new AppError("New password is required", 400);
   }
 
   user.name = payload.fullName;
@@ -39,4 +35,16 @@ module.exports.updateProfile = async (payload, mobile) => {
 
   const { isDeleted, deletedAt, __v, ...safeUser } = savedUser.toObject();
   return safeUser;
+};
+
+module.exports.searchCustomersByMobile = async (mobile) => {
+  if (!mobile) throw new AppError("Mobile number is required", 400);
+
+  const customers = await User.find({
+    mobile: { $regex: `^${mobile}`, $options: "i" },
+    role: USER_ROLES.CUSTOMER,
+    isDeleted: false,
+  }).select("-__v -createdAt -updatedAt -isDeleted");
+
+  return customers;
 };

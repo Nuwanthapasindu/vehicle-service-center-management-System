@@ -10,10 +10,12 @@ const path = require("path");
 const process = require("process");
 require("dotenv").config();
 
-// ROUTERS IMPORT
 const authRouter = require("./routes/auth.route");
 const log = require("./middleware/log");
 const fileRouter = require("./routes/file.route");
+const employeeRouter = require("./routes/employee.route");
+const teamRouter = require("./routes/team.route");
+const jobCardRoutes = require("./routes/jobCard.route");
 const serviceRouter = require("./routes/service.route");
 const packageRouter = require("./routes/package.route");
 const userRouter = require("./routes/user.route");
@@ -22,12 +24,9 @@ const bookingRouter = require("./routes/booking.route");
 const timeslotRouter = require("./routes/timeslot.route");
 const reviewRouter = require("./routes/review.route");
 
-// CONFIGURE EXPRESS APP
 const app = express();
-//  DATABASE CONNECTION ESTABLISHMENT
 connectDB();
 
-// TOP LEVEL MIDDLEWARE
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
@@ -38,7 +37,6 @@ app.use(
 );
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(log);
-// Serve Swagger documentation
 if (process.env.NODE_ENV !== "production") {
   app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec, {
     explorer: true,
@@ -53,8 +51,15 @@ app.use("/api/v1/storage/uploads", express.static(path.join(process.cwd(), "stor
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/file", fileRouter);
+app.use("/api/v1/employees", employeeRouter);
+app.use("/api/v1/teams", teamRouter);
+app.use("/api/v1/job-cards", jobCardRoutes);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/package", packageRouter);
+
+//  SUPPLY CHAIN ROUTES
+app.use('/api/suppliers', require('./routes/supplier.route'));
+
 app.use("/api/v1/vehicle", vehicleRouter);
 app.use("/api/v1/booking", bookingRouter);
 app.use("/api/v1/timeslot", timeslotRouter);
@@ -70,7 +75,6 @@ app.use((req, res, next) => {
   );
 });
 
-// LOW LEVEL MIDDLEWARE
 app.use(errorHandling);
 
 module.exports = app;

@@ -14,44 +14,9 @@
     width: auto;
 }
 
-.history-main-content {
-    padding: 0 2.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding-bottom: 3rem;
-}
 
-/* Breadcrumbs */
-.breadcrumbs {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-    color: var(--secondary, #64748B);
-    font-weight: 500;
-    margin-top: 1rem;
-}
 
-.breadcrumbs a {
-    text-decoration: none;
-    color: inherit;
-    transition: color 0.2s;
-}
 
-.breadcrumbs a:hover {
-    color: var(--dark, #1A1D23);
-}
-
-.breadcrumbs i {
-    font-size: 0.7rem;
-    opacity: 0.6;
-}
-
-.breadcrumbs .active {
-    color: var(--dark, #1A1D23);
-    font-weight: 750;
-}
 
 /* Page Title Section */
 .page-title-section {
@@ -279,29 +244,17 @@
 }
 
 .history-main-content {
-    padding: 0 4rem;
-    /* Increased padding */
+    padding: 0 2.5rem;
+
     display: flex;
     flex-direction: column;
     gap: 2rem;
     padding-bottom: 4rem;
 }
 
-.page-title {
-    font-size: 2.8rem;
-    font-weight: 900;
-    color: var(--dark, #1A1D23);
-    margin: 0 0 0.25rem 0;
-    letter-spacing: -1px;
-}
 
-.page-subtitle {
-    color: var(--secondary, #64748B);
-    font-size: 1.1rem;
-    font-weight: 500;
-    max-width: 600px;
-    line-height: 1.4;
-}
+
+
 
 .book-new-btn {
     background-color: #8EDB00;
@@ -332,11 +285,81 @@
     border: 1px solid #F1F5F9;
 }
 
+.history-table-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+}
+
 .history-table-card .card-title {
-    font-size: 1.4rem;
+    margin: 0;
+}
+
+.items-count-badge {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--secondary, #64748B);
+    background-color: #F8FAFC;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #F1F5F9;
+}
+
+/* Pagination Styling */
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #F8FAFC;
+}
+
+.pagination-btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background-color: white;
+    color: var(--secondary, #64748B);
     font-weight: 850;
-    color: #1A1D23;
-    margin: 0 0 2.5rem 0;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    border-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    transform: translateY(-2px);
+    background-color: var(--primary-color, #8EDB00);
+    box-shadow: 0 4px 12px rgba(142, 219, 0, 0.2);
+}
+
+.pagination-btn.active {
+    background-color: var(--primary-color, #8EDB00);
+    border-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    box-shadow: 0 8px 16px rgba(142, 219, 0, 0.2);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-btn.arrow {
+    background-color: #F8FAFC;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 0.75rem;
 }
 
 .status-pill {

@@ -6,6 +6,7 @@ import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import './ServiceBooking.css';
 import getImageUrl from '../../../util/getImageUrl';
+import defaultCarImg from '../../../assets/imgs/default-car.png';
 import { useFormik } from 'formik';
 import { bookingSchema } from '../../../schemas/booking';
 import { formatLongDate } from '../../../util/dateFormatter';
@@ -13,6 +14,7 @@ import BookingCalendar from '../../../components/Customer/Calendar/BookingCalend
 
 const ServiceBooking = () => {
     const [vehicles, setVehicles] = useState([]);
+    const [loadingVehicles, setLoadingVehicles] = useState(true);
 
     const formik = useFormik({
         initialValues: {
@@ -58,10 +60,13 @@ const ServiceBooking = () => {
     useEffect(() => {
         const fetchVehicles = async () => {
             try {
+                setLoadingVehicles(true);
                 const response = await axios.get('/vehicle/my-vehicles');
                 setVehicles(response.data.payload.vehicles || []);
             } catch (error) {
                 toast.error(error.response?.data?.payload?.message || "Failed to fetch vehicles.");
+            } finally {
+                setLoadingVehicles(false);
             }
         };
         fetchVehicles();
@@ -107,16 +112,17 @@ const ServiceBooking = () => {
                 <main className="booking-main-content">
                     {/* Breadcrumbs */}
                     <nav className="breadcrumbs">
-                        <Link to="/customer/dashboard">Home</Link>
+                        <Link to="/customer/dashboard">
+                            <i className="fa-solid fa-house"></i>
+                            Dashboard
+                        </Link>
                         <i className="fa-solid fa-chevron-right"></i>
-                        <span>Booking</span>
-                        <i className="fa-solid fa-chevron-right"></i>
-                        <span className="active">Select Slot</span>
+                        <span className="active">Service Booking</span>
                     </nav>
 
                     {/* Page Header */}
                     <section className="page-title-section">
-                        <h2 className="page-title">Book a Service Slot</h2>
+                        <h1 className="page-title">Book a Service Slot</h1>
                         <p className="page-subtitle">
                             Select your preferred date and time for a premium professional detailing session. Our master technicians will ensure your vehicle looks brand new.
                         </p>
@@ -164,13 +170,21 @@ const ServiceBooking = () => {
                         {/* Vehicle Picker Section */}
                         <div className="vehicle-picker-card">
                             <div className="vehicle-picker-header">
-                                <h3>Select Vehicle</h3>
+                                <h2 className="section-title">Select Vehicle</h2>
                             </div>
                             <div className="vehicle-row-list">
-                                {vehicles.length === 0 ? (
-                                    <div className="no-vehicles-message">
-                                        <p>No vehicles found. Please add a vehicle in your garage.</p>
-                                        <Link to="/customer/my-garage" className="goto-garage-btn">Go to Garage</Link>
+                                {loadingVehicles ? (
+                                    <div className="loading-state-container">
+                                        <i className="fa-solid fa-spinner fa-spin"></i>
+                                        <p>Loading your vehicles...</p>
+                                    </div>
+                                ) : vehicles.length === 0 ? (
+                                    <div className="empty-state-container">
+                                        <div className="empty-state-icon">
+                                            <i className="fa-solid fa-car-rear"></i>
+                                        </div>
+                                        <p className="empty-state-text">No records found.</p>
+                                        <Link to="/customer/my-garage" className="empty-state-btn">Add Vehicle</Link>
                                     </div>
                                 ) : (
                                     vehicles.map(v => (
@@ -180,11 +194,11 @@ const ServiceBooking = () => {
                                             onClick={() => setFieldValue('vehicleId', v._id)}
                                         >
                                             <div className="vehicle-pick-img-wrapper">
-                                                <img src={getImageUrl(v.image?.filePath)} alt={v.model} />
+                                                <img src={getImageUrl(v.image?.filePath) || defaultCarImg} alt={v.model} />
                                             </div>
                                             <div className="vehicle-pick-info">
                                                 <h4>{v.make} {v.model}</h4>
-                                                <span>{v.year || v.type}</span>
+                                                <span>{v.year || 'N/A'} • {v.type}</span>
                                             </div>
                                             <div className="vehicle-check">
                                                 {values.vehicleId === v._id ? (
@@ -204,10 +218,10 @@ const ServiceBooking = () => {
                     <div className="slots-summary-grid">
                         {/* Time Slots Selection */}
                         <div className="time-slots-section">
-                            <div className="section-title">
+                            <h2 className="section-title">
                                 <i className="fa-regular fa-clock"></i>
-                                <span>Available Time Slots</span>
-                            </div>
+                                Available Time Slots
+                            </h2>
                             <div className="slots-list">
                                 {!selectedDate ? (
                                     <div className="booking-note-alert" style={{ backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}>
@@ -271,7 +285,11 @@ const ServiceBooking = () => {
                                 <div className="summary-details">
                                     <div className="detail-row">
                                         <span className="label">Vehicle</span>
-                                        <span className="value">{selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}` : 'Not selected'}</span>
+                                        <span className="value">
+                                            {selectedVehicle
+                                                ? `${selectedVehicle.make} ${selectedVehicle.model} (${selectedVehicle.year || 'N/A'})`
+                                                : 'Not selected'}
+                                        </span>
                                     </div>
                                     <div className="detail-row">
                                         <span className="label">Date</span>

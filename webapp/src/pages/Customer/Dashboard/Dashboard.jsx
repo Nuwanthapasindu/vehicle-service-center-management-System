@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import useAuthentication from '../../../hooks/auth';
-import getImageUrl from '../../../util/getImageUrl';
+import RecentVehicleCard from '../../../components/Customer/Dashboard/RecentVehicleCard';
 import { formatDate, formatLongDate, formatShortDate } from '../../../util/dateFormatter';
+import { getStatusClass, getStatusText } from '../../../util/statusFormatter';
+import { enums } from '../../../constants/enum';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -21,7 +24,7 @@ const Dashboard = () => {
                 const response = await axios.get('/booking/dashboard');
                 setDashboardData(response.data.payload.data);
             } catch (error) {
-                console.error("Failed to fetch dashboard data:", error);
+                toast.error("Failed to fetch dashboard data");
             } finally {
                 setLoading(false);
             }
@@ -29,11 +32,11 @@ const Dashboard = () => {
         fetchDashboardData();
     }, []);
 
-    const stats = dashboardData?.stats || {
-        activeBookings: 0,
-        totalVehicles: 0,
-        totalBookings: 0,
-        totalSpent: "LKR0.00"
+    const stats = {
+        activeBookings: dashboardData?.stats?.activeBookings ?? 0,
+        totalVehicles: dashboardData?.stats?.totalVehicles ?? 0,
+        totalBookings: dashboardData?.stats?.totalBookings ?? 0,
+        totalSpent: dashboardData?.stats?.totalSpent ?? "LKR 0.00"
     };
 
     const upcoming = dashboardData?.upcomingBooking;
@@ -41,8 +44,11 @@ const Dashboard = () => {
     if (loading) {
         return (
             <CustomerLayout title="Customer Dashboard">
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-                    <i className="fa-solid fa-spinner fa-spin fa-3x" style={{ color: 'var(--primary-color)' }}></i>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', width: '100%' }}>
+                    <div className="loading-state-container">
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading your profile...</p>
+                    </div>
                 </div>
             </CustomerLayout>
         );
@@ -50,13 +56,20 @@ const Dashboard = () => {
 
     return (
         <CustomerLayout title="Customer Dashboard">
+            {/* Breadcrumbs */}
+            <nav className="breadcrumbs">
+                <span className="active">
+                    <i className="fa-solid fa-house"></i> Dashboard
+                </span>
+            </nav>
+
             {/* Welcome Section */}
-            <section className="welcome-greeting">
+            <section className="page-title-section welcome-greeting">
                 <div className="greeting-text">
-                    <h2 className="greeting">Good morning, {userName}</h2>
-                    <p className="greeting-msg">
+                    <h1 className="page-title">Good morning, {userName}</h1>
+                    <p className="page-subtitle greeting-msg">
                         {upcoming ? (
-                            <>Your <span className="highlight">{upcoming.vehicle}</span> is scheduled for a service soon.</>
+                            <>Your <span className="highlight">{upcoming.vehicle || 'Vehicle'}</span> is scheduled for a service soon.</>
                         ) : (
                             <>You have no upcoming services scheduled.</>
                         )}
@@ -125,35 +138,29 @@ const Dashboard = () => {
                 {/* My Garage Preview */}
                 <div className="dashboard-section garage-preview-section">
                     <div className="section-header">
-                        <h4 className="section-title">My Garage</h4>
+                        <h2 className="section-title">My Garage</h2>
                         <Link to="/customer/my-garage" className="view-all-btn" style={{ textDecoration: 'none' }}>View All</Link>
                     </div>
                     <div className="vehicle-list">
                         {dashboardData?.recentVehicles?.length > 0 ? (
                             dashboardData.recentVehicles.map((vehicle) => (
-                                <Link to={`/customer/my-garage/${vehicle._id}`} className="vehicle-item-card" key={vehicle._id} style={{ textDecoration: 'none' }}>
-                                    <div className="vehicle-image">
-                                        <img src={getImageUrl(vehicle.image?.filePath)} alt={vehicle.model} />
-                                    </div>
-                                    <div className="vehicle-details">
-                                        <h5 className="vehicle-name">{vehicle.make} {vehicle.model}</h5>
-                                        <span className="vehicle-year">{vehicle.licensePlate}</span>
-                                    </div>
-                                    <div className="service-status">
-                                        <span className="dot"></span>
-                                        <span>{vehicle.type}</span>
-                                    </div>
-                                </Link>
+                                <RecentVehicleCard key={vehicle._id} vehicle={vehicle} />
                             ))
                         ) : (
-                            <div className="empty-state">No vehicles in garage.</div>
+                            <div className="empty-state-container">
+                                <div className="empty-state-icon">
+                                    <i className="fa-solid fa-car-side"></i>
+                                </div>
+                                <p className="empty-state-text">No records found.</p>
+                                <Link to="/customer/my-garage/add" className="empty-state-btn">Add Vehicle</Link>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* Upcoming Section */}
                 <div className="dashboard-section upcoming-section">
-                    <h4 className="section-title">Upcoming</h4>
+                    <h2 className="section-title">Upcoming</h2>
                     {upcoming ? (
                         <div className="upcoming-booking-card">
                             <div className="card-header">
@@ -161,10 +168,10 @@ const Dashboard = () => {
                                     <i className="fa-solid fa-spray-can-sparkles"></i>
                                 </div>
                                 <div className="service-name-box">
-                                    <h5 className="service-title">{upcoming.service}</h5>
-                                    <span className="service-vehicle">{upcoming.vehicle}</span>
+                                    <h5 className="service-title">{upcoming.service || 'Service'}</h5>
+                                    <span className="service-vehicle">{upcoming.vehicle || 'Vehicle'}</span>
                                 </div>
-                                <span className="status-badge">{upcoming.status}</span>
+                                <span className="status-badge">{upcoming.status || 'Status'}</span>
                             </div>
                             <div className="card-body">
                                 <div className="booking-info-item">
@@ -173,7 +180,7 @@ const Dashboard = () => {
                                 </div>
                                 <div className="booking-info-item">
                                     <i className="fa-regular fa-clock"></i>
-                                    <span>{upcoming.time}</span>
+                                    <span>{upcoming.time || 'TBD'}</span>
                                 </div>
                                 <div className="booking-info-item">
                                     <i className="fa-solid fa-location-dot"></i>
@@ -185,10 +192,12 @@ const Dashboard = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="empty-state upcoming-empty">
-                            <i className="fa-regular fa-calendar-xmark"></i>
-                            <p>No upcoming appointments</p>
-                            <Link to="/customer/service-booking" className="book-inline-btn">Book Now</Link>
+                        <div className="empty-state-container">
+                            <div className="empty-state-icon">
+                                <i className="fa-regular fa-calendar-xmark"></i>
+                            </div>
+                            <p className="empty-state-text">No upcoming appointments</p>
+                            <Link to="/customer/service-booking" className="empty-state-btn">Book Now</Link>
                         </div>
                     )}
                 </div>
@@ -197,7 +206,7 @@ const Dashboard = () => {
             {/* Service History Preview */}
             <section className="dashboard-section table-section">
                 <div className="section-header">
-                    <h4 className="section-title">Service History Preview</h4>
+                    <h2 className="section-title">Service History Preview</h2>
                     <Link to="/customer/service-history" className="view-link">View Full History</Link>
                 </div>
                 <div className="table-container">
@@ -220,8 +229,8 @@ const Dashboard = () => {
                                         <td className="vehicle-cell">{item.vehicle}</td>
                                         <td>{item.service}</td>
                                         <td>
-                                            <span className={`status-pill ${item.status.toLowerCase() === 'finish' ? 'completed' : item.status.toLowerCase() === 'start' ? 'progress' : 'pending'}`}>
-                                                {item.status === 'FINISH' ? 'COMPLETED' : item.status === 'START' ? 'IN PROGRESS' : item.status}
+                                            <span className={`status-pill ${getStatusClass(item.status)}`}>
+                                                {getStatusText(item.status)}
                                             </span>
                                         </td>
                                     </tr>
@@ -229,7 +238,13 @@ const Dashboard = () => {
                             </tbody>
                         </table>
                     ) : (
-                        <div className="empty-state">No service history yet.</div>
+                        <div className="empty-state-container">
+                            <div className="empty-state-icon">
+                                <i className="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <p className="empty-state-text">No service history yet.</p>
+                            <Link to="/customer/service-booking" className="empty-state-btn">Book Your First Service</Link>
+                        </div>
                     )}
                 </div>
             </section>

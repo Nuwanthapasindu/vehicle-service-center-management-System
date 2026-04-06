@@ -3,16 +3,33 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
-import getImageUrl from '../../../util/getImageUrl';
-import { formatDate } from '../../../util/dateFormatter';
+import VehicleCard from '../../../components/Customer/VehicleCard/VehicleCard';
 import './MyGarage.css';
 
 const MyGarage = () => {
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [serviceLogsCount, setServiceLogsCount] = useState(0);
 
     useEffect(() => {
-        fetchMyVehicles();
+        const loadInitialData = async () => {
+            try {
+                setLoading(true);
+                // Fetch both vehicles and dashboard stats concurrently
+                const [vehiclesRes, dashboardRes] = await Promise.all([
+                    axios.get('/vehicle/my-vehicles'),
+                    axios.get('/booking/dashboard')
+                ]);
+
+                setVehicles(vehiclesRes.data.payload.vehicles || []);
+                setServiceLogsCount(dashboardRes.data.payload.data.stats.totalBookings || 0);
+            } catch (error) {
+                toast.error("Failed to load your garage metrics.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadInitialData();
     }, []);
 
     const fetchMyVehicles = async () => {
@@ -42,14 +59,16 @@ const MyGarage = () => {
 
     // Calculate overall stats
     const totalVehicles = vehicles.length;
-    // We can just mock service logs for now or keep it like the original component
-    const totalServiceLogs = 0;
+    const totalServiceLogs = serviceLogsCount;
 
     return (
         <CustomerLayout title="My Digital Garage">
             {/* Breadcrumbs */}
             <nav className="breadcrumbs">
-                <span>Dashboard</span>
+                <Link to="/customer/dashboard">
+                    <i className="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </Link>
                 <i className="fa-solid fa-chevron-right"></i>
                 <span className="active">My Digital Garage</span>
             </nav>
@@ -57,7 +76,7 @@ const MyGarage = () => {
             {/* Page Header */}
             <section className="page-title-section">
                 <div className="title-text">
-                    <h2 className="page-title">My Digital Garage</h2>
+                    <h1 className="page-title">My Digital Garage</h1>
                     <p className="page-subtitle">
                         Manage your personal vehicle fleet, track maintenance history, and keep your cars in showroom condition.
                     </p>
@@ -94,68 +113,34 @@ const MyGarage = () => {
             {/* Vehicle Grid */}
             <div className="vehicle-grid">
                 {loading ? (
-                    <div className="loading-container" style={{ textAlign: "center", padding: "3rem", width: "100%", gridColumn: "1 / -1" }}>
-                        <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-                        <p style={{ marginTop: "1rem" }}>Loading your garage...</p>
+                    <div className="loading-state-container">
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading your garage...</p>
+                    </div>
+                ) : vehicles.length === 0 ? (
+                    <div className="empty-state-container">
+                        <div className="empty-state-icon">
+                            <i className="fa-solid fa-car-side"></i>
+                        </div>
+                        <p className="empty-state-text">No records found.</p>
+                        <Link to="/customer/my-garage/add" className="empty-state-btn">Add Your First Vehicle</Link>
                     </div>
                 ) : (
                     <>
                         {vehicles.map((vehicle) => (
-                            <div className="vehicle-card" key={vehicle._id}>
-                                <div className="card-image-wrapper">
-                                    <img src={getImageUrl(vehicle.image?.filePath)} alt={vehicle.model} className="vehicle-card-img" />
-                                    {/* For now, just assuming ACTIVE status */}
-                                    <span className="status-badge active">
-                                        ACTIVE
-                                    </span>
-                                </div>
-                                <div className="card-content">
-                                    <div className="vehicle-basic-info">
-                                        <h4 className="vehicle-title">{vehicle.make} {vehicle.model}</h4>
-                                        <span className="vehicle-year">{vehicle.type}</span>
-                                    </div>
-                                    <div className="vehicle-meta">
-                                        <div className="meta-item plate">
-                                            <span>{vehicle.licensePlate}</span>
-                                        </div>
-                                        <div className="meta-item time">
-                                            <i className="fa-regular fa-calendar-check"></i>
-                                            <span>{formatDate(vehicle.createdAt)} added</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="card-footer">
-                                    <Link to={`/customer/my-garage/${vehicle._id}`} className="view-details-link">
-                                        <span>VIEW DETAILS</span>
-                                        <i className="fa-solid fa-arrow-right"></i>
-                                    </Link>
-                                    <div className="action-icons">
-                                        {/* <button className="icon-btn edit"><i className="fa-regular fa-pen-to-square"></i></button> */}
-                                        <button
-                                            className="icon-btn delete"
-                                            onClick={() => handleDeleteVehicle(vehicle._id)}
-                                            title="Remove Vehicle"
-                                        >
-                                            <i className="fa-regular fa-trash-can"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <VehicleCard
+                                key={vehicle._id}
+                                vehicle={vehicle}
+                                onDelete={handleDeleteVehicle}
+                            />
                         ))}
                     </>
                 )}
 
+
                 {/* Add Another Vehicle Placeholder */}
-                {!loading && (
-                    <Link to="/customer/my-garage/add" className="add-placeholder-card">
-                        <div className="placeholder-content">
-                            <div className="plus-circle">
-                                <i className="fa-solid fa-plus"></i>
-                            </div>
-                            <h4 className="placeholder-title">Add Another Vehicle</h4>
-                            <p className="placeholder-text">Track and manage more cars in your profile</p>
-                        </div>
-                    </Link>
+                {!loading && vehicles.length > 0 && (
+                    <VehicleCard isNewCard />
                 )}
             </div>
         </CustomerLayout>

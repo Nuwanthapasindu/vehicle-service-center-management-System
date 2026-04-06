@@ -32,6 +32,11 @@ module.exports.createBooking = async (payload, mobile) => {
             isDeleted: false
         });
 
+        const isVehicleAlreadyBooked = existingBookings.some(b => b.vehicle.toString() === vehicle.toString());
+        if (isVehicleAlreadyBooked) {
+            throw new AppError("This vehicle is already booked for this specific time slot on the selected date.", 400);
+        }
+
         if (existingBookings.length >= slotDoc.maxCapacity) {
             throw new AppError("This timeslot is fully booked for the selected date", 400);
         }
@@ -47,6 +52,9 @@ module.exports.createBooking = async (payload, mobile) => {
         const savedBooking = await newBooking.save();
         return savedBooking;
     } catch (error) {
+        if (error.code === 11000) {
+            throw new AppError("This vehicle is already booked for this specific time slot on the selected date.", 409);
+        }
         throw new AppError(error.message, error.statusCode || 500);
     }
 };
@@ -56,15 +64,37 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
         const owner = await User.findOne({ mobile, isDeleted: false });
         if (!owner) throw new AppError("Customer not found", 404);
 
-        const bookings = await Booking.find({ customer: owner._id, isDeleted: false })
-            .populate("vehicle")
-            .populate("slot")
+        const { search, status, vehicle: vehicleFilter, duration } = filters;
+
+        // Build query object
+        const query = { customer: owner._id, isDeleted: false };
+        // Handle direct vehicle filtering if it's a valid ID (passed from VehicleDetails)
+        const isVehicleId = vehicleFilter && vehicleFilter.match(/^[0-9a-fA-F]{24}$/);
+        if (isVehicleId) {
+            query.vehicle = vehicleFilter;
+        }
+
+        if (duration && duration !== 'all') {
+            const now = new Date();
+            let startDate = new Date();
+            if (duration === '6m') startDate.setMonth(now.getMonth() - 6);
+            else if (duration === '1y') startDate.setFullYear(now.getFullYear() - 1);
+            else if (duration === '2y') startDate.setFullYear(now.getFullYear() - 2);
+            else if (duration === '5y') startDate.setFullYear(now.getFullYear() - 5);
+
+            // Set to start of the day
+            startDate.setHours(0, 0, 0, 0);
+            query.date = { $gte: startDate };
+        }
+
+        const bookings = await Booking.find(query)
+            .populate("vehicle", "make model licensePlate year")
             .sort({ date: -1 });
 
-        // For each booking, check for a JobCard and its status
+        // For each booking, fetch corresponding JobCard details
         let history = await Promise.all(bookings.map(async (booking) => {
             const jobCard = await JobCard.findOne({ booking: booking._id, isDeleted: false })
-                .populate("selectedPackage");
+                .populate("selectedPackage", "name");
 
             return {
                 id: booking._id,
@@ -77,25 +107,23 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
             };
         }));
 
-        // Server-Side Filtering
-        const { search, status, vehicle } = filters;
+        // Apply Server-Side Filtering (Search and Status)
+        if (search || (status && status !== 'all') || (!isVehicleId && vehicleFilter && vehicleFilter !== 'all')) {
+            history = history.filter(item => {
+                const searchLower = search ? search.toLowerCase() : "";
+                const matchesSearch = !search ||
+                    item.vehicle.toLowerCase().includes(searchLower) ||
+                    item.service.toLowerCase().includes(searchLower) ||
+                    item.licensePlate.toLowerCase().includes(searchLower);
 
-        if (search) {
-            const lowerSearch = search.toLowerCase();
-            history = history.filter(item =>
-                item.vehicle.toLowerCase().includes(lowerSearch) ||
-                item.service.toLowerCase().includes(lowerSearch) ||
-                item.licensePlate.toLowerCase().includes(lowerSearch)
-            );
-        }
+                const matchesStatus = !status || status === 'all' || item.status === status;
 
-        if (status && status !== 'all') {
-            history = history.filter(item => item.status === status);
-        }
+                // Only perform name-based vehicle filter if not already filtered by database (ID)
+                const matchesVehicleName = isVehicleId || !vehicleFilter || vehicleFilter === 'all' ||
+                    item.vehicle.toLowerCase().includes(vehicleFilter.toLowerCase());
 
-        if (vehicle && vehicle !== 'all') {
-            const lowerVehicle = vehicle.toLowerCase();
-            history = history.filter(item => item.vehicle.toLowerCase().includes(lowerVehicle));
+                return matchesSearch && matchesStatus && matchesVehicleName;
+            });
         }
 
         return history;
@@ -122,7 +150,9 @@ module.exports.getDashboardData = async (mobile) => {
             customer: owner._id,
             isDeleted: false,
             date: { $gte: today }
-        }).populate("vehicle").populate("slot").sort({ date: 1 });
+        }).populate("vehicle", "make model year")
+            .populate("slot", "startTime endTime")
+            .sort({ date: 1 });
 
         // Calculate Total Spent from Invoices
         const invoices = await Invoice.find({ customer: owner._id, isDeleted: false });
@@ -144,7 +174,7 @@ module.exports.getDashboardData = async (mobile) => {
 
         // Recent Vehicles (max 4)
         const recentVehicles = await Vehicle.find({ ownerId: owner._id, isDeleted: false })
-            .populate("image")
+            .populate("image", "filePath")
             .sort({ createdAt: -1 })
             .limit(4);
 

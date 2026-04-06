@@ -1,0 +1,43 @@
+.home-cta {
+    background-color: #FFFFFF;
+}
+
+.cta-banner {
+    background: linear-gradient(135deg, #1A1D23 0%, #000000 100%);
+    border-radius: 40px;
+    padding: 8rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.15);
+}
+
+.cta-banner::after {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: #8EDB00;
+    filter: blur(250px);
+    opacity: 0.15;
+    top: -250px;
+    right: -250px;
+}
+
+.cta-btns {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+@media (max-width: 768px) {
+    .cta-banner {
+        padding: 4rem 2rem;
+    }
+    .cta-btns {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+}
