@@ -29,7 +29,7 @@ const responseBuild = require("../util/responseBuilder");
  *       200:
  *         description: Inventory fetched successfully
  */
-router.get("/", (req, res, next) => {
+router.get("/", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   getInventory()

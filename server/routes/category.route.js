@@ -26,7 +26,7 @@ const responseBuild = require("../util/responseBuilder");
  *       200:
  *         description: Categories fetched successfully
  */
-router.get("/", (req, res, next) => {
+router.get("/", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   getAllCategories()
