@@ -36,7 +36,13 @@ const bookingSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
+);
+
+// for prevent same slot booking at same day by same vehicle.
+bookingSchema.index(
+  { vehicle: 1, slot: 1, date: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } }
 );
 
 module.exports = mongoose.model("Booking", bookingSchema);
