@@ -35,3 +35,15 @@ module.exports.updateProfile = async (payload, mobile) => {
   const { isDeleted, deletedAt, __v, ...safeUser } = savedUser.toObject();
   return safeUser;
 };
+
+module.exports.searchCustomersByMobile = async (mobile) => {
+  if (!mobile) throw new AppError("Mobile number is required", 400);
+
+  const customers = await User.find({
+    mobile: { $regex: `^${mobile}`, $options: "i" },
+    role: "CUSTOMER",
+    isDeleted: false,
+  }).select("-__v -createdAt -updatedAt -isDeleted");
+
+  return customers;
+};
