@@ -11,9 +11,9 @@ export const getInvoiceHtmlContent = (invoiceData = {}) => {
         currentMileage = "15,204 km",
         status = "WORK IN PROGRESS",
         billedItems = [
-            { id: 1, title: "Full Synthetic Oil Change", subtitle: "Labor & Materials", amount: "$85.00" },
-            { id: 2, title: "Premium Oil Filter", subtitle: "Part #OF-992-B", amount: "$22.50" },
-            { id: 3, title: "Brake Pad Set (Front)", subtitle: "Ceramic Performance", amount: "$145.00" }
+            { id: 1, title: "Full Synthetic Oil Change", subtitle: "Labor & Materials", amount: "LKR 85.00" },
+            { id: 2, title: "Premium Oil Filter", subtitle: "Part #OF-992-B", amount: "LKR 22.50" },
+            { id: 3, title: "Brake Pad Set (Front)", subtitle: "Ceramic Performance", amount: "LKR 145.00" }
         ],
         totalAmount = "LKR 22,520.50"
     } = invoiceData;
