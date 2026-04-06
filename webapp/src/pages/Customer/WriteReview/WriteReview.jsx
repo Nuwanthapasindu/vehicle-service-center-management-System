@@ -7,6 +7,7 @@ import reviewService from '../../../services/reviewService';
 import getImageUrl from '../../../util/getImageUrl';
 import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
+import StarRating from '../../../components/Customer/StarRating/StarRating';
 import { formatShortDate } from '../../../util/dateFormatter';
 import './WriteReview.css';
 
@@ -162,17 +163,13 @@ const WriteReview = () => {
                                 <Form className="review-form">
                                     <div className="rating-section">
                                         <h3>How would you rate your detail?</h3>
-                                        <div className="stars-container">
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <i
-                                                    key={star}
-                                                    className={`fa-star star-icon ${(hoverRating || values.rating) >= star ? 'fa-solid filled' : 'fa-regular'}`}
-                                                    onClick={() => setFieldValue('rating', star)}
-                                                    onMouseEnter={() => setHoverRating(star)}
-                                                    onMouseLeave={() => setHoverRating(0)}
-                                                ></i>
-                                            ))}
-                                        </div>
+                                        <StarRating 
+                                            rating={values.rating}
+                                            hoverRating={hoverRating}
+                                            interactive={true}
+                                            onRatingChange={(star) => setFieldValue('rating', star)}
+                                            onHoverChange={setHoverRating}
+                                        />
                                         {errors.rating && touched.rating ? (
                                             <span className="rating-hint" style={{color: '#ef4444', marginTop: '10px'}}>{errors.rating}</span>
                                         ) : (

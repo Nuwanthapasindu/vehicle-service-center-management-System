@@ -51,7 +51,7 @@ module.exports.getBookingDetailsForReview = async (bookingId, mobile) => {
     if (!booking) throw new AppError("Booking not found", 404);
 
     const jobCard = await JobCard.findOne({ booking: bookingId, isDeleted: false })
-      .populate("selectedPackage");
+      .populate("selectedPackage", "name");
 
     if (!jobCard) throw new AppError("Service details not found", 404);
 
@@ -90,7 +90,7 @@ module.exports.getMyReviews = async (mobile, filterType = 'all') => {
 
     const enrichedReviews = await Promise.all(reviews.map(async (review) => {
       const jobCard = await JobCard.findOne({ booking: review.booking?._id, isDeleted: false })
-        .populate("selectedPackage");
+        .populate("selectedPackage", "name");
 
       const reviewObj = review.toObject();
       return {
