@@ -1,0 +1,245 @@
+.edit-review-page {
+    padding: 2.5rem;
+    background-color: var(--background-color);
+    min-height: calc(100vh - 80px);
+    font-family: 'Poppins', sans-serif;
+}
+
+.breadcrumbs {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--secondary);
+    margin-bottom: 2rem;
+}
+
+.breadcrumbs span.active {
+    color: var(--dark);
+    font-weight: 500;
+}
+
+.edit-review-header {
+    margin-bottom: 2.5rem;
+}
+
+.edit-review-header h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+}
+
+.edit-review-header p {
+    color: var(--secondary);
+    font-size: 1rem;
+    max-width: 600px;
+    line-height: 1.5;
+}
+
+.review-container {
+    background: var(--light);
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+/* Service Card Section */
+.service-summary-card {
+    padding: 2rem;
+    display: flex;
+    gap: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: #fafbfc;
+}
+
+.service-image-container {
+    width: 200px;
+    height: 140px;
+    flex-shrink: 0;
+}
+
+.service-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.75rem;
+}
+
+.service-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.status-badge {
+    background-color: #e2f5ff;
+    color: #4db3ff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.375rem;
+    width: fit-content;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.service-info h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 0;
+}
+
+.service-date {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--secondary);
+    font-size: 0.9375rem;
+}
+
+/* Rating Section */
+.rating-section {
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.rating-section h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.stars-container {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.star-icon {
+    font-size: 2.5rem;
+    cursor: pointer;
+    color: #e2e8f0;
+    transition: color 0.2s;
+}
+
+.star-icon.filled {
+    color: var(--primary-color);
+}
+
+.rating-hint {
+    font-size: 0.875rem;
+    color: var(--secondary);
+}
+
+/* Form Section */
+.review-form {
+    padding: 0 2.5rem 2.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.form-label-row label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.optional-text {
+    font-size: 0.8125rem;
+    color: #cbd5e1;
+}
+
+.review-textarea {
+    width: 100%;
+    height: 180px;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background-color: #fcfdfe;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.review-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(142, 219, 0, 0.1);
+}
+
+.submit-button-container {
+    margin-top: 2.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.update-review-btn {
+    flex: 2;
+    background-color: var(--primary-color);
+    color: var(--dark);
+    font-weight: 700;
+    font-size: 1.125rem;
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.update-review-btn:hover:not(:disabled) {
+    background-color: #83c600;
+}
+
+.cancel-btn {
+    flex: 1;
+    background-color: white;
+    color: var(--secondary);
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+    background-color: #f8fafc;
+    color: var(--dark);
+}
+
+.update-review-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.loading-state {
+    padding: 100px;
+    text-align: center;
+    color: var(--secondary);
+}

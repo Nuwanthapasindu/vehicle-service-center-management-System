@@ -1,0 +1,246 @@
+.my-reviews-page {
+    padding: 2.5rem;
+    background-color: var(--background-color);
+    min-height: calc(100vh - 80px);
+    font-family: 'Poppins', sans-serif;
+}
+
+.my-reviews-header {
+    margin-bottom: 2rem;
+}
+
+.reviews-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 1rem;
+}
+
+.my-reviews-header h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+}
+
+.my-reviews-header p {
+    color: var(--secondary);
+    font-size: 1rem;
+    max-width: 600px;
+    line-height: 1.5;
+}
+
+.add-review-btn {
+    background-color: var(--primary-color);
+    color: var(--dark);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: transform 0.2s, background-color 0.2s;
+    text-decoration: none;
+}
+
+.add-review-btn:hover {
+    background-color: #83c600;
+    transform: translateY(-2px);
+}
+
+/* Tabs Section */
+.reviews-tabs {
+    display: flex;
+    gap: 2.5rem;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 2.5rem;
+}
+
+.tab-item {
+    padding: 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.tab-item:hover {
+    color: var(--dark);
+}
+
+.tab-item.active {
+    color: var(--dark);
+}
+
+.tab-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary-color);
+}
+
+/* Review Cards */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.review-card {
+    background: var(--light);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-left: 6px solid #84cc16; /* Similar line to the card in mock-up */
+    padding: 1.5rem 2rem;
+    position: relative;
+    transition: box-shadow 0.2s;
+}
+
+.review-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.review-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.review-star-rating {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.mini-star {
+    color: var(--primary-color);
+    font-size: 0.875rem;
+}
+
+.review-service-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.review-service-date {
+    font-size: 0.875rem;
+    color: var(--secondary);
+    margin-top: 0.5rem;
+}
+
+.verified-badge {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.4rem 0.8rem;
+    border-radius: 9999px;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+}
+
+.review-comment {
+    color: var(--dark);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 1.5rem 0;
+}
+
+.review-actions {
+    display: flex;
+    gap: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: opacity 0.2s;
+}
+
+.action-btn:hover {
+    opacity: 0.7;
+}
+
+.edit-btn {
+    color: var(--dark);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+}
+
+.delete-btn {
+    color: var(--danger-color);
+}
+
+/* Pagination Section */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.load-more-btn {
+    background-color: #1e293b;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: background-color 0.2s;
+}
+
+.load-more-btn:hover {
+    background-color: #0f172a;
+}
+
+/* State Handlers */
+.empty-reviews {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--light);
+    border-radius: 1rem;
+    border: 1px dashed var(--border-color);
+}
+
+.empty-reviews i {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}
+
+.empty-reviews p {
+    color: var(--secondary);
+    font-size: 1.125rem;
+}
+
+.loading-container {
+    padding: 4rem;
+    text-align: center;
+}
