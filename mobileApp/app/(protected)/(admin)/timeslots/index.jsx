@@ -31,7 +31,7 @@ export default function TimeslotConfiguration() {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: error.response?.data?.message || "Failed to fetch timeslots",
+        text2: error.response?.data?.payload?.message || "Failed to fetch timeslots",
       });
     } finally {
       setLoading(false);
@@ -69,7 +69,7 @@ export default function TimeslotConfiguration() {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: error.response?.data?.message || "Failed to update status",
+        text2: error.response?.data?.payload?.message || "Failed to update status",
       });
     } finally {
       setTogglingId(null);

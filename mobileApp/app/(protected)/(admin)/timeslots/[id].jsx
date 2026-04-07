@@ -58,7 +58,7 @@ export default function UpdateTimeslot() {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: error.response?.data?.message || "Failed to fetch timeslot details",
+        text2: error.response?.data?.payload?.message || "Failed to fetch timeslot details",
       });
       router.back();
     } finally {
@@ -125,7 +125,7 @@ export default function UpdateTimeslot() {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: error.response?.data?.message || "Failed to update time slot",
+        text2: error.response?.data?.payload?.message || "Failed to update time slot",
       });
     } finally {
       setLoading(false);
@@ -156,7 +156,7 @@ export default function UpdateTimeslot() {
               Toast.show({
                 type: "error",
                 text1: "Error",
-                text2: error.response?.data?.message || "Failed to delete time slot",
+                text2: error.response?.data?.payload?.message || "Failed to delete time slot",
               });
             }
           }
