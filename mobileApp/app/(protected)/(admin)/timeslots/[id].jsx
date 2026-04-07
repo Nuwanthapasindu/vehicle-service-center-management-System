@@ -20,6 +20,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
+import { parseTimeString, formatSyncTime, formatDisplayTime } from "../../../../utils/timeFormatter";
 
 export default function UpdateTimeslot() {
   const { id } = useLocalSearchParams();
@@ -36,13 +37,7 @@ export default function UpdateTimeslot() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-  const parseTimeString = (timeString) => {
-    if (!timeString) return new Date();
-    const [hours, minutes] = timeString.split(":");
-    const date = new Date();
-    date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    return date;
-  };
+
 
   const fetchTimeslot = useCallback(async () => {
     try {
@@ -84,15 +79,7 @@ export default function UpdateTimeslot() {
     }
   };
 
-  const formatDisplayTime = (date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
 
-  const formatSyncTime = (date) => {
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
 
   const handleUpdate = async () => {
     if (!maxCapacity || isNaN(maxCapacity)) {

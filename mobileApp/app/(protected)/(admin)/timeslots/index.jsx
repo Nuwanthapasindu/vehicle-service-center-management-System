@@ -15,6 +15,7 @@ import colors from "../../../../constants/colors";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import axios from "axios";
+import { formatTimeStringForDisplay } from "../../../../utils/timeFormatter";
 
 export default function TimeslotConfiguration() {
   const router = useRouter();
@@ -76,14 +77,7 @@ export default function TimeslotConfiguration() {
     }
   };
 
-  const formatTime = (time) => {
-    if (!time) return "";
-    const [hours, minutes] = time.split(":");
-    const h = parseInt(hours);
-    const ampm = h >= 12 ? "PM" : "AM";
-    const formattedHours = h % 12 || 12;
-    return `${formattedHours}:${minutes} ${ampm}`;
-  };
+
 
   if (loading) {
     return (
@@ -120,7 +114,7 @@ export default function TimeslotConfiguration() {
               <View style={styles.cardHeader}>
                 <View>
                   <Text style={[styles.timeText, !slot.isActive && styles.disabledText]}>
-                    {formatTime(slot.startTime)}
+                    {formatTimeStringForDisplay(slot.startTime)}
                   </Text>
                   <View style={styles.capacityWrapper}>
                     <Ionicons name="car-outline" size={16} color={slot.isActive ? colors.SECONDARY : "#CBD5E1"} />
