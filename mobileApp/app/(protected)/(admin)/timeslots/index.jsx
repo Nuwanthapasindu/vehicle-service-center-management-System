@@ -28,7 +28,6 @@ export default function TimeslotConfiguration() {
       const response = await axios.get("/timeslot/all");
       setTimeslots(response.data.payload.slots || []);
     } catch (error) {
-      console.error(error);
       Toast.show({
         type: "error",
         text1: "Error",
