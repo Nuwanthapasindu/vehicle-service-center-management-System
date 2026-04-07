@@ -1,9 +1,12 @@
+const mongoose = require("mongoose");
 const Booking = require("../model/Booking");
 const Timeslot = require("../model/Timeslot");
 const AppError = require("../error/AppError");
 const { validateTimeslot } = require("../validation/timeslot.validation");
 
 module.exports.getTimeslotById = async (id) => {
+    if (!mongoose.isValidObjectId(id)) throw new AppError("Invalid Timeslot ID", 400);
+
     try {
         const slot = await Timeslot.findById(id);
         if (!slot || slot.isDeleted) throw new AppError("Timeslot not found", 404);
@@ -72,6 +75,8 @@ module.exports.createTimeslot = async (payload) => {
 };
 
 module.exports.updateTimeslot = async (id, payload) => {
+    if (!mongoose.isValidObjectId(id)) throw new AppError("Invalid Timeslot ID", 400);
+
     try {
         const slot = await Timeslot.findById(id);
         if (!slot || slot.isDeleted) throw new AppError("Timeslot not found", 404);
@@ -88,6 +93,8 @@ module.exports.updateTimeslot = async (id, payload) => {
 };
 
 module.exports.updateTimeslotState = async (id, isActive) => {
+    if (!mongoose.isValidObjectId(id)) throw new AppError("Invalid Timeslot ID", 400);
+
     try {
         const slot = await Timeslot.findById(id);
         if (!slot || slot.isDeleted) throw new AppError("Timeslot not found", 404);
@@ -106,6 +113,8 @@ module.exports.updateTimeslotState = async (id, isActive) => {
 };
 
 module.exports.deleteTimeslot = async (id) => {
+    if (!mongoose.isValidObjectId(id)) throw new AppError("Invalid Timeslot ID", 400);
+
     try {
         const slot = await Timeslot.findById(id);
         if (!slot) throw new AppError("Timeslot not found", 404);
