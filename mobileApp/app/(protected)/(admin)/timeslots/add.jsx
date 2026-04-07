@@ -18,6 +18,7 @@ import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
+import { formatSyncTime, formatDisplayTime } from "../../../../utils/timeFormatter";
 
 export default function AddTimeslot() {
   const router = useRouter();
@@ -44,15 +45,7 @@ export default function AddTimeslot() {
     }
   };
 
-  const formatDisplayTime = (date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
 
-  const formatSyncTime = (date) => {
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
 
   const handleSave = async () => {
     if (!maxCapacity || isNaN(maxCapacity)) {
@@ -82,11 +75,10 @@ export default function AddTimeslot() {
       });
       router.back();
     } catch (error) {
-      console.error(error);
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: error.response?.data?.message || "Failed to add time slot",
+        text2: error.response?.data?.payload?.message || "Failed to add time slot",
       });
     } finally {
       setLoading(false);
