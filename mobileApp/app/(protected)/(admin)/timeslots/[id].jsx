@@ -55,7 +55,6 @@ export default function UpdateTimeslot() {
         setIsActive(slot.isActive);
       }
     } catch (error) {
-      console.error(error);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -123,7 +122,6 @@ export default function UpdateTimeslot() {
       });
       router.back();
     } catch (error) {
-      console.error(error);
       Toast.show({
         type: "error",
         text1: "Error",
