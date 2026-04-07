@@ -67,6 +67,13 @@ module.exports.createTimeslot = async (payload) => {
     }
 
     try {
+        const existingSlot = await Timeslot.findOne({
+            startTime: value.startTime,
+            endTime: value.endTime,
+            isDeleted: false
+        });
+        if (existingSlot) throw new AppError("A timeslot with the same start and end time already exists", 400);
+
         const newSlot = new Timeslot(value);
         return await newSlot.save();
     } catch (error) {
@@ -83,6 +90,15 @@ module.exports.updateTimeslot = async (id, payload) => {
 
         const { error, value } = validateTimeslot(payload);
         if (error) throw new AppError(error.details[0].message, 400);
+
+        const existingSlot = await Timeslot.findOne({
+            _id: { $ne: id },
+            startTime: value.startTime,
+            endTime: value.endTime,
+            isDeleted: false
+        });
+        if (existingSlot) throw new AppError("A timeslot with the same start and end time already exists", 400);
+
         Object.assign(slot, value);
 
         return await slot.save();
