@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useFormik } from "formik";
+import timeslotSchema from "../../../../schema/timeslotSchema";
 import {
   View,
   Text,
@@ -26,16 +28,52 @@ export default function UpdateTimeslot() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
-  const [startTime, setStartTime] = useState(new Date());
-  const [endTime, setEndTime] = useState(new Date());
-  const [maxCapacity, setMaxCapacity] = useState("5");
-  const [isActive, setIsActive] = useState(true);
-
+  const [initialValues, setInitialValues] = useState({
+    startTime: new Date(),
+    endTime: new Date(),
+    maxCapacity: "5",
+    isActive: true,
+  });
+  
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const formik = useFormik({
+    initialValues,
+    validationSchema: timeslotSchema,
+    enableReinitialize: true,
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const payload = {
+          startTime: formatSyncTime(values.startTime),
+          endTime: formatSyncTime(values.endTime),
+          maxCapacity: parseInt(values.maxCapacity),
+          isActive: values.isActive,
+        };
+
+        const response = await axios.put(`/timeslot/${id}`, payload);
+
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: response.data.payload.message || "Time slot updated successfully",
+        });
+        router.back();
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: error.response?.data?.payload?.message || "Failed to update time slot",
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
 
 
 
@@ -44,10 +82,12 @@ export default function UpdateTimeslot() {
       const response = await axios.get(`/timeslot/${id}`);
       const slot = response.data.payload.slot;
       if (slot) {
-        setStartTime(parseTimeString(slot.startTime));
-        setEndTime(parseTimeString(slot.endTime));
-        setMaxCapacity(String(slot.maxCapacity));
-        setIsActive(slot.isActive);
+        setInitialValues({
+          startTime: parseTimeString(slot.startTime),
+          endTime: parseTimeString(slot.endTime),
+          maxCapacity: String(slot.maxCapacity),
+          isActive: slot.isActive,
+        });
       }
     } catch (error) {
       Toast.show({
@@ -68,56 +108,20 @@ export default function UpdateTimeslot() {
   const onStartTimeChange = (event, selectedDate) => {
     setShowStartPicker(Platform.OS === "ios");
     if (selectedDate) {
-      setStartTime(selectedDate);
+      formik.setFieldValue("startTime", selectedDate);
     }
   };
 
   const onEndTimeChange = (event, selectedDate) => {
     setShowEndPicker(Platform.OS === "ios");
     if (selectedDate) {
-      setEndTime(selectedDate);
+      formik.setFieldValue("endTime", selectedDate);
     }
   };
 
 
 
-  const handleUpdate = async () => {
-    if (!maxCapacity || isNaN(maxCapacity)) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Please enter a valid maximum capacity",
-      });
-      return;
-    }
 
-    setLoading(true);
-    try {
-      const payload = {
-        startTime: formatSyncTime(startTime),
-        endTime: formatSyncTime(endTime),
-        maxCapacity: parseInt(maxCapacity),
-        isActive,
-      };
-
-      const response = await axios.put(`/timeslot/${id}`, payload);
-
-      Toast.show({
-        type: "success",
-        text1: "Success",
-        text2: response.data.payload.message || "Time slot updated successfully",
-      });
-      router.back();
-    } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: error.response?.data?.payload?.message || "Failed to update time slot",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDelete = () => {
     Alert.alert(
@@ -175,7 +179,7 @@ export default function UpdateTimeslot() {
                 style={styles.timePickerButton}
                 onPress={() => setShowStartPicker(true)}
               >
-                <Text style={styles.timeValue}>{formatDisplayTime(startTime)}</Text>
+                <Text style={styles.timeValue}>{formatDisplayTime(formik.values.startTime)}</Text>
                 <Ionicons name="time-outline" size={24} color={colors.SECONDARY} />
               </TouchableOpacity>
 
@@ -184,20 +188,26 @@ export default function UpdateTimeslot() {
                 style={styles.timePickerButton}
                 onPress={() => setShowEndPicker(true)}
               >
-                <Text style={styles.timeValue}>{formatDisplayTime(endTime)}</Text>
+                <Text style={styles.timeValue}>{formatDisplayTime(formik.values.endTime)}</Text>
                 <Ionicons name="time-outline" size={24} color={colors.SECONDARY} />
               </TouchableOpacity>
+              {formik.touched.endTime && formik.errors.endTime && (
+                <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{formik.errors.endTime}</Text>
+              )}
             </View>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>OPERATIONAL LIMITS</Text>
             <View style={styles.sectionCard}>
-              <CustomInput
+               <CustomInput
                 label="Maximum Capacity"
                 placeholder="e.g. 5"
-                value={maxCapacity}
-                onChangeText={setMaxCapacity}
+                value={formik.values.maxCapacity}
+                onChangeText={formik.handleChange("maxCapacity")}
+                onBlur={formik.handleBlur("maxCapacity")}
+                error={formik.errors.maxCapacity}
+                touched={formik.touched.maxCapacity}
                 keyboardType="numeric"
                 icon={<Ionicons name="people-outline" size={20} color={colors.SECONDARY} />}
               />
@@ -208,8 +218,8 @@ export default function UpdateTimeslot() {
                   <Text style={styles.switchSubtitle}>Enable this slot for bookings</Text>
                 </View>
                 <Switch
-                  value={isActive}
-                  onValueChange={setIsActive}
+                  value={formik.values.isActive}
+                  onValueChange={(value) => formik.setFieldValue("isActive", value)}
                   trackColor={{ false: "#E2E8F0", true: colors.PRIMARY }}
                   thumbColor="#FFFFFF"
                 />
@@ -221,7 +231,7 @@ export default function UpdateTimeslot() {
         <View style={styles.footer}>
           <CustomButton
             text={loading ? "UPDATING..." : "UPDATE TIME SLOT"}
-            onPress={handleUpdate}
+            onPress={formik.handleSubmit}
             style={styles.saveButton}
             textStyle={styles.saveButtonText}
             icon={!loading && <Ionicons name="checkmark-circle-outline" size={24} color={colors.DARK} />}
@@ -239,7 +249,7 @@ export default function UpdateTimeslot() {
 
         {showStartPicker && (
           <DateTimePicker
-            value={startTime}
+            value={formik.values.startTime}
             mode="time"
             is24Hour={false}
             display={Platform.OS === "ios" ? "spinner" : "default"}
@@ -249,7 +259,7 @@ export default function UpdateTimeslot() {
 
         {showEndPicker && (
           <DateTimePicker
-            value={endTime}
+            value={formik.values.endTime}
             mode="time"
             is24Hour={false}
             display={Platform.OS === "ios" ? "spinner" : "default"}
