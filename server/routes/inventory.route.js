@@ -36,7 +36,6 @@ router.get("/", authTokenMiddleware, (req, res, next) => {
     .then((items) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Inventory fetched successfully",
         data: items,
       });
     })
@@ -76,11 +75,10 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   addItem(req.body, req.user)
-    .then((item) => {
+    .then((message) => {
       responseBuilder.setStatus(201);
       responseBuilder.buildResponse({
-        message: "Item added to inventory",
-        data: item,
+        message,
       });
     })
     .catch(next);
@@ -119,11 +117,10 @@ router.patch("/adjust/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   manualAdjustment(req.params.id, req.body, req.user)
-    .then((item) => {
+    .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Manual stock adjustment successful",
-        data: item,
+        message,
       });
     })
     .catch(next);
@@ -163,10 +160,10 @@ router.patch("/reduce-stock", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   reduceStockByInvoice(req.body, req.user)
-    .then(() => {
+    .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Stock reduced for invoice items",
+        message,
       });
     })
     .catch(next);
@@ -206,10 +203,10 @@ router.patch("/increase-stock", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   increaseStockByPO(req.body, req.user)
-    .then(() => {
+    .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Stock increased for received Order items",
+        message,
       });
     })
     .catch(next);
@@ -237,11 +234,10 @@ router.patch("/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   updateItem(req.params.id, req.body)
-    .then((item) => {
+    .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Item details updated",
-        data: item,
+        message,
       });
     })
     .catch(next);
@@ -269,10 +265,10 @@ router.delete("/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   deleteItem(req.params.id)
-    .then(() => {
+    .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Item removed from inventory",
+        message,
       });
     })
     .catch(next);
