@@ -24,8 +24,7 @@ const categoryIdSchema = Joi.string().hex().length(24).required().messages({
 });
 
 const deleteCategoryValidation = (id) => {
-    const { error } = categoryIdSchema.validate(id);
-    if (error) throw error;
+    return categoryIdSchema.validate(id);
 };
 
 module.exports = { categorySchema, deleteCategoryValidation };

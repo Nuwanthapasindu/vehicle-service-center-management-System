@@ -1,4 +1,5 @@
 const Category = require('../model/Category');
+const Inventory = require('../model/Inventory');
 const AppError = require('../error/AppError');
 const { categorySchema, deleteCategoryValidation } = require('../validation/category.validation');
 

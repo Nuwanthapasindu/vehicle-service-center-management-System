@@ -33,7 +33,6 @@ router.get("/", authTokenMiddleware, (req, res, next) => {
     .then((categories) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Categories fetched",
         data: categories,
       });
     })
@@ -71,11 +70,10 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
   const payload = req.body;
 
   createCategory(payload)
-    .then((category) => {
+    .then((message) => {
       responseBuilder.setStatus(201);
       responseBuilder.buildResponse({
-        message: "Category created",
-        data: category,
+        message,
       });
     })
     .catch((error) => next(error));
@@ -115,11 +113,10 @@ router.patch("/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   updateCategory(req.params.id, req.body)
-    .then((category) => {
+    .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Category updated",
-        data: category,
+        message,
       });
     })
     .catch((error) => next(error));
@@ -149,10 +146,10 @@ router.delete("/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   deleteCategory(req.params.id)
-    .then(() => {
+    .then((message) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({
-        message: "Category deleted",
+        message
       });
     })
     .catch((error) => next(error));
