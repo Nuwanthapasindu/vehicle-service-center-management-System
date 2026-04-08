@@ -87,6 +87,24 @@ describe("Booking Controller Tests", () => {
        const date = new Date();
        date.setHours(0,0,0,0);
 
+       const mockVehicle2 = await new Vehicle({
+           ownerId: mockUser._id,
+           licensePlate: "WP-CAB-5678",
+           type: "CAR",
+           make: "Honda",
+           model: "Civic",
+           year: 2021,
+       }).save();
+
+       const mockVehicle3 = await new Vehicle({
+           ownerId: mockUser._id,
+           licensePlate: "WP-CAB-9999",
+           type: "CAR",
+           make: "Nissan",
+           model: "Leaf",
+           year: 2020,
+       }).save();
+
        // Fill capacity
        await new Booking({
            customer: mockUser._id,
@@ -97,18 +115,39 @@ describe("Booking Controller Tests", () => {
 
        await new Booking({
            customer: mockUser._id,
-           vehicle: mockVehicle._id,
+           vehicle: mockVehicle2._id,
            slot: mockSlot._id,
            date: date
        }).save();
 
        const payload = {
-           vehicle: mockVehicle._id.toString(),
+           vehicle: mockVehicle3._id.toString(),
            slot: mockSlot._id.toString(),
            date: date.toISOString(),
        };
 
        await expect(createBooking(payload, mockMobile)).rejects.toThrow("This timeslot is fully booked for the selected date");
+    });
+
+    test("should fail if the same vehicle tries to book the same slot on the same day twice", async () => {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+
+        // First booking
+        await createBooking({
+            vehicle: mockVehicle._id.toString(),
+            slot: mockSlot._id.toString(),
+            date: date.toISOString(),
+        }, mockMobile);
+
+        // Second booking (same vehicle, same slot, same date)
+        const payload = {
+            vehicle: mockVehicle._id.toString(),
+            slot: mockSlot._id.toString(),
+            date: date.toISOString(),
+        };
+
+        await expect(createBooking(payload, mockMobile)).rejects.toThrow("This vehicle is already booked for this specific time slot on the selected date.");
     });
   });
 

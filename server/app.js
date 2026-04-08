@@ -24,6 +24,7 @@ const bookingRouter = require("./routes/booking.route");
 const timeslotRouter = require("./routes/timeslot.route");
 const inventoryRouter = require("./routes/inventory.route");
 const categoryRouter = require("./routes/category.route");
+const reviewRouter = require("./routes/review.route");
 
 const app = express();
 connectDB();
@@ -66,6 +67,7 @@ app.use('/api/suppliers', require('./routes/supplier.route'));
 app.use("/api/v1/vehicle", vehicleRouter);
 app.use("/api/v1/booking", bookingRouter);
 app.use("/api/v1/timeslot", timeslotRouter);
+app.use("/api/v1/review", reviewRouter);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {

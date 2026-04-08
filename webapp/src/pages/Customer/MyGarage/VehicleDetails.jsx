@@ -9,6 +9,7 @@ import Sidebar from '../../../components/Customer/SideBar/CustomerSidebar';
 import Header from '../../../components/Customer/Header/CustomerHeader';
 import DragDropUpload from '../../../components/Upload/DragDropUpload';
 import getImageUrl from '../../../util/getImageUrl';
+import { formatDate } from '../../../util/dateFormatter';
 import defaultCarImg from '../../../assets/imgs/default-car.png';
 import ServiceHistoryTimeline from '../../../components/Customer/ServiceHistoryTimeline/ServiceHistoryTimeline';
 import './VehicleDetails.css';
@@ -235,7 +236,7 @@ const VehicleDetails = () => {
                                 </div>
                                 <div className="spec-item border-none">
                                     <span className="spec-label">Date Added</span>
-                                    <span className="spec-value">{new Date(vehicle.createdAt).toLocaleDateString()}</span>
+                                    <span className="spec-value">{formatDate(vehicle.createdAt)}</span>
                                 </div>
                             </div>
                         </div>
