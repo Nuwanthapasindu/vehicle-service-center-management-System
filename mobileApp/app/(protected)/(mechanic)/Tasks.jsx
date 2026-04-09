@@ -30,12 +30,8 @@ const fetchMyTasks = useCallback(async () => {
 
   try {
     const response = await axios.get("/job-cards/my-tasks"); 
-    // baseURL + token automatically added by interceptor
 
     const taskList = response.data?.payload?.data || [];
-
-    console.log("API RESPONSE:", response.data);
-    console.log("Tasks found:", taskList.length);
 
     setTasks(taskList);
     setFilteredTasks(taskList);
@@ -48,9 +44,10 @@ const fetchMyTasks = useCallback(async () => {
 }, []);
 
   useEffect(() => {
-     console.log("FETCHING TASKS...");
-     fetchMyTasks();
-  }, [fetchMyTasks]);
+  if (profile) {
+    fetchMyTasks();
+  }
+}, [profile, fetchMyTasks]);
 
   // Inside handleSearch
 const handleSearch = (text) => {
