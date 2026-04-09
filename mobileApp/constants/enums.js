@@ -20,8 +20,11 @@ const enums = Object.freeze({
     FINISH: "FINISH",
   },
   INVENTORY_UNIT_TYPES: {
-    COUNT: "Count",
     LITERS: "Liters",
+    PIECES: "Pieces",
+    UNITS: "Units",
+    PAIRS: "Pairs",
+    SETS: "Sets"
   },
   INVENTORY_ACTION_TYPES: {
     USAGE: "USAGE",

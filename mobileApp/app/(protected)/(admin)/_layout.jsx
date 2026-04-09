@@ -208,6 +208,18 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
+        
+        <Drawer.Screen
+          name="(Inventory)"
+          options={{
+            headerShown: false,
+            drawerLabel: "Inventory",
+            title: "Inventory",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="archive-outline" size={size} color={color} />
+            ),
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );
