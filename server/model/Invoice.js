@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const constants = require("../util/constants");
 
 const invoiceSchema = new Schema(
   {
     invoiceId: {
       type: String,
       unique: true,
-      default: Date.now().toString()
+      default: Date.now().toString(),
     },
     jobCard: {
       type: Schema.Types.ObjectId,
@@ -17,7 +18,7 @@ const invoiceSchema = new Schema(
       ref: "User",
       required: true,
     },
-   
+
     selectedPackage: {
       package: { type: Schema.Types.ObjectId, ref: "Package" },
       selectedPackageTier: {
@@ -28,8 +29,13 @@ const invoiceSchema = new Schema(
     additionalItems: [
       {
         item: { type: Schema.Types.ObjectId, ref: "Inventory" },
-        qty:{type:Number},
+        qty: { type: Number },
         sellingPrice: { type: Number },
+        itemType: {
+          type: String,
+          enum: Object.values(constants.INVOICE_ITEM_TYPES),
+          default: constants.INVOICE_ITEM_TYPES.OTHER,
+        },
       },
     ],
     additionalServices: [

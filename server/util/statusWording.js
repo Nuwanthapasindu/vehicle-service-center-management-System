@@ -12,6 +12,8 @@ function statusWording(status) {
       return "Method Not Allowed";
     case 408:
       return "Request Timeout";
+    case 409:
+      return "Conflict";
     case 429:
       return "Too Many Requests";
     case 500:

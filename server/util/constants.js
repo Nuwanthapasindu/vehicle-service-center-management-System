@@ -43,4 +43,8 @@ module.exports = Object.freeze({
     PROMOTIONAL: "PROMOTIONAL",
     TRANSACTIONAL: "TRANSACTIONAL",
   },
+  INVOICE_ITEM_TYPES:{
+    OIL: "OIL",
+    OTHER: "OTHER",
+  }
 });
