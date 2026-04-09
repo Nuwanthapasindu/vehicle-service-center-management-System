@@ -234,3 +234,14 @@ module.exports.deleteService = async (id) => {
     throw new AppError(error.message, error.statusCode || 500);
   }
 };
+
+module.exports.getAllServicesForJobCard = async () => {
+  try {
+    const services = await Service.find({ isDeleted: false })
+      .select(["name", "description", "prices"]);
+
+    return services;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
