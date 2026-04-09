@@ -7,6 +7,8 @@ const Service = require("../model/Service");
 const Vehicle = require("../model/Vehicle");
 const AppError = require("../error/AppError");
 const { createJobCardSchema, assignTeamSchema } = require("../validation/jobCard.validation");
+const { getAllServicesForJobCard } = require("./service.controller");
+const { getAllPackagesForJobCard } = require("./package.controller");
 
 // ADMIN: Create a Job Card
 exports.createJobCard = async (payload) => {
@@ -109,15 +111,9 @@ exports.getAllBookings = async () => {
 
     return bookings.filter(booking => !idStrings.includes(booking._id.toString()));
 };
-
-// NEW: Get All Packages
-exports.getAllPackages = async () => {
-    const packages = await Package.find({ isDeleted: false, isPublished: true });
-    return packages;
-};
-
-// NEW: Get All Services
 exports.getAllServices = async () => {
-    const services = await Service.find({ isDeleted: false });
-    return services;
+    return await getAllServicesForJobCard();
+};
+exports.getAllPackages = async () => {
+    return await getAllPackagesForJobCard();
 };
