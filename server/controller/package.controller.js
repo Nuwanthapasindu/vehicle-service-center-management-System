@@ -298,6 +298,10 @@ module.exports.deletePackage = async (id) => {
   }
 };
 
+/**
+ * Get all packages for job card
+ * @returns {Promise<Object>} - Packages
+ */
 module.exports.getAllPackagesForJobCard = async () => {
   try {
     const packages = await Package.find({
