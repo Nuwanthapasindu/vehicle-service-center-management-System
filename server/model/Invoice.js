@@ -3,10 +3,14 @@ const Schema = mongoose.Schema;
 
 const invoiceSchema = new Schema(
   {
+    invoiceId: {
+      type: String,
+      unique: true,
+      default: Date.now().toString()
+    },
     jobCard: {
       type: Schema.Types.ObjectId,
       ref: "Jobcard",
-      required: true,
     },
     customer: {
       type: Schema.Types.ObjectId,
