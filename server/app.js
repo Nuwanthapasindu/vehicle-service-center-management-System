@@ -22,6 +22,8 @@ const userRouter = require("./routes/user.route");
 const vehicleRouter = require("./routes/vehicle.route");
 const bookingRouter = require("./routes/booking.route");
 const timeslotRouter = require("./routes/timeslot.route");
+const inventoryRouter = require("./routes/inventory.route");
+const categoryRouter = require("./routes/category.route");
 const reviewRouter = require("./routes/review.route");
 
 const app = express();
@@ -56,6 +58,8 @@ app.use("/api/v1/teams", teamRouter);
 app.use("/api/v1/job-cards", jobCardRoutes);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/package", packageRouter);
+app.use("/api/v1/inventory", inventoryRouter);
+app.use("/api/v1/categories", categoryRouter);
 
 //  SUPPLY CHAIN ROUTES
 app.use('/api/suppliers', require('./routes/supplier.route'));
