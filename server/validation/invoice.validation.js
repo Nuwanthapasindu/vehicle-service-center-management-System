@@ -51,4 +51,78 @@ const createInvoiceSchema = Joi.object({
     "object.missing": "Must provide either JobCard or Customer.",
   });
 
+
+
+const addInvoiceItemSchema = Joi.object({
+  type: Joi.string().valid(...Object.values(constants.INVOICE_UPDATE_TYPES)).required().messages({
+    "any.only": "Type must be either ITEM or SERVICE",
+    "any.required": "Type is required",
+  }),
+  data: Joi.object()
+    .when("type", {
+      is: constants.INVOICE_UPDATE_TYPES.ITEM,
+      then: Joi.object({
+        item: Joi.string().length(24).hex().required().messages({
+          "string.base": "Item ID must be a string",
+          "string.length": "Item ID must be a valid 24-character ObjectId",
+          "string.hex": "Item ID must be a valid hex string",
+          "string.empty": "Item ID cannot be empty",
+          "any.required": "Item ID is required",
+        }),
+        qty: Joi.number().integer().min(1).required().messages({
+          "number.base": "Quantity must be a number",
+          "number.integer": "Quantity must be an integer",
+          "number.min": "Quantity must be at least 1",
+          "any.required": "Quantity is required",
+        }),
+        sellingPrice: Joi.number().min(0).required().messages({
+          "number.base": "Selling price must be a number",
+          "number.min": "Selling price cannot be negative",
+          "any.required": "Selling price is required",
+        }),
+        itemType: Joi.string()
+          .valid(...Object.values(constants.INVOICE_ITEM_TYPES))
+          .default(constants.INVOICE_ITEM_TYPES.OTHER)
+          .optional()
+          .messages({
+            "any.only": "Invalid item type",
+          }),
+      }).required().messages({ "any.required": "Item data details are required for type ITEM" }),
+    })
+    .when("type", {
+      is: constants.INVOICE_UPDATE_TYPES.SERVICE,
+      then: Joi.object({
+        service: Joi.string().length(24).hex().required().messages({
+          "string.base": "Service ID must be a string",
+          "string.length": "Service ID must be a valid 24-character ObjectId",
+          "string.hex": "Service ID must be a valid hex string",
+          "string.empty": "Service ID cannot be empty",
+          "any.required": "Service ID is required",
+        }),
+        charge: Joi.number().min(0).required().messages({
+          "number.base": "Service charge must be a number",
+          "number.min": "Service charge cannot be negative",
+          "any.required": "Service charge is required",
+        }),
+      }).required().messages({ "any.required": "Service data details are required for type SERVICE" }),
+    }),
+});
+
+
+const removeInvoiceItemSchema = Joi.object({
+  type: Joi.string().valid(...Object.values(constants.INVOICE_UPDATE_TYPES)).required().messages({
+    "any.only": "Type must be either ITEM or SERVICE",
+    "any.required": "Type is required",
+  }),
+  targetId: Joi.string().length(24).hex().required().messages({
+    "string.base": "Target ID must be a string",
+    "string.length": "Target ID must be a valid 24-character ObjectId",
+    "string.hex": "Target ID must be a valid hex string",
+    "string.empty": "Target ID cannot be empty",
+    "any.required": "Target ID to remove is required",
+  }),
+});
+
+module.exports.validatedAddInvoiceItem = validator(addInvoiceItemSchema);
+module.exports.validatedRemoveInvoiceItem = validator(removeInvoiceItemSchema);
 module.exports.validatedCreateInvoice = validator(createInvoiceSchema);

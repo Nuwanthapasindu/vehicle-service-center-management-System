@@ -2,8 +2,15 @@ const Invoice = require("../model/Invoice");
 const JobCard = require("../model/JobCard");
 const User = require("../model/User");
 const Package = require("../model/Package");
+const Inventory = require("../model/Inventory");
+const Service = require("../model/Service");
 const AppError = require("../error/AppError");
-const { validatedCreateInvoice } = require("../validation/invoice.validation");
+const constants = require("../util/constants");
+const {
+  validatedCreateInvoice,
+  validatedAddInvoiceItem,
+  validatedRemoveInvoiceItem,
+} = require("../validation/invoice.validation");
 const { default: mongoose } = require("mongoose");
 
 /**
@@ -39,6 +46,8 @@ exports.createInvoice = async (payload) => {
     }
 
     // Process JobCard conditionally
+    // If a JobCard is provided, we auto-extract the Customer from its booking. 
+    // Joi XOR validation guarantees a raw 'customer' property wasn't also sent.
     if (value.jobCard) {
       if (!mongoose.Types.ObjectId.isValid(value.jobCard)) {
         throw new AppError("Invalid job card id", 400);
@@ -236,5 +245,128 @@ exports.getInvoiceById = async (invoiceId) => {
       throw error;
     }
     throw new AppError("Failed to fetch the invoice", 500);
+  }
+};
+
+/**
+ * Add a new item or service to an existing invoice.
+ *
+ * @param {string} invoiceId - MongoDB Object ID of the invoice
+ * @param {Object} payload - The update payload containing the type and data
+ * @returns {Promise<string>} - Success message
+ */
+exports.addInvoiceItem = async (invoiceId, payload) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+      throw new AppError("Invalid invoice ID provided", 400);
+    }
+
+    const { error, value } = validatedAddInvoiceItem(payload);
+    if (error) {
+      throw new AppError(error.details[0].message, 400);
+    }
+
+    // Make sure the invoice physically exists and isn't logically deleted
+    const invoice = await Invoice.findOne({ _id: invoiceId, isDeleted: false });
+    if (!invoice) {
+      throw new AppError("Invoice not found", 404);
+    }
+
+    // Lock modification block: We strictly prevent mutating an invoice once it's finalized
+    if (invoice.isCompleted) {
+      throw new AppError("Cannot modify items of a completed invoice", 400);
+    }
+
+    if (value.type === constants.INVOICE_UPDATE_TYPES.ITEM) {
+      // Actively verify the inventory item physically exists before injecting it
+      const inventoryItem = await Inventory.findOne({ _id: value.data.item, isDeleted: false });
+      if (!inventoryItem) throw new AppError("Inventory item not found", 404);
+
+      // Block insertion if physically available store quantities cannot fulfill the request
+      if (inventoryItem.qty < value.data.qty) {
+        throw new AppError(`Insufficient quantity. Only ${inventoryItem.qty} left in stock.`, 400);
+      }
+
+      // Automatically fallback to the explicit catalog price if none is manually requested
+      if (value.data.sellingPrice === 0) {
+        value.data.sellingPrice = inventoryItem.sellingPrice;
+      }
+
+      const existingItemIndex = invoice.additionalItems.findIndex(
+        (i) => i.item.toString() === value.data.item
+      );
+
+      if (existingItemIndex > -1) {
+        // Update existing item attributes over pushing a duplicate
+        invoice.additionalItems[existingItemIndex].qty = value.data.qty;
+        invoice.additionalItems[existingItemIndex].sellingPrice = value.data.sellingPrice;
+        if (value.data.itemType) invoice.additionalItems[existingItemIndex].itemType = value.data.itemType;
+      } else {
+        invoice.additionalItems.push(value.data);
+      }
+    } else if (value.type === constants.INVOICE_UPDATE_TYPES.SERVICE) {
+      const serviceItem = await Service.findOne({ _id: value.data.service, isDeleted: false });
+      if (!serviceItem) throw new AppError("Service not found", 404);
+
+      const existingServiceIndex = invoice.additionalServices.findIndex(
+        (s) => s.service.toString() === value.data.service
+      );
+
+      if (existingServiceIndex > -1) {
+        // Update existing service
+        invoice.additionalServices[existingServiceIndex].charge = value.data.charge;
+      } else {
+        invoice.additionalServices.push(value.data);
+      }
+    }
+
+    await invoice.save();
+    return `${invoice?.invoiceId || "Invoice"} item updated successfully`;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError("Failed to add invoice item", 500);
+  }
+};
+
+/**
+ * Remove an item or service from an existing invoice.
+ *
+ * @param {string} invoiceId - MongoDB Object ID of the invoice
+ * @param {Object} payload - The update payload containing the type and targetId
+ * @returns {Promise<string>} - Success message
+ */
+exports.removeInvoiceItem = async (invoiceId, payload) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+      throw new AppError("Invalid invoice ID provided", 400);
+    }
+
+    const { error, value } = validatedRemoveInvoiceItem(payload);
+    if (error) {
+      throw new AppError(error.details[0].message, 400);
+    }
+
+    const invoice = await Invoice.findOne({ _id: invoiceId, isDeleted: false });
+    if (!invoice) {
+      throw new AppError("Invoice not found", 404);
+    }
+
+    if (invoice.isCompleted) {
+      throw new AppError("Cannot modify items of a completed invoice", 400);
+    }
+
+    let updateQuery = {};
+    if (value.type === constants.INVOICE_UPDATE_TYPES.ITEM) {
+      // Dynamically pull (remove) the nested sub-document that matches the target item ID
+      updateQuery = { $pull: { additionalItems: { item: value.targetId } } };
+    } else if (value.type === constants.INVOICE_UPDATE_TYPES.SERVICE) {
+      updateQuery = { $pull: { additionalServices: { service: value.targetId } } };
+    }
+
+    const updatedInvoice = await Invoice.findByIdAndUpdate(invoiceId, updateQuery, { new: true });
+    return `${updatedInvoice?.invoiceId || "Invoice"} item removed successfully`;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError("Failed to remove invoice item", 500);
   }
 };

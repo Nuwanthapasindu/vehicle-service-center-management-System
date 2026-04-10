@@ -3,6 +3,8 @@ const {
   createInvoice,
   getAllInvoices,
   getInvoiceById,
+  addInvoiceItem,
+  removeInvoiceItem,
 } = require("../controller/invoice.controller");
 const responseBuilder = require("../util/responseBuilder");
 const { authTokenMiddleware } = require("../middleware/auth");
@@ -159,6 +161,108 @@ router.get("/:id", authTokenMiddleware, (req, res, next) => {
     .then((invoice) => {
       builder.setStatus(200);
       builder.buildResponse({ invoice });
+    })
+    .catch(next);
+});
+
+/**
+ * @swagger
+ * /api/v1/invoice/{id}/items/add:
+ *   post:
+ *     summary: Add an item or service to an invoice
+ *     tags: [Invoice]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The invoice ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - data
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [ITEM, SERVICE]
+ *               data:
+ *                 type: object
+ *                 description: Provide item/qty/sellingPrice if type is ITEM, or service/charge if type is SERVICE
+ *     responses:
+ *       200:
+ *         description: Successfully added item
+ *       400:
+ *         description: Invalid request payload or invoice ID
+ *       404:
+ *         description: Invoice not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put("/:id/items/add", authTokenMiddleware, (req, res, next) => {
+  const builder = new responseBuilder(res);
+  addInvoiceItem(req.params.id, req.body)
+    .then((message) => {
+      builder.setStatus(200);
+      builder.buildResponse({ message });
+    })
+    .catch(next);
+});
+
+/**
+ * @swagger
+ * /api/v1/invoice/{id}/items/remove:
+ *   delete:
+ *     summary: Remove an item or service from an invoice
+ *     tags: [Invoice]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The invoice ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - targetId
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [ITEM, SERVICE]
+ *               targetId:
+ *                 type: string
+ *                 description: Valid ObjectId of the item or service to remove
+ *     responses:
+ *       200:
+ *         description: Successfully removed item
+ *       400:
+ *         description: Invalid request payload or invoice ID
+ *       404:
+ *         description: Invoice not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/:id/items/remove", authTokenMiddleware, (req, res, next) => {
+  const builder = new responseBuilder(res);
+  removeInvoiceItem(req.params.id, req.body)
+    .then((message) => {
+      builder.setStatus(200);
+      builder.buildResponse({ message });
     })
     .catch(next);
 });

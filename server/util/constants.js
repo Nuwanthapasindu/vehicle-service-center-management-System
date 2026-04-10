@@ -46,5 +46,9 @@ module.exports = Object.freeze({
   INVOICE_ITEM_TYPES:{
     OIL: "OIL",
     OTHER: "OTHER",
+  },
+  INVOICE_UPDATE_TYPES: {
+    ITEM: "ITEM",
+    SERVICE: "SERVICE",
   }
 });
