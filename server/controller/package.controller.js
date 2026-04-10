@@ -258,7 +258,6 @@ module.exports.updatePackage = async (id, payload) => {
 
     return `${updatedPackage.name} updated successfully.`;
   } catch (error) {
-    console.log(error);
     throw new AppError(error.message, error.statusCode || 500);
   }
 };
