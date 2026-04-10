@@ -89,7 +89,7 @@ invoiceSchema.virtual("totalPrice").get(function () {
   // Add additional items (excluding OIL because that value is covered inside the package)
   if (this.additionalItems && this.additionalItems.length > 0) {
     this.additionalItems.forEach((item) => {
-      if (item.itemType !== constants.INVOICE_ITEM_TYPES.OIL) {
+      if (item.itemType === constants.INVOICE_ITEM_TYPES.OTHER) {
         const qty = item.qty || 1;
         const price = item.sellingPrice || 0;
         total += qty * price;

@@ -1,5 +1,9 @@
 const router = require("express").Router();
-const { createInvoice, getAllInvoices } = require("../controller/invoice.controller");
+const {
+  createInvoice,
+  getAllInvoices,
+  getInvoiceById,
+} = require("../controller/invoice.controller");
 const responseBuilder = require("../util/responseBuilder");
 const { authTokenMiddleware } = require("../middleware/auth");
 
@@ -120,6 +124,41 @@ router.get("/", authTokenMiddleware, (req, res, next) => {
     .then((invoices) => {
       builder.setStatus(200);
       builder.buildResponse({ invoices });
+    })
+    .catch(next);
+});
+
+/**
+ * @swagger
+ * /api/v1/invoice/{id}:
+ *   get:
+ *     summary: Get invoice by ID
+ *     tags: [Invoice]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The invoice ID
+ *     responses:
+ *       200:
+ *         description: Successful retrieval
+ *       400:
+ *         description: Invalid invoice ID
+ *       404:
+ *         description: Invoice not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/:id", authTokenMiddleware, (req, res, next) => {
+  const builder = new responseBuilder(res);
+  getInvoiceById(req.params.id)
+    .then((invoice) => {
+      builder.setStatus(200);
+      builder.buildResponse({ invoice });
     })
     .catch(next);
 });

@@ -154,3 +154,87 @@ exports.getAllInvoices = async (queryOptions = {}) => {
     throw new AppError("Failed to fetch invoices", 500);
   }
 };
+
+/**
+ * Fetch a single invoice by its Object ID securely.
+ *
+ * @param {string} invoiceId - MongoDB Object ID of the invoice
+ * @returns {Promise<Object>} - The invoice object
+ * @throws {AppError} - Throws 400 for invalid ID, 404 for not found
+ */
+exports.getInvoiceById = async (invoiceId) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+      throw new AppError("Invalid invoice ID provided", 400);
+    }
+
+    const invoice = await Invoice.findOne({ _id: invoiceId, isDeleted: false })
+      .populate([
+        {
+          path: "customer",
+          select: ["name", "mobile", "email"],
+        },
+        {
+          path: "jobCard",
+          select: ["status", "booking", "milageCount", "-_id"],
+          populate: {
+            path: "booking",
+            select: ["vehicle", "-_id"],
+            populate: {
+              path: "vehicle",
+              select: [
+                "-_id",
+                "-createdAt",
+                "-updatedAt",
+                "-isDeleted",
+                "-deletedAt",
+                "-__v",
+              ],
+              populate: {
+                path: "image",
+                select:["filePath","-_id"]
+              },
+            },
+          },
+        },
+        {
+          path: "selectedPackage.package",
+          select: ["name", "description", "-_id"],
+        },
+        {
+          path: "additionalItems.item",
+          select: [
+            "-_id",
+            "-__v",
+            "-createdAt",
+            "-updatedAt",
+            "-isDeleted",
+            "-deletedAt",
+          ],
+        },
+        {
+          path: "additionalServices.service",
+          select: [
+            "-_id",
+            "-__v",
+            "-createdAt",
+            "-updatedAt",
+            "-isDeleted",
+            "-deletedAt",
+          ],
+        },
+      ])
+      .select(["-__v", "-isDeleted", "-deletedAt", "-id"]);
+
+    if (!invoice) {
+      throw new AppError("Invoice not found", 404);
+    }
+
+    return invoice;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError("Failed to fetch the invoice", 500);
+  }
+};
