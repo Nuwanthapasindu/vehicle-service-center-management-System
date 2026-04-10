@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { createInvoice } = require("../controller/invoice.controller");
+const { createInvoice, getAllInvoices } = require("../controller/invoice.controller");
 const responseBuilder = require("../util/responseBuilder");
 const { authTokenMiddleware } = require("../middleware/auth");
 
@@ -90,6 +90,36 @@ router.post("/", (req, res, next) => {
     .then((message) => {
       builder.setStatus(201);
       builder.buildResponse({ message });
+    })
+    .catch(next);
+});
+
+/**
+ * @swagger
+ * /api/v1/invoice:
+ *   get:
+ *     summary: Get all invoices
+ *     tags: [Invoice]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: isCompleted
+ *         schema:
+ *           type: boolean
+ *         description: Filter invoices by their completion status
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved invoices
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/", authTokenMiddleware, (req, res, next) => {
+  const builder = new responseBuilder(res);
+  getAllInvoices(req.query)
+    .then((invoices) => {
+      builder.setStatus(200);
+      builder.buildResponse({ invoices });
     })
     .catch(next);
 });

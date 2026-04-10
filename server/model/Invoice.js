@@ -11,7 +11,7 @@ const invoiceSchema = new Schema(
     },
     jobCard: {
       type: Schema.Types.ObjectId,
-      ref: "Jobcard",
+      ref: "JobCard",
     },
     customer: {
       type: Schema.Types.ObjectId,
@@ -59,7 +59,46 @@ const invoiceSchema = new Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+    id: false,
   },
 );
+
+invoiceSchema.virtual("totalPrice").get(function () {
+  let total = 0;
+
+  // Add selected package price
+  if (
+    this.selectedPackage &&
+    this.selectedPackage.selectedPackageTier &&
+    this.selectedPackage.selectedPackageTier.price
+  ) {
+    total += this.selectedPackage.selectedPackageTier.price;
+  }
+
+  // Add additional services charge
+  if (this.additionalServices && this.additionalServices.length > 0) {
+    this.additionalServices.forEach((service) => {
+      if (service.charge) {
+        total += service.charge;
+      }
+    });
+  }
+
+  // Add additional items (excluding OIL because that value is covered inside the package)
+  if (this.additionalItems && this.additionalItems.length > 0) {
+    this.additionalItems.forEach((item) => {
+      if (item.itemType !== constants.INVOICE_ITEM_TYPES.OIL) {
+        const qty = item.qty || 1;
+        const price = item.sellingPrice || 0;
+        total += qty * price;
+      }
+    });
+  }
+
+  return total;
+});
+
 
 module.exports = mongoose.model("Invoice", invoiceSchema);

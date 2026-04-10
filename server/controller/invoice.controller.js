@@ -7,9 +7,13 @@ const { validatedCreateInvoice } = require("../validation/invoice.validation");
 const { default: mongoose } = require("mongoose");
 
 /**
+ * Create a new invoice tied seamlessly to either a JobCard or a Walk-in Customer.
+ * Validation strictly restricts allowing both JobCard and Customer concurrently.
+ * Calculates references securely, throwing errors if any ObjectID lookup fails.
  *
- * @param {Object} payload
- * @returns {Promise<string>}
+ * @param {Object} payload - The request body payload from the client
+ * @returns {Promise<string>} - Success message confirming creation
+ * @throws {AppError} - Throws standard error codes like 400 for structural invalidity, 404 for missing entities, or 409 for conflicts.
  */
 exports.createInvoice = async (payload) => {
   try {
@@ -90,5 +94,63 @@ exports.createInvoice = async (payload) => {
       throw error;
     }
     throw new AppError("Failed to create invoice", 500);
+  }
+};
+/**
+ * Fetches all non-deleted invoices within the database.
+ * Allows optional boolean filtering natively through `queryOptions`,
+ * and strictly populates relationship references to reduce client-side lookups.
+ *
+ * @param {Object} queryOptions - Extracted from `req.query` (e.g., isCompleted toggle)
+ * @returns {Promise<Array>} - Mongoose object array containing all matched invoices
+ * @throws {AppError} - Throws 500 automatically if document fetch operations crash.
+ */
+exports.getAllInvoices = async (queryOptions = {}) => {
+  try {
+    const filter = { isDeleted: false };
+
+    // Apply isCompleted filter if provided in query
+    if (queryOptions.isCompleted !== undefined) {
+      filter.isCompleted =
+        queryOptions.isCompleted === "true" ||
+        queryOptions.isCompleted === true;
+    }
+
+    const invoices = await Invoice.find(filter)
+      .populate([
+        {
+          path: "customer",
+          select: ["name", "mobile"],
+        },
+        {
+          path: "jobCard",
+          select: ["booking", "-_id"],
+          populate: {
+            path: "booking",
+            select: ["vehicle", "-_id"],
+            populate: {
+              path: "vehicle",
+              select: ["licensePlate", "-_id"],
+            },
+          },
+        },
+      ])
+      .select([
+        "-__v",
+        "-isDeleted",
+        "-deletedAt",
+        "-id",
+        "-selectedPackage.package",
+        "-additionalItems.item",
+        "-additionalServices.service",
+      ])
+      .sort({ createdAt: -1 });
+
+    return invoices;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError("Failed to fetch invoices", 500);
   }
 };
