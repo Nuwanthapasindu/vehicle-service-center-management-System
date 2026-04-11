@@ -116,7 +116,7 @@ export default function AllInvoice() {
         />
       )}
 
-      <TouchableOpacity style={styles.fab} onPress={() => navigate.push('AddInvoice')}>
+      <TouchableOpacity style={styles.fab} onPress={() => router.push('/(protected)/(admin)/invoice/AddInvoice')}>
         <Ionicons name="add" size={28} color={colors.DARK} />
       </TouchableOpacity>
     </View>
