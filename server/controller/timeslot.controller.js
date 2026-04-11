@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
 const Booking = require("../model/Booking");
+const JobCard = require("../model/JobCard");
 const Timeslot = require("../model/Timeslot");
 const AppError = require("../error/AppError");
+const { JOBCARD_STATUS } = require("../util/constants");
 const { validateTimeslot } = require("../validation/timeslot.validation");
 
 module.exports.getTimeslotById = async (id) => {
@@ -134,6 +136,33 @@ module.exports.deleteTimeslot = async (id) => {
     try {
         const slot = await Timeslot.findById(id);
         if (!slot) throw new AppError("Timeslot not found", 404);
+
+        // Check for active or future bookings with package/jobcard status
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const bookings = await Booking.find({
+            slot: id,
+            isDeleted: false
+        });
+
+        for (const booking of bookings) {
+            // Check if it's a future booking
+            if (booking.date >= today) {
+                throw new AppError("Cannot delete timeslot with future bookings scheduled.", 400);
+            }
+
+            // Check if there's an ongoing job card (package assigned)
+            const jobCard = await JobCard.findOne({
+                booking: booking._id,
+                isDeleted: false,
+                status: { $ne: JOBCARD_STATUS.PENDING }
+            });
+
+            if (jobCard) {
+                throw new AppError("Cannot delete timeslot with active/ongoing service jobs.", 400);
+            }
+        }
 
         slot.isDeleted = true;
         slot.deletedAt = new Date();
