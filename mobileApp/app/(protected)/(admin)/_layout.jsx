@@ -35,7 +35,7 @@ function CustomDrawerContent(props) {
         <View style={styles.drawerItemsWrapper}>
           {props.state.routes.map((route, index) => {
             const { options } = props.descriptors[route.key];
-            
+
             // --- THE FIX: THIS HIDES ALL THOSE EXTRA FILES ---
             // If the screen doesn't have a specific drawerLabel, don't render it in the menu!
             if (!options.drawerLabel) {
@@ -162,43 +162,32 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-            name="(employee)"
-            options={{
-              headerShown: false,
-              drawerLabel: "Employee", 
-              title: "EMPLOYEE DIRECTORY", 
-              drawerIcon: ({ color, size }) => (
-                <Ionicons name="person-outline" size={size} color={color} />
-              ),
-            }}
+          name="(employee)"
+          options={{
+            headerShown: false,
+            drawerLabel: "Employee",
+            title: "EMPLOYEE DIRECTORY",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="person-outline" size={size} color={color} />
+            ),
+          }}
         />
 
         {/* Hidden Team Route - Shows in header but hidden from Drawer Menu */}
         <Drawer.Screen
-           name="(team)"
-           options={{
-             headerShown: false,
-             drawerLabel: "Teams", // This removes it from the sidebar
-             title: "TEAM DIRECTORY",             // This shows only in the header
-             drawerIcon: ({ color, size }) => (
-                <Ionicons name="people-outline" size={size} color={color} />
-              ),
-            }}
+          name="(team)"
+          options={{
+            headerShown: false,
+            drawerLabel: "Teams", // This removes it from the sidebar
+            title: "TEAM DIRECTORY", // This shows only in the header
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="people-outline" size={size} color={color} />
+            ),
+          }}
         />
-        
+
         <Drawer.Screen
-           name="(jobcard)"
-           options={{
-             headerShown: false,
-             drawerLabel: "Jobcard", // This removes it from the sidebar
-             title: "Jobcard DIRECTORY",             // This shows only in the header
-             drawerIcon: ({ color, size }) => (
-                <Ionicons name="clipboard-outline" size={size} color={color} />
-              ),
-            }}
-        /> 
-        <Drawer.Screen
-          name="supplychain/index" 
+          name="supplychain/index"
           options={{
             headerShown: false, // Prevents duplicate headers
             drawerLabel: "Supply Chain",
@@ -208,7 +197,7 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
-        
+
         <Drawer.Screen
           name="(Inventory)"
           options={{
@@ -229,7 +218,7 @@ const styles = StyleSheet.create({
   drawerHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 64, 
+    paddingTop: 64,
     paddingBottom: 24,
     paddingHorizontal: 24,
     backgroundColor: colors.LIGHT,
