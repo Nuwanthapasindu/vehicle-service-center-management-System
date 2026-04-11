@@ -125,6 +125,11 @@ exports.getAllInvoices = async (queryOptions = {}) => {
         queryOptions.isCompleted === true;
     }
 
+    // Apply search filter for invoiceId if provided
+    if (queryOptions.search && queryOptions.search.trim() !== '') {
+      filter.invoiceId = { $regex: queryOptions.search.trim(), $options: "i" };
+    }
+
     const invoices = await Invoice.find(filter)
       .populate([
         {

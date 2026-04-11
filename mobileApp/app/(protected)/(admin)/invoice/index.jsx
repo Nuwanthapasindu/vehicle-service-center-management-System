@@ -1,36 +1,65 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Platform } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Platform, ActivityIndicator } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import colors from '../../../../constants/colors'
-import { useNavigation } from 'expo-router'
-
-const INVOICES = [
-  { id: '1', invoiceId: '#INV-2023-001', name: 'James Wilson', plate: 'ABC-1234', date: 'Oct 24, 2023', amount: '$245.00', status: 'PAID' },
-  { id: '2', invoiceId: '#INV-2023-002', name: 'Sarah Jenkins', plate: 'XYZ-9876', date: 'Oct 23, 2023', amount: '$1,120.50', status: 'UNPAID' },
-  { id: '3', invoiceId: '#INV-2023-004', name: 'Robert Chen', plate: 'BBA-4422', date: 'Oct 21, 2023', amount: '$432.10', status: 'PAID' },
-  { id: '4', invoiceId: '#INV-2023-005', name: 'Linda G.', plate: 'KKK-1122', date: 'Oct 20, 2023', amount: '$150.00', status: 'UNPAID' },
-]
+import { useRouter } from 'expo-router'
+import { invoiceService } from '../../../../services/invoice/invoice.service'
 
 export default function AllInvoice() {
-  const navigate = useNavigation()
+  const router = useRouter()
   const [activeFilter, setActiveFilter] = useState('All');
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchInvoices();
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, activeFilter]);
+
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true);
+      const params = {};
+      if (searchQuery) params.search = searchQuery;
+      if (activeFilter === 'Paid') params.isCompleted = true;
+      if (activeFilter === 'Unpaid') params.isCompleted = false;
+
+      const data = await invoiceService.fetchInvoices(params);
+      setInvoices(data);
+    } catch (error) {
+      console.error("Failed to fetch invoices", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredInvoices = invoices;
 
   const renderItem = ({ item }) => {
-    const isPaid = item.status === 'PAID';
+    const isPaid = item.isCompleted;
+    const dateStr = new Date(item.createdAt).toLocaleDateString();
+    // Default to LKR for formatting
+    const totalAmount = item.totalPrice ? `LKR ${item.totalPrice.toFixed(2)}` : 'LKR 0.00';
+    const customerName = item.customer?.name || 'Walk-in Customer';
+    const plateno = item.jobCard?.booking?.vehicle?.licensePlate || 'N/A';
+
     return (
-      <TouchableOpacity style={styles.card} onPress={() => navigate.push('ViewInvoice')} activeOpacity={0.7}>
+      <TouchableOpacity style={styles.card} onPress={() => router.push(`/(protected)/(admin)/invoice/${item._id}`)} activeOpacity={0.7}>
         <View style={styles.cardHeader}>
           <Text style={styles.invoiceId}>{item.invoiceId}</Text>
           <View style={[styles.badge, isPaid ? styles.badgePaid : styles.badgeUnpaid]}>
-            <Text style={[styles.badgeText, isPaid ? styles.badgeTextPaid : styles.badgeTextUnpaid]}>{item.status}</Text>
+            <Text style={[styles.badgeText, isPaid ? styles.badgeTextPaid : styles.badgeTextUnpaid]}>{isPaid ? 'PAID' : 'UNPAID'}</Text>
           </View>
         </View>
         
-        <Text style={styles.customerInfo}>{item.name} • {item.plate}</Text>
+        <Text style={styles.customerInfo}>{customerName} • {plateno}</Text>
         
         <View style={styles.cardFooter}>
-          <Text style={styles.dateText}>{item.date}</Text>
-          <Text style={styles.amountText}>{item.amount}</Text>
+          <Text style={styles.dateText}>{dateStr}</Text>
+          <Text style={styles.amountText}>{totalAmount}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -43,8 +72,10 @@ export default function AllInvoice() {
         <Ionicons name="search-outline" size={20} color={colors.SECONDARY} style={styles.searchIcon} />
         <TextInput 
           style={styles.searchInput}
-          placeholder="Search by plate or invoice ID"
+          placeholder="Search by Invoice ID..."
           placeholderTextColor={colors.SECONDARY}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
       </View>
 
@@ -69,14 +100,21 @@ export default function AllInvoice() {
 
   return (
     <View style={styles.container}>
-      <FlatList 
-        data={INVOICES}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-        ListHeaderComponent={renderHeader}
-      />
+      {renderHeader()}
+      
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.PRIMARY} />
+        </View>
+      ) : (
+        <FlatList 
+          data={filteredInvoices}
+          keyExtractor={item => item._id || item.invoiceId}
+          renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
 
       <TouchableOpacity style={styles.fab} onPress={() => navigate.push('AddInvoice')}>
         <Ionicons name="add" size={28} color={colors.DARK} />

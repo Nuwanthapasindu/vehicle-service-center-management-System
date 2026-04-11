@@ -1,22 +1,54 @@
 import { Image } from 'react-native';
 import colors from '../constants/colors';
+import enums from '../constants/enums';
+import formatPrice from './formatPrice';
 
-export const getInvoiceHtmlContent = (invoiceData = {}) => {
-    // Setting defaults so the UI prints correctly if no data is passed
-    const {
-        invoiceDate = new Date().toLocaleDateString(),
-        vehicleMakeModel = "Tesla Model 3",
-        vehicleYear = "2022",
-        vehicleNumber = "ABC-1234",
-        currentMileage = "15,204 km",
-        status = "WORK IN PROGRESS",
-        billedItems = [
-            { id: 1, title: "Full Synthetic Oil Change", subtitle: "Labor & Materials", amount: "LKR 85.00" },
-            { id: 2, title: "Premium Oil Filter", subtitle: "Part #OF-992-B", amount: "LKR 22.50" },
-            { id: 3, title: "Brake Pad Set (Front)", subtitle: "Ceramic Performance", amount: "LKR 145.00" }
-        ],
-        totalAmount = "LKR 22,520.50"
-    } = invoiceData;
+export const getInvoiceHtmlContent = (invoice = {}) => {
+    if (!invoice || !invoice._id) return '<html><body><h3>No Invoice Data</h3></body></html>';
+
+    const vehicle = invoice.jobCard?.booking?.vehicle || {};
+    
+    const invoiceDate = new Date(invoice.createdAt).toLocaleDateString();
+    const vehicleMakeModel = `${vehicle.make || 'Unknown'} ${vehicle.model || ''}`.trim();
+    const vehicleYear = vehicle.year || 'N/A';
+    const vehicleNumber = vehicle.licensePlate || 'N/A';
+    const currentMileage = invoice.jobCard?.milageCount ? `${invoice.jobCard.milageCount} km` : 'N/A';
+    const status = invoice.isCompleted ? enums.INVOICE_STATUS.COMPLETED : enums.INVOICE_STATUS.WORK_IN_PROGRESS;
+    const checkStatusColor = invoice.isCompleted ? '#22C55E' : '#F59E0B';
+    const totalAmount = formatPrice(invoice.totalPrice);
+
+    let billedItems = [];
+
+    // Package parsing
+    if (invoice.selectedPackage?.selectedPackageTier) {
+        billedItems.push({
+            title: invoice.selectedPackage.package?.name || 'Package',
+            subtitle: invoice.selectedPackage.selectedPackageTier.name,
+            amount: formatPrice(invoice.selectedPackage.selectedPackageTier.price)
+        });
+    }
+
+    // Additional items parsing
+    if (invoice.additionalItems && invoice.additionalItems.length > 0) {
+        invoice.additionalItems.forEach(item => {
+            billedItems.push({
+                title: item.item?.itemName || item.item?.name || 'Item',
+                subtitle: `Qty: ${item.qty} ${item.item?.unitType || ''}`,
+                amount: formatPrice((item.sellingPrice || 0) * (item.qty || 1))
+            });
+        });
+    }
+
+    // Additional services parsing
+    if (invoice.additionalServices && invoice.additionalServices.length > 0) {
+        invoice.additionalServices.forEach(service => {
+            billedItems.push({
+                title: service.service?.serviceName || service.service?.name || 'Service',
+                subtitle: 'Labor & Service',
+                amount: formatPrice(service.charge)
+            });
+        });
+    }
 
     const logoSource = Image.resolveAssetSource(require('../assets/logo.png'));
     const logoUri = logoSource ? logoSource.uri : '';
@@ -45,7 +77,7 @@ export const getInvoiceHtmlContent = (invoiceData = {}) => {
       .brand { font-size: 28px; font-weight: 900; color: ${colors.PRIMARY}; }
       
       .card { background-color: ${colors.LIGHT}; border: 1px solid ${colors.BORDER_COLOR}; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-      .wip-tag { color: #F59E0B; font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
+      .wip-tag { color: ${checkStatusColor}; font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
       
       .info-grid { display: flex; flex-wrap: wrap; margin-bottom: -15px; }
       .info-item { width: 50%; margin-bottom: 15px; }
@@ -73,7 +105,7 @@ export const getInvoiceHtmlContent = (invoiceData = {}) => {
         <img src="${logoUri}" class="logo" alt="Logo" />
         <div class="brand">AutoMate</div>
       </div>
-      <div class="title">Invoice & Billing</div>
+      <div class="title">Invoice #${invoice.invoiceId || invoice._id}</div>
     </div>
     
     <div class="card">

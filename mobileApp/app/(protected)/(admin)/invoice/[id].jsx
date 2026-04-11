@@ -1,15 +1,42 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import colors from '../../../../constants/colors';
 import { getInvoiceHtmlContent } from '../../../../utils/invoicePdfGenerator';
+import { useLocalSearchParams } from 'expo-router';
+import { invoiceService } from '../../../../services/invoice/invoice.service';
+import enums from '../../../../constants/enums';
+import getImageFullUrl from '../../../../utils/getImageFullUrl';
+import formatPrice from '../../../../utils/formatPrice';
 
 export default function ViewInvoice() {
+  const { id } = useLocalSearchParams();
+  const [invoice, setInvoice] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      fetchInvoiceDetails();
+    }
+  }, [id]);
+
+  const fetchInvoiceDetails = async () => {
+    try {
+      setLoading(true);
+      const data = await invoiceService.fetchInvoiceById(id);
+      setInvoice(data);
+    } catch (error) {
+      console.error("Failed to fetch invoice details", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const printQuote = async () => {
     try {
-      await Print.printAsync({ html: getInvoiceHtmlContent() });
+      await Print.printAsync({ html: getInvoiceHtmlContent(invoice) });
     } catch (error) {
       console.error('Error printing:', error);
     }
@@ -17,12 +44,32 @@ export default function ViewInvoice() {
 
   const sharePDF = async () => {
     try {
-      const { uri } = await Print.printToFileAsync({ html: getInvoiceHtmlContent() });
+      const { uri } = await Print.printToFileAsync({ html: getInvoiceHtmlContent(invoice) });
       await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
     } catch (error) {
       console.error('Error sharing pdf:', error);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.PRIMARY} />
+      </View>
+    );
+  }
+
+  if (!invoice) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: colors.SECONDARY }}>Invoice not found.</Text>
+      </View>
+    );
+  }
+
+  const vehicle = invoice.jobCard?.booking?.vehicle;
+  const isPaid = invoice.isCompleted;
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -31,71 +78,82 @@ export default function ViewInvoice() {
         <View style={styles.wipCard}>
           <View style={styles.wipInfo}>
             <View style={styles.wipBadgeRow}>
-              <View style={styles.orangeDot} />
-              <Text style={styles.wipText}>WORK IN PROGRESS</Text>
+              <View style={[styles.orangeDot, isPaid && { backgroundColor: '#22C55E' }]} />
+              <Text style={[styles.wipText, isPaid && { color: '#22C55E' }]}>
+                {isPaid ? enums.INVOICE_STATUS.COMPLETED : enums.INVOICE_STATUS.WORK_IN_PROGRESS}
+              </Text>
             </View>
-            <Text style={styles.vehicleTitle}>Vehicle: ABC-1234</Text>
-            <Text style={styles.vehicleSubtitle}>2022 Tesla Model 3 • Silver</Text>
+            <Text style={styles.vehicleTitle}>Vehicle: {vehicle?.licensePlate || 'N/A'}</Text>
+            <Text style={styles.vehicleSubtitle}>{vehicle?.year || ''} {vehicle?.make || ''} {vehicle?.model || ''}</Text>
           </View>
           <View style={styles.vehicleImagePlaceholder}>
-            <Ionicons name="car-sport" size={36} color={colors.SECONDARY} />
+            {vehicle?.image?.filePath ? (
+              <Image source={{ uri: getImageFullUrl(vehicle.image.filePath) }} style={{ width: '100%', height: '100%', borderRadius: 10 }} />
+            ) : (
+              <Ionicons name="car-sport" size={36} color={colors.SECONDARY} />
+            )}
           </View>
         </View>
 
         <Text style={styles.sectionTitle}>BILLED ITEMS</Text>
 
-        {/* Billed Items List */}
-        <View style={styles.billedItemCard}>
-          <View style={styles.itemMain}>
-            <Text style={styles.itemTitle}>Full Synthetic Oil Change</Text>
-            <Text style={styles.itemSubtitle}>Labor & Materials</Text>
+        {/* Selected Package */}
+        {invoice.selectedPackage?.selectedPackageTier && (
+          <View style={styles.billedItemCard}>
+            <View style={styles.itemMain}>
+              <Text style={styles.itemTitle}>
+                {invoice.selectedPackage.package?.name || ''}
+                </Text>
+              <Text style={styles.itemSubtitle}>
+                {invoice.selectedPackage.selectedPackageTier.name}
+                </Text>
+            </View>
+            <Text style={styles.itemPrice}>{formatPrice(invoice.selectedPackage.selectedPackageTier.price)}</Text>
           </View>
-          <Text style={styles.itemPrice}>$85.00</Text>
-          <TouchableOpacity style={styles.deleteBtn}>
-            <Ionicons name="trash-outline" size={20} color="#CBD5E1" />
-          </TouchableOpacity>
-        </View>
+        )}
 
-        <View style={styles.billedItemCard}>
-          <View style={styles.itemMain}>
-            <Text style={styles.itemTitle}>Premium Oil Filter</Text>
-            <Text style={styles.itemSubtitle}>Part #OF-992-B</Text>
+        {/* Additional Items */}
+        {invoice.additionalItems?.map((item, index) => (
+          <View key={`item-${index}`} style={styles.billedItemCard}>
+            <View style={styles.itemMain}>
+              <Text style={styles.itemTitle}>{item.item?.itemName || item.item?.name || 'Item'}</Text>
+              <Text style={styles.itemSubtitle}>Qty: {item.qty} {item.item?.unitType || ''}</Text>
+            </View>
+            <Text style={styles.itemPrice}>{formatPrice((item.sellingPrice || 0) * (item.qty || 1))}</Text>
           </View>
-          <Text style={styles.itemPrice}>$22.50</Text>
-          <TouchableOpacity style={styles.deleteBtn}>
-            <Ionicons name="trash-outline" size={20} color="#CBD5E1" />
-          </TouchableOpacity>
-        </View>
+        ))}
 
-        <View style={styles.billedItemCard}>
-          <View style={styles.itemMain}>
-            <Text style={styles.itemTitle}>Brake Pad Set (Front)</Text>
-            <Text style={styles.itemSubtitle}>Ceramic Performance</Text>
+        {/* Additional Services */}
+        {invoice.additionalServices?.map((service, index) => (
+          <View key={`service-${index}`} style={styles.billedItemCard}>
+            <View style={styles.itemMain}>
+              <Text style={styles.itemTitle}>{service.service?.serviceName || service.service?.name || 'Service'}</Text>
+              <Text style={styles.itemSubtitle}>Labor & Service</Text>
+            </View>
+            <Text style={styles.itemPrice}>{formatPrice(service.charge)}</Text>
           </View>
-          <Text style={styles.itemPrice}>$145.00</Text>
-          <TouchableOpacity style={styles.deleteBtn}>
-            <Ionicons name="trash-outline" size={20} color="#CBD5E1" />
-          </TouchableOpacity>
-        </View>
+        ))}
 
         {/* Total Card */}
         <View style={styles.totalCard}>
           <View>
             <Text style={styles.totalLabel}>RUNNING TOTAL AMOUNT</Text>
-            <Text style={styles.totalValue}>LKR 22,520.50</Text>
+            <Text style={styles.totalValue}>{formatPrice(invoice.totalPrice, 'LKR')}</Text>
           </View>
           <Ionicons name="receipt-outline" size={48} color="rgba(255,255,255,0.1)" />
         </View>
 
         {/* Search */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color={colors.SECONDARY} style={styles.searchIcon} />
-          <TextInput 
-            style={styles.searchInput}
-            placeholder="Search parts or labor items..."
-            placeholderTextColor={colors.SECONDARY}
-          />
-        </View>
+        {!isPaid && (
+          <View style={styles.searchContainer}>
+            <Ionicons name="search-outline" size={20} color={colors.SECONDARY} style={styles.searchIcon} />
+            <TextInput 
+              style={styles.searchInput}
+              placeholder="Search parts or labor items..."
+              placeholderTextColor={colors.SECONDARY}
+            />
+          </View>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -113,10 +171,12 @@ export default function ViewInvoice() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.primaryBtn}>
-          <Feather name="lock" size={18} color={colors.DARK} />
-          <Text style={styles.primaryBtnText}>LOCK INVOICE & MARK PAID</Text>
-        </TouchableOpacity>
+        {!isPaid && (
+          <TouchableOpacity style={styles.primaryBtn}>
+            <Feather name="lock" size={18} color={colors.DARK} />
+            <Text style={styles.primaryBtnText}>LOCK INVOICE & MARK PAID</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

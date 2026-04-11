@@ -20,7 +20,7 @@ export default function InvoiceLayout() {
         headerTintColor: colors.PRIMARY,
       }}
     >
-        <Stack.Screen name="AllInvoice" options={{
+        <Stack.Screen name="index" options={{
           title: "All Invoice",
           headerLeft: () => <DrawerToggleButton tintColor={colors.DARK} />,
         }} />
@@ -29,7 +29,7 @@ export default function InvoiceLayout() {
           headerBackTitle: "Invoices",
         }}
         />
-        <Stack.Screen name="ViewInvoice" options={{
+        <Stack.Screen name="[id]" options={{
           title: "Invoice & Billing",
           headerBackTitle: "Invoices",
         }}
