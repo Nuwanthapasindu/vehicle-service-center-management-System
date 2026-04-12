@@ -49,9 +49,17 @@ const adjustStockInternal = async (
 module.exports.adjustStockHelper = adjustStockInternal;
 
 // GET INVENTORY
-module.exports.getInventory = async () => {
+module.exports.getInventory = async (search) => {
+  const query = {
+    isDeleted: false,
+  };
+
+  if (search) {
+    query.name = { $regex: new RegExp(search.trim(), "i") };
+  }
+
   try {
-    return await Inventory.find({ isDeleted: false })
+    return await Inventory.find(query)
       .populate({
         path: "category",
         select: "name",
