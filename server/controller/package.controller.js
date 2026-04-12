@@ -297,3 +297,21 @@ module.exports.deletePackage = async (id) => {
     throw new AppError(error.message, error.statusCode || 500);
   }
 };
+
+module.exports.getAllPackagesForJobCard = async () => {
+  try {
+    const packages = await Package.find({
+      isDeleted: false,
+      isPublished: true
+    })
+    .select(["name", "pricingTiers", "servicesIncluded"])
+    .populate({
+      path: "servicesIncluded",
+      select: ["name"]
+    });
+
+    return packages;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};

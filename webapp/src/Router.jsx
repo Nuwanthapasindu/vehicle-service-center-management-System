@@ -12,6 +12,9 @@ import VehicleDetails from "./pages/Customer/MyGarage/VehicleDetails";
 import ServiceHistory from "./pages/Customer/ServiceHistory/ServiceHistory";
 import ServiceBooking from "./pages/Customer/ServiceBooking/ServiceBooking";
 import Profile from "./pages/Customer/Profile/Profile";
+import WriteReview from "./pages/Customer/WriteReview/WriteReview";
+import MyReviews from "./pages/Customer/MyReviews/MyReviews";
+import EditReview from "./pages/Customer/EditReview/EditReview";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import ContactPage from "./pages/ContactPage/ContactPage";
 import ReviewsPage from "./pages/ReviewsPage/ReviewsPage";
@@ -127,6 +130,33 @@ function Router() {
           </AuthGuard>
         }
       />
+      <Route
+        path="/customer/reviews/write/:bookingId"
+        element={
+          <AuthGuard>
+            <WriteReview />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/customer/reviews/edit/:reviewId"
+        element={
+          <AuthGuard>
+            <EditReview />
+          </AuthGuard>
+        }
+      />
+
+      <Route
+        path="/customer/reviews"
+        element={
+          <AuthGuard>
+            <MyReviews />
+          </AuthGuard>
+        }
+      />
+
+
 
 
       {/* TODO: ADD OTHER ROUTES */}
