@@ -216,7 +216,10 @@ export default function AdminDrawerLayout() {
             title: "Time Slot Configuration",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="time-outline" size={size} color={color} />
-        
+            ),
+          }}
+        />
+
         <Drawer.Screen
           name="(Inventory)"
           options={{
