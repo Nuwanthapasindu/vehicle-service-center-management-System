@@ -5,12 +5,14 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import colors from '../constants/colors';
 
 export default function SwipeableItemCard({ 
-  title, 
-  subtitle, 
+  title,
+  subtitle,
   price, 
   onDelete, 
   icon, 
-  disabled = false 
+  disabled = false,
+  quantity,
+  onUpdateQuantity
 }) {
 
   const renderRightActions = () => {
@@ -38,7 +40,28 @@ export default function SwipeableItemCard({
           <Text style={styles.itemTitle}>{title}</Text>
           <Text style={styles.itemSubtitle}>{subtitle}</Text>
         </View>
-        <Text style={styles.itemPrice}>{price}</Text>
+
+        {quantity !== undefined && onUpdateQuantity && (
+          <View style={styles.qtySelector}>
+            <TouchableOpacity 
+              onPress={() => onUpdateQuantity(Math.max(1, quantity - 1))}
+              style={styles.qtyBtn}
+            >
+              <Ionicons name="remove" size={16} color={colors.DARK} />
+            </TouchableOpacity>
+            <Text style={styles.qtyText}>{quantity}</Text>
+            <TouchableOpacity 
+              onPress={() => onUpdateQuantity(quantity + 1)}
+              style={styles.qtyBtn}
+            >
+              <Ionicons name="add" size={16} color={colors.DARK} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.priceContainer}>
+           <Text style={styles.itemPrice}>{price}</Text>
+        </View>
       </View>
     </Swipeable>
   );
@@ -78,11 +101,33 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontWeight: '500',
   },
+  priceContainer: {
+    marginLeft: 12,
+  },
   itemPrice: {
     fontSize: 16,
+    fontWeight: '900',
+    color: colors.DARK,
+  },
+  qtySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    marginRight: 4,
+  },
+  qtyBtn: {
+    padding: 6,
+  },
+  qtyText: {
+    fontSize: 14,
     fontWeight: '800',
     color: colors.DARK,
-    marginRight: 4, // Prevent touch overflow boundary
+    paddingHorizontal: 4,
+    minWidth: 24,
+    textAlign: 'center',
   },
   deleteSwipeAction: {
     backgroundColor: '#EF4444',
