@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Platform, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -32,6 +32,31 @@ export default function ViewInvoice() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCompleteInvoice = () => {
+    Alert.alert(
+      "Confirm Completion",
+      "Are you sure you want to lock this invoice and deduct inventory? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Lock Invoice", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await invoiceService.completeInvoice(id);
+              await fetchInvoiceDetails();
+            } catch (error) {
+              console.error("Error completing invoice:", error);
+              Alert.alert("Error", error?.response?.data?.message || "Failed to complete invoice");
+              setLoading(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const printQuote = async () => {
@@ -172,7 +197,7 @@ export default function ViewInvoice() {
         </View>
 
         {!isPaid && (
-          <TouchableOpacity style={styles.primaryBtn}>
+          <TouchableOpacity style={styles.primaryBtn} onPress={handleCompleteInvoice}>
             <Feather name="lock" size={18} color={colors.DARK} />
             <Text style={styles.primaryBtnText}>LOCK INVOICE & MARK PAID</Text>
           </TouchableOpacity>

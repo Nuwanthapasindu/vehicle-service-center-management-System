@@ -14,5 +14,8 @@ export const invoiceService = {
   },
   removeInvoiceItem: async (id, payload) => {
     return await axios.delete(`/invoice/${id}/items/remove`, { data: payload });
+  },
+  completeInvoice: async (id) => {
+    return await axios.patch(`/invoice/${id}/complete`);
   }
 };
