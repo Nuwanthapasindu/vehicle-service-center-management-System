@@ -61,6 +61,7 @@ const {
   getPackageById,
   updatePackage,
   deletePackage,
+  getAllPackagesForJobCard: getAllPublicPackages,
 } = require("../controller/package.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
@@ -207,6 +208,36 @@ router.get("/", (req, res, next) => {
     .then((packages) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse(packages); // Direct passing as output includes pagination properties wrapper natively
+    })
+    .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/package/public:
+ *   get:
+ *     summary: Get all published packages for public view
+ *     tags: [Package]
+ *     responses:
+ *       200:
+ *         description: Successful retrieval
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 packages:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Package'
+ */
+router.get("/public", (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+
+  getAllPublicPackages()
+    .then((packages) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ packages });
     })
     .catch((error) => next(error));
 });
