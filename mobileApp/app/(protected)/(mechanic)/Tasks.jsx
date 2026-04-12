@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
-  SafeAreaView,
   RefreshControl
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import useAuthentication from '../../../hooks/useAuth';
 import axios from "axios"; 

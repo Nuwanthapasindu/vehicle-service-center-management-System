@@ -209,6 +209,7 @@ export default function AdminDrawerLayout() {
         <Drawer.Screen
           name="timeslots"
           options={{
+            headerShown: false,
             drawerLabel: "Time Slots",
             title: "Time Slot Configuration",
             drawerIcon: ({ color, size }) => (
