@@ -128,7 +128,7 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="Bookings"
+          name="booking/index"
           options={{
             drawerLabel: "Bookings",
             title: "Bookings",

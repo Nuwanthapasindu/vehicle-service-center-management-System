@@ -6,9 +6,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import colors from "../../../constants/colors";
+import colors from "../../../../constants/colors";
 import { useRouter } from "expo-router";
-import { generateNextDays } from "../../../utils/dateUtils";
+import { generateNextDays } from "../../../../utils/dateUtils";
 
 const { width } = Dimensions.get("window");
 
