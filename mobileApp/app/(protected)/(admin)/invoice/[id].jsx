@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Platform, ActivityIndicator, Alert } from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
+import SwipeableItemCard from '../../../../components/SwipeableItemCard';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -98,17 +98,6 @@ export default function ViewInvoice() {
     }
   };
 
-  const renderRightActions = (type, targetId) => {
-    return (
-      <TouchableOpacity 
-        style={styles.deleteSwipeAction} 
-        onPress={() => handleRemoveItem(type, targetId)}
-      >
-        <Ionicons name="trash-outline" size={24} color={colors.LIGHT} />
-      </TouchableOpacity>
-    );
-  };
-
   const printQuote = async () => {
     try {
       await Print.printAsync({ html: getInvoiceHtmlContent(invoice) });
@@ -189,36 +178,26 @@ export default function ViewInvoice() {
 
         {/* Additional Items */}
         {invoice.additionalItems?.map((item, index) => (
-          <Swipeable 
-            key={`item-${index}`} 
-            renderRightActions={() => !isPaid ? renderRightActions('ITEM', item.item?._id || item.item) : null}
-            overshootRight={false}
-          >
-            <View style={styles.billedItemCard}>
-              <View style={styles.itemMain}>
-                <Text style={styles.itemTitle}>{item.item?.itemName || item.item?.name || 'Item'}</Text>
-                <Text style={styles.itemSubtitle}>Qty: {item.qty} {item.item?.unitType || ''}</Text>
-              </View>
-              <Text style={styles.itemPrice}>{formatPrice((item.sellingPrice || 0) * (item.qty || 1))}</Text>
-            </View>
-          </Swipeable>
+          <SwipeableItemCard 
+            key={`item-${index}`}
+            title={item.item?.itemName || item.item?.name || 'Item'}
+            subtitle={`Qty: ${item.qty} ${item.item?.unitType || ''}`}
+            price={formatPrice((item.sellingPrice || 0) * (item.qty || 1))}
+            onDelete={() => handleRemoveItem('ITEM', item.item?._id || item.item)}
+            disabled={isPaid}
+          />
         ))}
 
         {/* Additional Services */}
         {invoice.additionalServices?.map((service, index) => (
-          <Swipeable 
-            key={`service-${index}`} 
-            renderRightActions={() => !isPaid ? renderRightActions('SERVICE', service.service?._id || service.service) : null}
-            overshootRight={false}
-          >
-            <View style={styles.billedItemCard}>
-              <View style={styles.itemMain}>
-                <Text style={styles.itemTitle}>{service.service?.serviceName || service.service?.name || 'Service'}</Text>
-                <Text style={styles.itemSubtitle}>Labor & Service</Text>
-              </View>
-              <Text style={styles.itemPrice}>{formatPrice(service.charge)}</Text>
-            </View>
-          </Swipeable>
+          <SwipeableItemCard 
+            key={`service-${index}`}
+            title={service.service?.serviceName || service.service?.name || 'Service'}
+            subtitle={'Labor & Service'}
+            price={formatPrice(service.charge)}
+            onDelete={() => handleRemoveItem('SERVICE', service.service?._id || service.service)}
+            disabled={isPaid}
+          />
         ))}
 
         {/* Total Card */}
@@ -378,18 +357,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.DARK,
     marginRight: 12,
-  },
-  deleteSwipeAction: {
-    backgroundColor: '#EF4444',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 70,
-    borderRadius: 12,
-    marginBottom: 10,
-    marginLeft: 8,
-  },
-  deleteBtn: {
-    padding: 4,
   },
   totalCard: {
     flexDirection: 'row',
