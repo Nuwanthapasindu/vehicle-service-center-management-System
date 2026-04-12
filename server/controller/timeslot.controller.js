@@ -23,7 +23,9 @@ module.exports.getAvailableTimeslots = async (dateStr) => {
     if (!dateStr) throw new AppError("Date is required", 400);
 
     try {
-        const checkDate = new Date(dateStr);
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const checkDate = new Date();
+        checkDate.setFullYear(year, month - 1, day);
         checkDate.setHours(0, 0, 0, 0);
 
         const nextDay = new Date(checkDate);
@@ -58,7 +60,9 @@ module.exports.getDailySchedule = async (dateStr) => {
     if (!dateStr) throw new AppError("Date is required", 400);
 
     try {
-        const checkDate = new Date(dateStr);
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const checkDate = new Date();
+        checkDate.setFullYear(year, month - 1, day);
         checkDate.setHours(0, 0, 0, 0);
 
         const nextDay = new Date(checkDate);
@@ -78,6 +82,7 @@ module.exports.getDailySchedule = async (dateStr) => {
                 status: `${bookingsForSlot.length}/${slot.maxCapacity} ${bookingsForSlot.length >= slot.maxCapacity ? 'FULL' : 'BOOKED'}`,
                 isFull: bookingsForSlot.length >= slot.maxCapacity,
                 vehicles: bookingsForSlot.map(b => ({
+                    id: b._id,
                     plate: b.vehicle?.licensePlate || "Unknown",
                     type: b.vehicle?.vehicleType || "car"
                 }))

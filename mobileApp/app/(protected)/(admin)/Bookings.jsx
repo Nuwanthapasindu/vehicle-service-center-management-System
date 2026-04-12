@@ -1,34 +1,26 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { 
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, 
-  SafeAreaView, Dimensions, ActivityIndicator 
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  Dimensions, ActivityIndicator
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import colors from "../../../constants/colors";
+import { useRouter } from "expo-router";
+import { generateNextDays } from "../../../utils/dateUtils";
 
 const { width } = Dimensions.get("window");
 
 export default function Bookings() {
+  const router = useRouter();
   const [selectedDateIndex, setSelectedDateIndex] = useState(0);
   const [scheduleData, setScheduleData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Generate next 7 days for the date selector
-  const dates = useMemo(() => {
-    const list = [];
-    const today = new Date();
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const day = d.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
-      const dateNum = d.getDate().toString().padStart(2, "0");
-      const fullDate = d.toLocaleDateString("en-US", { weekday: "long" }) + " Schedule";
-      const isoDate = d.toISOString().split("T")[0];
-      list.push({ day, date: dateNum, fullDate, isoDate });
-    }
-    return list;
-  }, []);
+  // Generate next viewing days
+  const DAYS_COUNT = 14;
+  const dates = useMemo(() => generateNextDays(DAYS_COUNT), []);
 
   const fetchSchedule = async () => {
     setLoading(true);
@@ -111,19 +103,23 @@ export default function Bookings() {
           <View style={styles.vehiclesContainer}>
             {slot.vehicles && slot.vehicles.length > 0 ? (
               slot.vehicles.map((v, i) => (
-                <View key={i} style={styles.vehicleRow}>
+                <TouchableOpacity
+                  key={i}
+                  style={styles.vehicleRow}
+                  onPress={() => router.push(`/(protected)/(admin)/booking/${v.id}`)}
+                >
                   <Text style={styles.vehiclePlate}>{v.plate}</Text>
                   <Ionicons
                     name={v.type === "bus" || v.type === "van" ? "bus-outline" : "build-outline"}
                     size={16}
                     color={colors.SECONDARY}
                   />
-                </View>
+                </TouchableOpacity>
               ))
             ) : (
-                <View style={styles.emptySlotContainer}>
-                   <Text style={styles.emptySlotText}>No bookings for this slot</Text>
-                </View>
+              <View style={styles.emptySlotContainer}>
+                <Text style={styles.emptySlotText}>No bookings for this slot</Text>
+              </View>
             )}
           </View>
         </View>
@@ -155,17 +151,17 @@ export default function Bookings() {
         </Text>
 
         {loading ? (
-             <View style={styles.loaderContainer}>
-                <ActivityIndicator size="large" color={colors.PRIMARY} />
-             </View>
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={colors.PRIMARY} />
+          </View>
         ) : (
-            <View style={styles.scheduleWrapper}>
-                {scheduleData.length > 0 ? (
-                    scheduleData.map((slot) => renderTimeSlot(slot))
-                ) : (
-                    <Text style={styles.emptyScheduleText}>No schedule found for this date.</Text>
-                )}
-            </View>
+          <View style={styles.scheduleWrapper}>
+            {scheduleData.length > 0 ? (
+              scheduleData.map((slot) => renderTimeSlot(slot))
+            ) : (
+              <Text style={styles.emptyScheduleText}>No schedule found for this date.</Text>
+            )}
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -178,8 +174,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.BACKGROUND_COLOR,
   },
   loaderContainer: {
-     marginTop: 40,
-     alignItems: "center"
+    marginTop: 40,
+    alignItems: "center"
   },
   headerArea: {
     backgroundColor: colors.BACKGROUND_COLOR,
@@ -299,12 +295,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   badgeNormal: {
-    backgroundColor: "#F3FADD", 
+    backgroundColor: "#F3FADD",
     borderWidth: 1,
     borderColor: "#E1F2A7",
   },
   badgeFull: {
-    backgroundColor: "#FEE2E2", 
+    backgroundColor: "#FEE2E2",
     borderWidth: 1,
     borderColor: "#FECDD3",
   },
@@ -313,7 +309,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   badgeTextNormal: {
-    color: "#65A30D", 
+    color: "#65A30D",
   },
   badgeTextFull: {
     color: colors.DANGER_COLOR,
@@ -338,16 +334,16 @@ const styles = StyleSheet.create({
     color: colors.DARK,
   },
   emptySlotContainer: {
-     paddingVertical: 10,
+    paddingVertical: 10,
   },
   emptySlotText: {
-     color: colors.SECONDARY,
-     fontSize: 13,
-     fontStyle: "italic"
+    color: colors.SECONDARY,
+    fontSize: 13,
+    fontStyle: "italic"
   },
   emptyScheduleText: {
-     color: colors.SECONDARY,
-     textAlign: "center",
-     marginTop: 20
+    color: colors.SECONDARY,
+    textAlign: "center",
+    marginTop: 20
   }
 });
