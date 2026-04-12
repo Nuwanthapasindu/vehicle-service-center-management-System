@@ -128,6 +128,16 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
+          name="Bookings"
+          options={{
+            drawerLabel: "Bookings",
+            title: "Bookings",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="build-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
           name="serviceAndPackage"
           options={{
             drawerLabel: "Catalog & Packages",
