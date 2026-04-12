@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
+import { CONTACT_INFO, OPENING_HOURS, OFFICE_ADDRESS } from '../../constants/contactInfo';
 import './ContactPage.css';
 
 function ContactPage() {
@@ -22,34 +23,24 @@ function ContactPage() {
                                 </p>
 
                                 <div className="contact-method-grid">
-                                    <div className="contact-method-card shadow-sm">
-                                        <div className="method-icon"><i className="fa-brands fa-whatsapp"></i></div>
-                                        <div className="method-info">
-                                            <span>WHATSAPP</span>
-                                            <h4>+1 (555) 012-3456</h4>
-                                        </div>
-                                    </div>
-                                    <div className="contact-method-card shadow-sm">
-                                        <div className="method-icon"><i className="fa-solid fa-phone"></i></div>
-                                        <div className="method-info">
-                                            <span>SUPPORT LINE</span>
-                                            <h4>+1 (555) 012-3457</h4>
-                                        </div>
-                                    </div>
-                                    <div className="contact-method-card shadow-sm">
-                                        <div className="method-icon"><i className="fa-solid fa-envelope"></i></div>
-                                        <div className="method-info">
-                                            <span>EMAIL US</span>
-                                            <h4>care@shinedepot.com</h4>
-                                        </div>
-                                    </div>
-                                    <div className="contact-method-card shadow-sm">
-                                        <div className="method-icon"><i className="fa-solid fa-location-dot"></i></div>
-                                        <div className="method-info">
-                                            <span>VISIT US</span>
-                                            <h4>Automotive District, GA</h4>
-                                        </div>
-                                    </div>
+                                    {Object.values(CONTACT_INFO).map((method, index) => (
+                                        <a 
+                                            key={index} 
+                                            href={method.link} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="contact-method-card shadow-sm"
+                                            style={{ textDecoration: 'none', color: 'inherit' }}
+                                        >
+                                            <div className="method-icon">
+                                                <i className={method.icon}></i>
+                                            </div>
+                                            <div className="method-info">
+                                                <span>{method.label}</span>
+                                                <h4>{method.value}</h4>
+                                            </div>
+                                        </a>
+                                    ))}
                                 </div>
                             </div>
 
@@ -61,9 +52,14 @@ function ContactPage() {
                                             <div className="pin-pulse"></div>
                                         </div>
                                         <div className="location-card shadow-lg">
-                                            <h5>SHINE DEPOT HQ</h5>
-                                            <p>123 Gloss Avenue, Suite 100<br/>Automotive District, GA 30303</p>
-                                            <a href="#" className="dir-link">GET DIRECTIONS <i className="fa-solid fa-arrow-right"></i></a>
+                                            <h5>{OFFICE_ADDRESS.name}</h5>
+                                            <p>
+                                                {OFFICE_ADDRESS.address}<br/>
+                                                {OFFICE_ADDRESS.city}
+                                            </p>
+                                            <a href={OFFICE_ADDRESS.directionsLink} className="dir-link">
+                                                GET DIRECTIONS <i className="fa-solid fa-arrow-right"></i>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -78,20 +74,15 @@ function ContactPage() {
                         <span className="m-section-tag">OUR LOCATION</span>
                         <h2 className="m-section-title">Open 6 Days a Week</h2>
                         <div className="opening-hours-grid">
-                            <div className="hour-item">
-                                <span>MONDAY - FRIDAY</span>
-                                <h4>8:00 AM - 7:00 PM</h4>
-                            </div>
-                            <div className="hour-divider"></div>
-                            <div className="hour-item">
-                                <span>SATURDAY</span>
-                                <h4>9:00 AM - 5:00 PM</h4>
-                            </div>
-                            <div className="hour-divider"></div>
-                            <div className="hour-item">
-                                <span>SUNDAY</span>
-                                <h4 style={{color: '#94A3B8'}}>CLOSED</h4>
-                            </div>
+                            {OPENING_HOURS.map((hour, index) => (
+                                <React.Fragment key={index}>
+                                    <div className="hour-item">
+                                        <span>{hour.day}</span>
+                                        <h4 style={hour.isClosed ? {color: '#94A3B8'} : {}}>{hour.time}</h4>
+                                    </div>
+                                    {index < OPENING_HOURS.length - 1 && <div className="hour-divider"></div>}
+                                </React.Fragment>
+                            ))}
                         </div>
                     </div>
                 </section>

@@ -24,13 +24,18 @@ const getReviewDetail = (reviewId) => {
     return axios.get(`/review/detail/${reviewId}`);
 };
 
+const getPublicReviews = (params) => {
+    return axios.get(`/review`, { params });
+};
+
 const reviewService = {
   addReview,
   getBookingDetailsForReview,
   getMyReviews,
   updateReview,
   deleteReview,
-  getReviewDetail
+  getReviewDetail,
+  getPublicReviews
 };
 
 

@@ -181,3 +181,100 @@ module.exports.deleteReview = async (reviewId, mobile) => {
     throw new AppError(error.message || "Failed to delete review", error.statusCode || 500);
   }
 };
+
+module.exports.getAllPublicReviews = async (query) => {
+  try {
+    const { service, sort = 'recent', page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
+
+    // 1. Calculate Stats (Overall)
+    const statsResult = await Review.aggregate([
+      { $match: { isApproved: true, isDeleted: false } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          totalReviews: { $sum: 1 },
+          star5: { $sum: { $cond: [{ $eq: ["$rating", 5] }, 1, 0] } },
+          star4: { $sum: { $cond: [{ $eq: ["$rating", 4] }, 1, 0] } },
+          star3: { $sum: { $cond: [{ $eq: ["$rating", 3] }, 1, 0] } },
+          star2: { $sum: { $cond: [{ $eq: ["$rating", 2] }, 1, 0] } },
+          star1: { $sum: { $cond: [{ $eq: ["$rating", 1] }, 1, 0] } },
+        }
+      }
+    ]);
+
+    const stats = statsResult.length > 0 ? statsResult[0] : {
+      averageRating: 0,
+      totalReviews: 0,
+      star5: 0, star4: 0, star3: 0, star2: 0, star1: 0
+    };
+
+    // 2. Build Query for List
+    let matchQuery = { isApproved: true, isDeleted: false };
+
+    // If filtering by service name (we'll need to join for this if it's on JobCard)
+    // For now, let's keep it simple and filter approved reviews
+
+    let sortQuery = { createdAt: -1 };
+    if (sort === 'top-rated') sortQuery = { rating: -1, createdAt: -1 };
+
+    const reviews = await Review.find(matchQuery)
+      .populate("customer", "name")
+      .populate({
+        path: "booking",
+        populate: { path: "vehicle", select: "make model" }
+      })
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(Number(limit));
+
+    const enrichedReviews = await Promise.all(reviews.map(async (review) => {
+      const jobCard = await JobCard.findOne({ booking: review.booking?._id, isDeleted: false })
+        .populate({
+          path: "selectedPackage",
+          populate: { path: "servicesIncluded", select: "name" }
+        });
+
+      const packageObj = jobCard?.selectedPackage;
+      const packageServices = packageObj?.servicesIncluded?.map(s => s.name) || [];
+
+      return {
+        _id: review._id,
+        customerName: review.customer?.name || "Anonymous",
+        rating: review.rating,
+        comment: review.comment,
+        service: packageObj?.name || "General Service",
+        includedServices: packageServices, // Used for filtering
+        date: review.createdAt,
+        adminResponse: review.adminResponse || null
+      };
+    }));
+
+    // Filter by service if provided (client-side or server-side)
+    let finalReviews = enrichedReviews;
+    if (service && service !== 'All Services') {
+      finalReviews = enrichedReviews.filter(r =>
+        r.includedServices.includes(service) || r.service === service
+      );
+    }
+
+    return {
+      stats: {
+        average: Number(stats.averageRating.toFixed(1)),
+        total: stats.totalReviews,
+        distribution: {
+          5: stats.star5,
+          4: stats.star4,
+          3: stats.star3,
+          2: stats.star2,
+          1: stats.star1
+        }
+      },
+      reviews: finalReviews,
+      totalRemaining: Math.max(0, stats.totalReviews - (skip + finalReviews.length))
+    };
+  } catch (error) {
+    throw new AppError(error.message || "Failed to fetch public reviews", 500);
+  }
+};
