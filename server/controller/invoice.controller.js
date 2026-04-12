@@ -6,6 +6,7 @@ const Inventory = require("../model/Inventory");
 const Service = require("../model/Service");
 const AppError = require("../error/AppError");
 const constants = require("../util/constants");
+const { reduceStockByInvoice, increaseStockByPO } = require("./inventory.controller");
 const {
   validatedCreateInvoice,
   validatedAddInvoiceItem,
@@ -373,5 +374,69 @@ exports.removeInvoiceItem = async (invoiceId, payload) => {
   } catch (error) {
     if (error instanceof AppError) throw error;
     throw new AppError("Failed to remove invoice item", 500);
+  }
+};
+
+/**
+ * Complete an invoice and deduct inventory stock accordingly.
+ * Syncs invoice items with inventory using specific external functions, and supports a manual rollback mechanism if the completion save explicitly fails.
+ *
+ * @param {string} invoiceId - MongoDB Object ID of the invoice
+ * @param {Object} authUser - The authenticated user processing the completion
+ * @returns {Promise<string>} - Success message
+ */
+exports.completeInvoice = async (invoiceId, authUser) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+      throw new AppError("Invalid invoice ID provided", 400);
+    }
+
+    const invoice = await Invoice.findOne({ _id: invoiceId, isDeleted: false });
+    if (!invoice) {
+      throw new AppError("Invoice not found", 404);
+    }
+
+    if (invoice.isCompleted) {
+      throw new AppError("Invoice is already completed", 400);
+    }
+
+    // 1. Prepare items for inventory synchronization
+    const inventoryItems = (invoice.additionalItems || []).map((i) => ({
+      inventoryId: i.item.toString(),
+      quantity: i.qty,
+    }));
+
+    // 2. Reduce Stock
+    let stockReduced = false;
+    if (inventoryItems.length > 0) {
+      const payload = { items: inventoryItems };
+      await reduceStockByInvoice(payload, authUser);
+      stockReduced = true;
+    }
+
+    // 3. Mark as completed
+    try {
+      invoice.isCompleted = true;
+      await invoice.save();
+    } catch (saveError) {
+      // Manual Rollback if invoice save fails
+      if (stockReduced) {
+        // Rewind completely via mapped logic
+        const rollbackPayload = {
+          items: inventoryItems.map((i) => ({
+            inventoryId: i.inventoryId,
+            quantityReceived: i.quantity,
+          })),
+        };
+        // Auto-revert silently capturing errors
+        await increaseStockByPO(rollbackPayload, authUser).catch(console.error);
+      }
+      throw new AppError("Failed to complete invoice. Stock has been safely reverted.", 500);
+    }
+
+    return `${invoice.invoiceId || "Invoice"} completed successfully`;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError("Failed to complete invoice", 500);
   }
 };

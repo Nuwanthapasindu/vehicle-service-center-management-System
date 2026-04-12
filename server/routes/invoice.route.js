@@ -5,6 +5,7 @@ const {
   getInvoiceById,
   addInvoiceItem,
   removeInvoiceItem,
+  completeInvoice,
 } = require("../controller/invoice.controller");
 const responseBuilder = require("../util/responseBuilder");
 const { authTokenMiddleware } = require("../middleware/auth");
@@ -260,6 +261,41 @@ router.put("/:id/items/add", authTokenMiddleware, (req, res, next) => {
 router.delete("/:id/items/remove", authTokenMiddleware, (req, res, next) => {
   const builder = new responseBuilder(res);
   removeInvoiceItem(req.params.id, req.body)
+    .then((message) => {
+      builder.setStatus(200);
+      builder.buildResponse({ message });
+    })
+    .catch(next);
+});
+
+/**
+ * @swagger
+ * /api/v1/invoice/{id}/complete:
+ *   patch:
+ *     summary: Complete an invoice and dynamically adjust inventory stock balances automatically.
+ *     tags: [Invoice]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The invoice ID
+ *     responses:
+ *       200:
+ *         description: Successfully completed the invoice.
+ *       400:
+ *         description: Invalid request or the invoice is already completed.
+ *       404:
+ *         description: Invoice not found.
+ *       500:
+ *         description: Internal server error or rollback triggered.
+ */
+router.patch("/:id/complete", authTokenMiddleware, (req, res, next) => {
+  const builder = new responseBuilder(res);
+  completeInvoice(req.params.id, req.user)
     .then((message) => {
       builder.setStatus(200);
       builder.buildResponse({ message });
