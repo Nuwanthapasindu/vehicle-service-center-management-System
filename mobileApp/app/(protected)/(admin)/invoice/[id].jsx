@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Platform, ActivityIndicator, Alert } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -10,9 +12,11 @@ import { invoiceService } from '../../../../services/invoice/invoice.service';
 import enums from '../../../../constants/enums';
 import getImageFullUrl from '../../../../utils/getImageFullUrl';
 import formatPrice from '../../../../utils/formatPrice';
+import { useRouter } from 'expo-router';
 
 export default function ViewInvoice() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +32,12 @@ export default function ViewInvoice() {
       const data = await invoiceService.fetchInvoiceById(id);
       setInvoice(data);
     } catch (error) {
-      console.error("Failed to fetch invoice details", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to fetch invoice details',
+        text2: error?.response?.data?.payload?.message || "Failed to fetch invoice details",
+      })
+      router.back();
     } finally {
       setLoading(false);
     }
@@ -48,14 +57,55 @@ export default function ViewInvoice() {
               setLoading(true);
               await invoiceService.completeInvoice(id);
               await fetchInvoiceDetails();
+              Toast.show({
+                type: 'success',
+                text1: 'Invoice Locked',
+                text2: 'The items have been billed and inventory stock successfully deducted.',
+              });
             } catch (error) {
               console.error("Error completing invoice:", error);
-              Alert.alert("Error", error?.response?.data?.message || "Failed to complete invoice");
+              Toast.show({
+                type: 'error',
+                text1: 'Completion Failed',
+                text2: error?.response?.data?.message || "Failed to complete invoice",
+              });
               setLoading(false);
             }
           }
         }
       ]
+    );
+  };
+
+  const handleRemoveItem = async (type, targetId) => {
+    try {
+      setLoading(true);
+      await invoiceService.removeInvoiceItem(id, { type, targetId });
+      await fetchInvoiceDetails(); 
+      Toast.show({
+        type: 'success',
+        text1: 'Item Removed',
+        text2: 'The item was successfully removed from the invoice.',
+      });
+    } catch (error) {
+      console.error("Error removing item:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Removal Failed',
+        text2: error?.response?.data?.message || "Failed to remove item",
+      });
+      setLoading(false);
+    }
+  };
+
+  const renderRightActions = (type, targetId) => {
+    return (
+      <TouchableOpacity 
+        style={styles.deleteSwipeAction} 
+        onPress={() => handleRemoveItem(type, targetId)}
+      >
+        <Ionicons name="trash-outline" size={24} color={colors.LIGHT} />
+      </TouchableOpacity>
     );
   };
 
@@ -139,24 +189,36 @@ export default function ViewInvoice() {
 
         {/* Additional Items */}
         {invoice.additionalItems?.map((item, index) => (
-          <View key={`item-${index}`} style={styles.billedItemCard}>
-            <View style={styles.itemMain}>
-              <Text style={styles.itemTitle}>{item.item?.itemName || item.item?.name || 'Item'}</Text>
-              <Text style={styles.itemSubtitle}>Qty: {item.qty} {item.item?.unitType || ''}</Text>
+          <Swipeable 
+            key={`item-${index}`} 
+            renderRightActions={() => !isPaid ? renderRightActions('ITEM', item.item?._id || item.item) : null}
+            overshootRight={false}
+          >
+            <View style={styles.billedItemCard}>
+              <View style={styles.itemMain}>
+                <Text style={styles.itemTitle}>{item.item?.itemName || item.item?.name || 'Item'}</Text>
+                <Text style={styles.itemSubtitle}>Qty: {item.qty} {item.item?.unitType || ''}</Text>
+              </View>
+              <Text style={styles.itemPrice}>{formatPrice((item.sellingPrice || 0) * (item.qty || 1))}</Text>
             </View>
-            <Text style={styles.itemPrice}>{formatPrice((item.sellingPrice || 0) * (item.qty || 1))}</Text>
-          </View>
+          </Swipeable>
         ))}
 
         {/* Additional Services */}
         {invoice.additionalServices?.map((service, index) => (
-          <View key={`service-${index}`} style={styles.billedItemCard}>
-            <View style={styles.itemMain}>
-              <Text style={styles.itemTitle}>{service.service?.serviceName || service.service?.name || 'Service'}</Text>
-              <Text style={styles.itemSubtitle}>Labor & Service</Text>
+          <Swipeable 
+            key={`service-${index}`} 
+            renderRightActions={() => !isPaid ? renderRightActions('SERVICE', service.service?._id || service.service) : null}
+            overshootRight={false}
+          >
+            <View style={styles.billedItemCard}>
+              <View style={styles.itemMain}>
+                <Text style={styles.itemTitle}>{service.service?.serviceName || service.service?.name || 'Service'}</Text>
+                <Text style={styles.itemSubtitle}>Labor & Service</Text>
+              </View>
+              <Text style={styles.itemPrice}>{formatPrice(service.charge)}</Text>
             </View>
-            <Text style={styles.itemPrice}>{formatPrice(service.charge)}</Text>
-          </View>
+          </Swipeable>
         ))}
 
         {/* Total Card */}
@@ -316,6 +378,15 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.DARK,
     marginRight: 12,
+  },
+  deleteSwipeAction: {
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+    borderRadius: 12,
+    marginBottom: 10,
+    marginLeft: 8,
   },
   deleteBtn: {
     padding: 4,
