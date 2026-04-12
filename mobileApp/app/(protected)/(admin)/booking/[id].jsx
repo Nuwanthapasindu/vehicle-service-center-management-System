@@ -138,7 +138,7 @@ export default function BookingDetails() {
     return (
       <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ fontSize: 16, color: colors.SECONDARY }}>Booking not found.</Text>
-        <TouchableOpacity onPress={() => router.push("/(protected)/(admin)/booking/index")} style={{ marginTop: 20 }}>
+        <TouchableOpacity onPress={() => router.push("/(protected)/(admin)/booking")} style={{ marginTop: 20 }}>
           <Text style={{ color: colors.PRIMARY, fontWeight: 'bold' }}>Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -153,7 +153,7 @@ export default function BookingDetails() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push("/(protected)/(admin)/booking/index")}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.push("/(protected)/(admin)/booking")}>
           <Ionicons name="chevron-back" size={28} color={colors.PRIMARY} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Booking Details</Text>
