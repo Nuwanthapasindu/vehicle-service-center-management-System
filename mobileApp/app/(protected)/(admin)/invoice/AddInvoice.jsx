@@ -248,7 +248,6 @@ export default function AddInvoice() {
           }));
       }
 
-      console.log("Creating Invoice with payload:", createPayload);
       const invoiceResp = await invoiceService.createInvoice(createPayload);
 
       // Attempt to extract the ID from common response structures
@@ -261,7 +260,6 @@ export default function AddInvoice() {
 
       // 3. Mark paid if requested
       if (markPaid) {
-        console.log("Completing invoice:", invoiceId);
         await invoiceService.completeInvoice(invoiceId);
         Toast.show({
           type: "success",
@@ -281,10 +279,6 @@ export default function AddInvoice() {
         router.back();
       }
     } catch (error) {
-      console.log(
-        "Submission failed:",
-        error?.response?.data?.payload?.message || error.message,
-      );
       Toast.show({
         type: "error",
         text1: "Operation Failed",
