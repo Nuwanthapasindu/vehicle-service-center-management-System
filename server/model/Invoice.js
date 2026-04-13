@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const { v4: uuidv4 } = require("uuid");
+const crypto = require("crypto");
 const constants = require("../util/constants");
 
 const invoiceSchema = new Schema(
@@ -8,7 +8,12 @@ const invoiceSchema = new Schema(
     invoiceId: {
       type: String,
       unique: true,
-      default: () => uuidv4(),
+      default: () => {
+        const date = new Date();
+        const datePart = date.toISOString().slice(2, 10).replace(/-/g, ""); // YYMMDD
+        const randomPart = crypto.randomBytes(2).toString("hex").toUpperCase(); // 4 chars
+        return `INV${datePart}${randomPart}`;
+      },
     },
     jobCard: {
       type: Schema.Types.ObjectId,
