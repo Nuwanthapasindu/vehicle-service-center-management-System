@@ -242,7 +242,6 @@ module.exports.deleteService = async (id) => {
 module.exports.getAllServicesForJobCard = async () => {
   try {
     const services = await Service.find({ isDeleted: false }).select([
-      "-_id",
       "-isDeleted",
       "-deletedAt",
       "-__v",

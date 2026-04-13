@@ -94,9 +94,9 @@ const { authTokenMiddleware } = require("../middleware/auth");
 router.post("/", authTokenMiddleware, (req, res, next) => {
   const builder = new responseBuilder(res);
   createInvoice(req.body)
-    .then((message) => {
+    .then((invoice) => {
       builder.setStatus(201);
-      builder.buildResponse({ message });
+      builder.buildResponse(invoice);
     })
     .catch(next);
 });

@@ -8,7 +8,9 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  Modal,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 import { invoiceService } from "../../../../services/invoice/invoice.service";
@@ -22,6 +24,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../../../../constants/colors";
 import DropdownInput from "../../../../components/DropdownInput";
 
+
 export default function AddInvoice() {
   const router = useRouter();
   const [service, setService] = useState("");
@@ -30,17 +33,46 @@ export default function AddInvoice() {
   const [availableServices, setAvailableServices] = useState([]);
   const [availablePackages, setAvailablePackages] = useState([]);
   const [availableInventory, setAvailableInventory] = useState([]);
-  const [selectedPackage, setSelectedPackage] = useState(null);
-  const [selectedTier, setSelectedTier] = useState(null);
-  const [invoiceItems, setInvoiceItems] = useState([]);
 
   // Customer Search States
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchHistory, setSearchHistory] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [discount, setDiscount] = useState(0);
+  const [showDiscountInput, setShowDiscountInput] = useState(false);
+
+  // Load Search History on Mount
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const history = await AsyncStorage.getItem("invoice_search_history");
+        if (history) setSearchHistory(JSON.parse(history));
+      } catch (e) {
+        console.error("Failed to load search history", e);
+      }
+    };
+    loadHistory();
+  }, []);
+
+  // Save changes to Search History
+  const updateSearchHistory = async (newHistory) => {
+    setSearchHistory(newHistory);
+    try {
+      await AsyncStorage.setItem(
+        "invoice_search_history",
+        JSON.stringify(newHistory),
+      );
+    } catch (e) {
+      console.error("Failed to save search history", e);
+    }
+  };
+
+  const [customer, setCustomer] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [tier, setTier] = useState(null);
+  const [invoiceItems, setInvoiceItems] = useState([]);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -48,13 +80,13 @@ export default function AddInvoice() {
         const [servicesData, packagesData, inventoryData] = await Promise.all([
           serviceService.fetchServices(),
           packageService.fetchPackages(),
-          inventoryService.fetchInventory()
+          inventoryService.fetchInventory(),
         ]);
         setAvailableServices(Array.isArray(servicesData) ? servicesData : []);
         setAvailablePackages(Array.isArray(packagesData) ? packagesData : []);
-        setAvailableInventory(Array.isArray(inventoryData) ? inventoryData : []);
-        
-        console.log("Available Inventory:", inventoryData);
+        setAvailableInventory(
+          Array.isArray(inventoryData) ? inventoryData : [],
+        );
       } catch (err) {
         if (err.response) {
           console.error("Error Status:", err.response.status);
@@ -94,121 +126,172 @@ export default function AddInvoice() {
     }
   };
 
-  const handleSelectCustomer = (customer) => {
-    setSelectedCustomer(customer);
-    setSearchQuery(customer.mobile);
+  const handleSelectCustomer = (selectedCust) => {
+    setCustomer(selectedCust);
+    setSearchQuery(selectedCust.mobile);
     setShowSuggestions(false);
-    
+
     // Add to history if not exists
-    if (!searchHistory.includes(customer.mobile)) {
-      setSearchHistory(prev => [customer.mobile, ...prev].slice(0, 5));
+    if (!searchHistory.includes(selectedCust.mobile)) {
+      const newHistory = [selectedCust.mobile, ...searchHistory].slice(0, 5);
+      updateSearchHistory(newHistory);
     }
   };
 
   const addAdditionalService = (name) => {
-    const srv = availableServices.find(s => s.name === name);
+    const srv = availableServices.find((s) => s.name === name);
     if (srv) {
       const newItem = {
         id: `srv-${Date.now()}`,
-        type: 'service',
+        dbId: srv._id || srv.id,
+        type: "service",
         name: srv.name,
-        price: srv.prices[0]?.price || 0, // Fallback to first price entry
+        price: srv.prices[0]?.price || 0,
         quantity: 1,
-        icon: 'cog-outline'
+        icon: "cog-outline",
       };
-      setInvoiceItems(prev => [...prev, newItem]);
-      setService(""); // Reset dropdown
+      setInvoiceItems([...invoiceItems, newItem]);
+      setService(""); // local UI state for dropdown reset remains
     }
   };
 
   const addInventoryItem = (name) => {
-    const item = availableInventory.find(i => i.name === name);
+    const item = availableInventory.find((i) => i.name === name);
     if (item) {
       const newItem = {
         id: `inv-${Date.now()}`,
-        type: 'inventory',
+        dbId: item._id || item.id,
+        type: "inventory",
         name: item.name,
         price: item.sellingPrice || 0,
         quantity: 1,
-        icon: 'cube-outline'
+        icon: "cube-outline",
       };
-      setInvoiceItems(prev => [...prev, newItem]);
-      setInventory(""); // Reset dropdown
+      setInvoiceItems([...invoiceItems, newItem]);
+      setInventory("");
     }
   };
 
   const updateItemQuantity = (id, newQty) => {
-    setInvoiceItems(prev => prev.map(item => 
-      item.id === id ? { ...item, quantity: newQty } : item
-    ));
+    const updatedItems = invoiceItems.map((item) =>
+      item.id === id ? { ...item, quantity: newQty } : item,
+    );
+    setInvoiceItems(updatedItems);
   };
 
   const removeItem = (id) => {
-    setInvoiceItems(prev => prev.filter(item => item.id !== id));
+    const updatedItems = invoiceItems.filter(
+      (item) => item.id !== id,
+    );
+    setInvoiceItems(updatedItems);
   };
 
   const calculateTotal = () => {
-    const tierPrice = selectedTier?.price || 0;
-    const itemsTotal = invoiceItems.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
-    return tierPrice + itemsTotal;
+    const tierPrice = tier?.price || 0;
+    const itemsTotal = invoiceItems.reduce(
+      (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
+      0,
+    );
+    return Math.max(0, tierPrice + itemsTotal - discount);
   };
 
   const formatPrice = (price) => {
-    return price.toLocaleString('en-IN');
+    return price.toLocaleString("en-IN");
   };
 
   // Core Submission API Integration
   const handleGenerateInvoice = async (markPaid) => {
     try {
+      if (!customer || !customer.mobile || customer.mobile.length !== 10) {
+        Toast.show({
+          type: "error",
+          text1: "Validation Error",
+          text2: "A valid 10-digit customer mobile number is required.",
+          position: "top",
+        });
+        return;
+      }
+
       setLoading(true);
 
-      /**
-       * CRITICAL TODO:
-       * Replace this payload constructor with the actual Dropdown Input states.
-       * The API STRICTLY REQUIRES valid Hex Mongoose Object IDs for:
-       * - customer (or jobCard)
-       * - selectedPackage.package
-       */
-      const payload = {
-        customer: "insert_customer_mongo_id_here",
-        selectedPackage: {
-          package: "insert_package_mongo_id_here",
-          selectedPackageTier: {
-            name: "Default Tier",
-            price: 0,
-          },
-        },
+      // 1. Create the Base Invoice
+      const createPayload = {
+        customer: customer?._id,
       };
 
-      // 1. Initialize the empty pending Invoice wrapper
-      /*
-      const invoiceResp = await invoiceService.createInvoice(payload);
-      const invoiceId = invoiceResp._id; // Evaluate proper path based on post callback
-
-      // 2. Map over added Services & Inventory array inside state natively using `addInvoiceItem`
-      // await Promise.all(addedItemsArray.map(item => invoiceService.addInvoiceItem(invoiceId, mappedData)));
-
-      // 3. Mark paid conditionally
-      if (markPaid) {
-          await invoiceService.completeInvoice(invoiceId);
+      // Only add selectedPackage if both pkg and tier are present
+      if (selectedPackage?._id && tier) {
+        createPayload.selectedPackage = {
+          package: selectedPackage._id,
+          selectedPackageTier: {
+            name: tier.name,
+            price: tier.price,
+          },
+        };
       }
-      */
 
-      Toast.show({
-        type: "success",
-        text1: markPaid
-          ? "Invoice Generated & Marked Paid"
-          : "Draft Saved successfully",
-        position: "top",
-      });
-      router.back();
+      // Consolidate additionalItems and additionalServices natively into the payload
+      if (invoiceItems && invoiceItems.length > 0) {
+        createPayload.additionalItems = invoiceItems
+          .filter((item) => item.type !== "service")
+          .map((item) => ({
+            item: item.dbId,
+            qty: item.quantity,
+            sellingPrice: item.price,
+          }));
+
+        createPayload.additionalServices = invoiceItems
+          .filter((item) => item.type === "service")
+          .map((item) => ({
+            service: item.dbId,
+            charge: item.price,
+          }));
+      }
+
+      console.log("Creating Invoice with payload:", createPayload);
+      const invoiceResp = await invoiceService.createInvoice(createPayload);
+
+      // Attempt to extract the ID from common response structures
+      const invoiceData = invoiceResp?.data?.payload;
+      const invoiceId = invoiceData?.id;
+
+      if (!invoiceId) {
+        throw new Error("Failed to retrieve invoice ID from server");
+      }
+
+      // 3. Mark paid if requested
+      if (markPaid) {
+        console.log("Completing invoice:", invoiceId);
+        await invoiceService.completeInvoice(invoiceId);
+        Toast.show({
+          type: "success",
+          text1: "Invoice Generated",
+          text2:
+            invoiceResp?.data?.message || "Invoice successfully finalized.",
+          position: "top",
+        });
+        router.replace(`/invoice/${invoiceId}`); // Navigate to Details page
+      } else {
+        Toast.show({
+          type: "success",
+          text1: "Draft Saved",
+          text2: invoiceResp?.data?.payload?.message || "Draft saved successfully.",
+          position: "top",
+        });
+        router.back();
+      }
     } catch (error) {
+      console.log(
+        "Submission failed:",
+        error?.response?.data?.payload?.message || error.message,
+      );
       Toast.show({
         type: "error",
-        text1: "Generation Failed",
+        text1: "Operation Failed",
         text2:
-          error?.response?.data?.message ||
-          "Invalid selections or server error occurred.",
+          error?.response?.data?.payload?.message ||
+          error.message ||
+          "A server error occurred during submission.",
         position: "top",
       });
     } finally {
@@ -230,7 +313,7 @@ export default function AddInvoice() {
           onSelect={(name) => {
             const pkg = availablePackages.find((p) => p.name === name);
             setSelectedPackage(pkg);
-            setSelectedTier(null); // Reset tier when package changes
+            setTier(null);
           }}
           placeholder="Choose Base Package"
         />
@@ -240,13 +323,13 @@ export default function AddInvoice() {
             <View style={{ height: 16 }} />
             <Text style={styles.sectionHeader}>SELECT PRICING TIER</Text>
             <DropdownInput
-              value={selectedTier?.name}
+              value={tier?.name}
               options={selectedPackage.pricingTiers.map((t) => t.name)}
               onSelect={(name) => {
-                const tier = selectedPackage.pricingTiers.find(
+                const tr = selectedPackage.pricingTiers.find(
                   (t) => t.name === name,
                 );
-                setSelectedTier(tier);
+                setTier(tr);
               }}
               placeholder="Choose Package Tier"
             />
@@ -277,49 +360,70 @@ export default function AddInvoice() {
                 }}
                 onFocus={() => setShowSuggestions(true)}
               />
-              {isSearching && <ActivityIndicator size="small" color={colors.PRIMARY} style={{marginRight: 10}} />}
+              {isSearching && (
+                <ActivityIndicator
+                  size="small"
+                  color={colors.PRIMARY}
+                  style={{ marginRight: 10 }}
+                />
+              )}
             </View>
           </View>
 
-          {showSuggestions && (searchQuery.length > 0 || searchHistory.length > 0) && (
-            <View style={styles.suggestionsDropdown}>
-              {/* History Section */}
-              {searchQuery.length === 0 && searchHistory.map((item, index) => (
-                <CustomerSearchResult
-                  key={`hist-${index}`}
-                  title={item}
-                  isHistory={true}
-                  onPress={() => setSearchQuery(item)}
-                />
-              ))}
+          {showSuggestions &&
+            (searchQuery.length > 0 || searchHistory.length > 0) && (
+              <View style={styles.suggestionsDropdown}>
+                {/* History Section */}
+                {searchQuery.length === 0 &&
+                  searchHistory.map((item, index) => (
+                    <CustomerSearchResult
+                      key={`hist-${index}`}
+                      title={item}
+                      isHistory={true}
+                      onPress={() => setSearchQuery(item)}
+                    />
+                  ))}
 
-              {/* Results Section */}
-              {searchResults.map((customer) => (
-                <CustomerSearchResult
-                  key={customer._id}
-                  title={customer.name}
-                  subtitle={customer.mobile}
-                  onPress={() => handleSelectCustomer(customer)}
-                />
-              ))}
+                {/* Results Section */}
+                {searchResults.map((customer) => (
+                  <CustomerSearchResult
+                    key={customer._id}
+                    title={customer.name}
+                    subtitle={customer.mobile}
+                    onPress={() => handleSelectCustomer(customer)}
+                  />
+                ))}
 
-              {searchQuery.length >= 3 && searchResults.length === 0 && !isSearching && (
-                <View style={styles.noResultItem}>
-                  <Text style={styles.noResultText}>No customers found</Text>
-                </View>
-              )}
-            </View>
-          )}
+                {searchQuery.length >= 3 &&
+                  searchResults.length === 0 &&
+                  !isSearching && (
+                    <View style={styles.noResultItem}>
+                      <Text style={styles.noResultText}>
+                        No customers found
+                      </Text>
+                    </View>
+                  )}
+              </View>
+            )}
         </View>
-
-        {selectedCustomer && (
+        {customer && (
           <View style={styles.selectedCustomerCard}>
             <View style={styles.selectedCustomerInfo}>
-              <Text style={styles.selectedCustomerName}>{selectedCustomer.name}</Text>
-              <Text style={styles.selectedCustomerMobile}>{selectedCustomer.mobile}</Text>
+              <Text style={styles.selectedCustomerName}>
+                {customer.name}
+              </Text>
+              <Text style={styles.selectedCustomerMobile}>
+                {customer.mobile}
+              </Text>
             </View>
-            <TouchableOpacity onPress={() => setSelectedCustomer(null)}>
-               <Ionicons name="close-circle" size={20} color={colors.DANGER_COLOR} />
+            <TouchableOpacity
+              onPress={() => setCustomer(null)}
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={colors.DANGER_COLOR}
+              />
             </TouchableOpacity>
           </View>
         )}
@@ -357,41 +461,51 @@ export default function AddInvoice() {
         {/* Invoice Items */}
         <View style={styles.itemsHeaderRow}>
           <Text style={styles.sectionHeader}>ADDED ITEMS & SERVICES</Text>
-          <Text style={styles.itemsCountText}>{invoiceItems.length + (selectedTier ? 1 : 0)} Items Added</Text>
+          <Text style={styles.itemsCountText}>
+            {invoiceItems.length + (tier ? 1 : 0)}{" "}
+            Items Added
+          </Text>
         </View>
 
         {/* Package Item (Fixed if selected) */}
-        {selectedPackage && selectedTier && (
+        {selectedPackage && tier && (
           <SwipeableItemCard
             title={selectedPackage.name}
-            subtitle={`${selectedTier.name} Tier`}
-            price={`Rs. ${formatPrice(selectedTier.price)}`}
+            subtitle={`${tier.name} Tier`}
+            price={`Rs. ${formatPrice(tier.price)}`}
             icon="card-outline"
             onDelete={() => {
-               setSelectedPackage(null);
-               setSelectedTier(null);
+              setSelectedPackage(null);
+              setTier(null);
             }}
           />
         )}
 
-        {/* Dynamically Added Items */}
         {invoiceItems.map((item) => (
           <SwipeableItemCard
             key={item.id}
             title={item.name}
-            subtitle={item.type === 'service' ? 'Additional Service' : 'Inventory Item'}
+            subtitle={
+              item.type === "service" ? "Additional Service" : "Inventory Item"
+            }
             price={`Rs. ${formatPrice(item.price * item.quantity)}`}
             icon={item.icon}
-            quantity={item.quantity}
-            onUpdateQuantity={(newQty) => updateItemQuantity(item.id, newQty)}
+            quantity={item.type === "service" ? undefined : item.quantity}
+            onUpdateQuantity={
+              item.type === "service"
+                ? undefined
+                : (newQty) => updateItemQuantity(item.id, newQty)
+            }
             onDelete={() => removeItem(item.id)}
           />
         ))}
 
-        {invoiceItems.length === 0 && !selectedTier && (
-           <View style={{padding: 40, alignItems: 'center'}}>
-              <Text style={{color: colors.SECONDARY, fontSize: 13}}>No items added yet</Text>
-           </View>
+        {invoiceItems.length === 0 && !tier && (
+          <View style={{ padding: 40, alignItems: "center" }}>
+            <Text style={{ color: colors.SECONDARY, fontSize: 13 }}>
+              No items added yet
+            </Text>
+          </View>
         )}
 
         <View style={styles.dashedLineContainer}>
@@ -416,14 +530,48 @@ export default function AddInvoice() {
               </View>
             </View>
           </View>
-          <TouchableOpacity style={styles.discountBtn}>
-            <MaterialCommunityIcons
-              name="receipt-text-remove-outline"
-              size={26}
-              color={colors.DARK}
-            />
+
+          <TouchableOpacity
+            style={[
+              styles.discountBtn,
+              discount > 0 && { backgroundColor: colors.DARK },
+            ]}
+            onPress={() => setShowDiscountInput(!showDiscountInput)}
+          >
+            {discount > 0 ? (
+              <Text
+                style={{ color: colors.LIGHT, fontWeight: "800", fontSize: 12 }}
+              >
+                -{discount}
+              </Text>
+            ) : (
+              <MaterialCommunityIcons
+                name="receipt-text-remove-outline"
+                size={26}
+                color={colors.DARK}
+              />
+            )}
           </TouchableOpacity>
         </View>
+
+        {showDiscountInput && (
+          <View style={styles.discountInputRow}>
+            <TextInput
+              style={styles.discountInput}
+              placeholder="Enter Discount (Rs.)"
+              keyboardType="numeric"
+              value={discount.toString()}
+              onChangeText={(text) => setDiscount(Number(text) || 0)}
+              autoFocus
+            />
+            <TouchableOpacity
+              style={styles.applyDiscountBtn}
+              onPress={() => setShowDiscountInput(false)}
+            >
+              <Text style={styles.applyDiscountText}>Apply</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <TouchableOpacity
           style={styles.saveDraftBtn}
@@ -474,11 +622,11 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   customer_container: {
-    position: 'relative',
+    position: "relative",
     zIndex: 100,
   },
   suggestionsDropdown: {
-    position: 'absolute',
+    position: "absolute",
     top: 50,
     left: 0,
     right: 0,
@@ -492,21 +640,21 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
     maxHeight: 250,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   noResultItem: {
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   noResultText: {
     color: colors.SECONDARY,
     fontSize: 14,
   },
   selectedCustomerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(142, 219, 0, 0.05)',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(142, 219, 0, 0.05)",
     padding: 12,
     borderRadius: 8,
     marginTop: -8,
@@ -516,7 +664,7 @@ const styles = StyleSheet.create({
   },
   selectedCustomerName: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.DARK,
   },
   selectedCustomerMobile: {
@@ -660,5 +808,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     marginLeft: 8,
+  },
+  errorText: {
+    color: colors.DANGER_COLOR,
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  discountInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 10,
+  },
+  discountInput: {
+    flex: 1,
+    height: 48,
+    backgroundColor: colors.LIGHT,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: colors.DARK,
+  },
+  applyDiscountBtn: {
+    backgroundColor: colors.PRIMARY,
+    paddingHorizontal: 16,
+    height: 48,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  applyDiscountText: {
+    color: colors.DARK,
+    fontWeight: "700",
   },
 });
