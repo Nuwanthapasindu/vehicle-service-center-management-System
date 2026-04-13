@@ -15,7 +15,6 @@ import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 import { invoiceService } from "../../../../services/invoice/invoice.service";
 import { serviceService } from "../../../../services/service/service.service";
-import { packageService } from "../../../../services/package/package.service";
 import { userService } from "../../../../services/user/user.service";
 import { inventoryService } from "../../../../services/inventory/inventory.service";
 import SwipeableItemCard from "../../../../components/SwipeableItemCard";
@@ -31,7 +30,6 @@ export default function AddInvoice() {
   const [inventory, setInventory] = useState("");
   const [loading, setLoading] = useState(false);
   const [availableServices, setAvailableServices] = useState([]);
-  const [availablePackages, setAvailablePackages] = useState([]);
   const [availableInventory, setAvailableInventory] = useState([]);
 
   // Customer Search States
@@ -70,20 +68,16 @@ export default function AddInvoice() {
   };
 
   const [customer, setCustomer] = useState(null);
-  const [selectedPackage, setSelectedPackage] = useState(null);
-  const [tier, setTier] = useState(null);
   const [invoiceItems, setInvoiceItems] = useState([]);
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [servicesData, packagesData, inventoryData] = await Promise.all([
+        const [servicesData, inventoryData] = await Promise.all([
           serviceService.fetchServices(),
-          packageService.fetchPackages(),
           inventoryService.fetchInventory(),
         ]);
         setAvailableServices(Array.isArray(servicesData) ? servicesData : []);
-        setAvailablePackages(Array.isArray(packagesData) ? packagesData : []);
         setAvailableInventory(
           Array.isArray(inventoryData) ? inventoryData : [],
         );
@@ -187,12 +181,11 @@ export default function AddInvoice() {
   };
 
   const calculateTotal = () => {
-    const tierPrice = tier?.price || 0;
     const itemsTotal = invoiceItems.reduce(
       (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
       0,
     );
-    return Math.max(0, tierPrice + itemsTotal - discount);
+    return Math.max(0, itemsTotal - discount);
   };
 
   const formatPrice = (price) => {
@@ -218,17 +211,6 @@ export default function AddInvoice() {
       const createPayload = {
         customer: customer?._id,
       };
-
-      // Only add selectedPackage if both pkg and tier are present
-      if (selectedPackage?._id && tier) {
-        createPayload.selectedPackage = {
-          package: selectedPackage._id,
-          selectedPackageTier: {
-            name: tier.name,
-            price: tier.price,
-          },
-        };
-      }
 
       // Consolidate additionalItems and additionalServices natively into the payload
       if (invoiceItems && invoiceItems.length > 0) {
@@ -299,39 +281,6 @@ export default function AddInvoice() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Package & Tier Selection */}
-        <Text style={styles.sectionHeader}>SELECT SERVICE PACKAGE</Text>
-        <DropdownInput
-          value={selectedPackage?.name}
-          options={(availablePackages || []).map((p) => p.name)}
-          onSelect={(name) => {
-            const pkg = availablePackages.find((p) => p.name === name);
-            setSelectedPackage(pkg);
-            setTier(null);
-          }}
-          placeholder="Choose Base Package"
-        />
-
-        {selectedPackage && (
-          <>
-            <View style={{ height: 16 }} />
-            <Text style={styles.sectionHeader}>SELECT PRICING TIER</Text>
-            <DropdownInput
-              value={tier?.name}
-              options={selectedPackage.pricingTiers.map((t) => t.name)}
-              onSelect={(name) => {
-                const tr = selectedPackage.pricingTiers.find(
-                  (t) => t.name === name,
-                );
-                setTier(tr);
-              }}
-              placeholder="Choose Package Tier"
-            />
-          </>
-        )}
-
-        <View style={{ height: 24 }} />
-
         {/* Customer Details */}
         <Text style={styles.sectionHeader}>CUSTOMER DETAILS</Text>
         <View style={styles.customer_container}>
@@ -456,24 +405,10 @@ export default function AddInvoice() {
         <View style={styles.itemsHeaderRow}>
           <Text style={styles.sectionHeader}>ADDED ITEMS & SERVICES</Text>
           <Text style={styles.itemsCountText}>
-            {invoiceItems.length + (tier ? 1 : 0)}{" "}
+            {invoiceItems.length}{" "}
             Items Added
           </Text>
         </View>
-
-        {/* Package Item (Fixed if selected) */}
-        {selectedPackage && tier && (
-          <SwipeableItemCard
-            title={selectedPackage.name}
-            subtitle={`${tier.name} Tier`}
-            price={`Rs. ${formatPrice(tier.price)}`}
-            icon="card-outline"
-            onDelete={() => {
-              setSelectedPackage(null);
-              setTier(null);
-            }}
-          />
-        )}
 
         {invoiceItems.map((item) => (
           <SwipeableItemCard
@@ -494,7 +429,7 @@ export default function AddInvoice() {
           />
         ))}
 
-        {invoiceItems.length === 0 && !tier && (
+        {invoiceItems.length === 0 && (
           <View style={{ padding: 40, alignItems: "center" }}>
             <Text style={{ color: colors.SECONDARY, fontSize: 13 }}>
               No items added yet
