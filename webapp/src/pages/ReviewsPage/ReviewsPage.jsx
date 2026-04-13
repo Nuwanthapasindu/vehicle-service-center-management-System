@@ -34,7 +34,8 @@ function ReviewsPage() {
             ]);
 
             if (reviewsRes.data?.payload) {
-                setReviews(reviewsRes.data.payload.reviews || []);
+                const fetchedReviews = reviewsRes.data.payload.reviews || [];
+                setReviews(prev => page === 1 ? fetchedReviews : [...prev, ...fetchedReviews]);
                 setStats(reviewsRes.data.payload.stats || {
                     average: 0, total: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
                 });
@@ -135,9 +136,9 @@ function ReviewsPage() {
                                 </div>
                                 {isServiceDropdownOpen && (
                                     <div className="service-dropdown shadow-xl">
-                                        <div className="dropdown-item" onClick={() => { setFilterService('All Services'); setIsServiceDropdownOpen(false); }}>All Services</div>
+                                        <div className="dropdown-item" onClick={() => { setFilterService('All Services'); setPage(1); setIsServiceDropdownOpen(false); }}>All Services</div>
                                         {services.map(s => (
-                                            <div key={s._id} className="dropdown-item" onClick={() => { setFilterService(s.name); setIsServiceDropdownOpen(false); }}>{s.name}</div>
+                                            <div key={s._id} className="dropdown-item" onClick={() => { setFilterService(s.name); setPage(1); setIsServiceDropdownOpen(false); }}>{s.name}</div>
                                         ))}
                                     </div>
                                 )}
@@ -145,8 +146,8 @@ function ReviewsPage() {
                         </div>
 
                         <div className="sort-group">
-                            <div className={`sort-btn ${sortBy === 'recent' ? 'active' : ''}`} onClick={() => setSortBy('recent')}>Recent</div>
-                            <div className={`sort-btn ${sortBy === 'top-rated' ? 'active' : ''}`} onClick={() => setSortBy('top-rated')}>Top Rated</div>
+                            <div className={`sort-btn ${sortBy === 'recent' ? 'active' : ''}`} onClick={() => { setSortBy('recent'); setPage(1); }}>Recent</div>
+                            <div className={`sort-btn ${sortBy === 'top-rated' ? 'active' : ''}`} onClick={() => { setSortBy('top-rated'); setPage(1); }}>Top Rated</div>
                         </div>
 
                         <div className="reviews-count-meta">

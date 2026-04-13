@@ -226,8 +226,7 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
         // Fetch related JobCard (if exists)
         const jobCard = await JobCard.findOne({ booking: bookingId, isDeleted: false })
             .populate("selectedPackage", "name")
-            .populate("selectedPackageTier", "tierName")
-            .populate("assignedTeam", "name");
+            .populate("team", "name");
 
         // Fetch all active teams
         const Team = require("../model/Team");
@@ -249,10 +248,9 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
 
         if (jobCard) {
             servicePkg = jobCard.selectedPackage ? jobCard.selectedPackage.name : null;
-            tier = jobCard.selectedPackageTier ? jobCard.selectedPackageTier.tierName : null;
             statusZ = jobCard.status;
-            if (jobCard.assignedTeam) {
-                assignedT = jobCard.assignedTeam._id;
+            if (jobCard.team) {
+                assignedT = jobCard.team._id;
             }
         }
 
