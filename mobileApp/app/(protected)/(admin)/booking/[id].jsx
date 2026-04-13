@@ -10,6 +10,7 @@ import { Drawer } from "expo-router/drawer";
 import axios from "axios";
 import colors from "../../../../constants/colors";
 import getImageFullUrl from "../../../../utils/getImageFullUrl";
+import enums from "../../../../constants/enums";
 
 const { width, height } = Dimensions.get("window");
 
@@ -26,12 +27,12 @@ export default function BookingDetails() {
   const [packages, setPackages] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [selectedTier, setSelectedTier] = useState(null);
-  const [statusZone, setStatusZone] = useState("PENDING");
+  const [statusZone, setStatusZone] = useState(enums.JOBCARD_STATUS.PENDING);
 
   const [activeDropdown, setActiveDropdown] = useState(null); // 'package' | 'tier' | 'status'
 
   const FALLBACK_IMG = require("../../../../assets/default-car.png");
-  const STATUSES = ["PENDING", "IN_PROGRESS", "COMPLETED"];
+  const STATUSES = Object.values(enums.JOBCARD_STATUS);
 
   useEffect(() => {
     fetchData();
@@ -53,18 +54,22 @@ export default function BookingDetails() {
 
       if (details.assignedTeam) setAssignedTeam(details.assignedTeam);
 
-      // If backend has existing service data
-      if (details.service && details.service.package) {
-        setSelectedPackage({ name: details.service.package });
-        if (details.service.pricingTier) {
-          setSelectedTier({ tierName: details.service.pricingTier });
-        }
-        setStatusZone(details.service.statusZone || "PENDING");
-      }
-
       // Fetch Packages List for Dropdown
       const pkgResponse = await axios.get(`/job-cards/packages`);
-      setPackages(pkgResponse.data.payload.data || []);
+      const fetchedPackages = pkgResponse.data.payload.data || [];
+      setPackages(fetchedPackages);
+
+      // If backend has existing service data
+      if (details.service && details.service.package) {
+        const matchedPackage = fetchedPackages.find(p => p.name === details.service.package) || { name: details.service.package };
+        setSelectedPackage(matchedPackage);
+
+        if (details.service.pricingTier) {
+          const matchedTier = matchedPackage.pricingTiers?.find(t => t.tierName === details.service.pricingTier) || { tierName: details.service.pricingTier };
+          setSelectedTier(matchedTier);
+        }
+        setStatusZone(details.service.statusZone || enums.JOBCARD_STATUS.PENDING);
+      }
 
     } catch (error) {
       console.error("Error fetching admin booking details:", error);
@@ -75,9 +80,9 @@ export default function BookingDetails() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'PENDING': return '#F59E0B'; // Orange
-      case 'IN_PROGRESS': return '#3B82F6'; // Blue
-      case 'COMPLETED': return '#10B981'; // Green
+      case enums.JOBCARD_STATUS.PENDING: return '#F59E0B'; // Orange
+      case enums.JOBCARD_STATUS.START: return '#3B82F6'; // Blue
+      case enums.JOBCARD_STATUS.FINISH: return '#10B981'; // Green
       default: return '#F59E0B';
     }
   };
@@ -168,7 +173,7 @@ export default function BookingDetails() {
             <Ionicons name="time-outline" size={16} color={colors.SECONDARY} />
             <Text style={styles.timeText}>{data.time || "Unknown"}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusZone === 'PENDING' ? "#FEF3C7" : "#E0F2FE" }]}>
+          <View style={[styles.statusBadge, { backgroundColor: statusZone === enums.JOBCARD_STATUS.PENDING ? "#FEF3C7" : "#E0F2FE" }]}>
             <View style={[styles.dot, { backgroundColor: getStatusColor(statusZone) }]} />
             <Text style={[styles.statusBadgeText, { color: getStatusColor(statusZone) }]}>{statusZone}</Text>
           </View>

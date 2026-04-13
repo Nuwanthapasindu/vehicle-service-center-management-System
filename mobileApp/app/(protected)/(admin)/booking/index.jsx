@@ -24,6 +24,7 @@ export default function Bookings() {
 
   const fetchSchedule = async () => {
     setLoading(true);
+    setScheduleData([]);
     try {
       const dateStr = dates[selectedDateIndex].isoDate;
       const response = await axios.get(`/timeslot/schedule?date=${dateStr}`);
@@ -32,6 +33,7 @@ export default function Bookings() {
       }
     } catch (error) {
       console.error("Error fetching schedule:", error?.response?.data || error.message);
+      setScheduleData([]);
     } finally {
       setLoading(false);
     }
