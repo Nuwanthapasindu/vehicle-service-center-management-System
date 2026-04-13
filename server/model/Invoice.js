@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const { v4: uuidv4 } = require("uuid");
 const constants = require("../util/constants");
 
 const invoiceSchema = new Schema(
@@ -7,7 +8,7 @@ const invoiceSchema = new Schema(
     invoiceId: {
       type: String,
       unique: true,
-      default: Date.now().toString(),
+      default: () => uuidv4(),
     },
     jobCard: {
       type: Schema.Types.ObjectId,

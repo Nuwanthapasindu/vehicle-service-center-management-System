@@ -91,7 +91,7 @@ const { authTokenMiddleware } = require("../middleware/auth");
  *       500:
  *         description: Internal server error
  */
-router.post("/", (req, res, next) => {
+router.post("/", authTokenMiddleware, (req, res, next) => {
   const builder = new responseBuilder(res);
   createInvoice(req.body)
     .then((message) => {

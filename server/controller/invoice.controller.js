@@ -12,7 +12,7 @@ const {
   validatedAddInvoiceItem,
   validatedRemoveInvoiceItem,
 } = require("../validation/invoice.validation");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 /**
  * Create a new invoice tied seamlessly to either a JobCard or a Walk-in Customer.
