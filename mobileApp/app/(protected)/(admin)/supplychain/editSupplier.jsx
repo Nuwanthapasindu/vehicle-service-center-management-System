@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Info, Phone, Trash2, Box, PlusCircle } from 'lucide-react-native';
+import { ChevronLeft, Info, Phone, Trash2, Box, PlusCircle, ChevronDown } from 'lucide-react-native';
 import axios from 'axios';
 import { Formik } from 'formik';
 import { supplierValidationSchema } from '../../../../schema/supplier.schema';
@@ -23,6 +23,21 @@ export default function EditSupplier({ supplier, onBack, API }) {
     companyMobile: supplier?.companyMobile?.length ? supplier.companyMobile : [''],
     items: supplier?.items?.length ? supplier.items : [''],
   };
+
+  const [inventoryList, setInventoryList] = React.useState([]);
+  const [activeDropdownIndex, setActiveDropdownIndex] = React.useState(null);
+
+  React.useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const response = await axios.get(`${API}/v1/inventory`);
+        setInventoryList(response.data?.payload?.data || []);
+      } catch (err) {
+        console.error("Failed to fetch inventory:", err);
+      }
+    };
+    fetchInventory();
+  }, []);
 
   const handleUpdate = async (values, { setSubmitting }) => {
     try {
@@ -186,20 +201,39 @@ export default function EditSupplier({ supplier, onBack, API }) {
                         help={touched.items && errors.items && errors.items[index] ? errors.items[index] : null} 
                         status={touched.items && errors.items && errors.items[index] ? 'error' : ''}
                       >
-                        <View style={styles.searchSection}>
+                        <TouchableOpacity 
+                          style={[styles.searchSection, { paddingVertical: 12, paddingHorizontal: 15 }]}
+                          onPress={() => setActiveDropdownIndex(activeDropdownIndex === index ? null : index)}
+                        >
                           <Box size={20} color="#9CA3AF" style={styles.searchIcon} />
-                          <TextInput
-                            style={styles.searchInput}
-                            placeholder="Type item name (e.g. Brake Pads)"
-                            value={itemValue}
-                            onChangeText={(text) => {
-                              const newItems = [...values.items];
-                              newItems[index] = text;
-                              setFieldValue('items', newItems);
-                            }}
-                            onBlur={handleBlur(`items[${index}]`)}
-                          />
-                        </View>
+                          <Text style={{ flex: 1, color: itemValue ? '#1F2937' : '#9CA3AF' }}>
+                            {itemValue || "Select item..."}
+                          </Text>
+                          <ChevronDown size={20} color="#9CA3AF" />
+                        </TouchableOpacity>
+                        {activeDropdownIndex === index && (
+                          <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, marginTop: 5, maxHeight: 150 }}>
+                            <ScrollView nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+                              {inventoryList.map((invItem) => (
+                                <TouchableOpacity 
+                                  key={invItem._id} 
+                                  style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }} 
+                                  onPress={() => { 
+                                    const newItems = [...values.items];
+                                    newItems[index] = invItem.name;
+                                    setFieldValue('items', newItems);
+                                    setActiveDropdownIndex(null);
+                                  }}
+                                >
+                                  <Text style={{ color: '#1F2937' }}>{invItem.name}</Text>
+                                </TouchableOpacity>
+                              ))}
+                              {inventoryList.length === 0 && (
+                                <View style={{ padding: 10 }}><Text style={{ color: '#9CA3AF' }}>No inventory items found.</Text></View>
+                              )}
+                            </ScrollView>
+                          </View>
+                        )}
                       </Form.Item>
                     </View>
 

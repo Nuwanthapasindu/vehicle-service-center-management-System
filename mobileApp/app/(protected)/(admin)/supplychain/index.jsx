@@ -34,14 +34,20 @@ const fetchData = async () => {
       const response = await axios.get(`${API_URL}/suppliers`);
       setData(response.data?.payload?.suppliers || []);
     } else {
-      setData([]); 
+      const response = await axios.get(`${API_URL}/purchaseOrders`);
+      const rawOrders = response.data?.payload?.orders || [];
+      const ordersWithCost = rawOrders.map(o => {
+        const totalCost = o.items?.reduce((sum, item) => sum + ((item.cost || 0) * (item.qty || 1)), 0);
+        return { ...o, totalCost };
+      });
+      setData(ordersWithCost); 
     }
 
-    /*
-    const stockRes = await axios.get(`${API_URL}/inventory/low-stock`);
-    setLowStockItems(stockRes.data);
-    setLowStockWarning(stockRes.data.length > 0);
-    */
+    const stockRes = await axios.get(`${API_URL}/v1/inventory`);
+    const invData = stockRes.data?.payload?.data || [];
+    const lowStock = invData.filter(item => item.qty <= (item.reorderLevel !== undefined ? item.reorderLevel : 10));
+    setLowStockItems(lowStock);
+    setLowStockWarning(lowStock.length > 0);
   } catch (error) {
     console.error("Fetch Error:", error.response?.data || error.message);
   } finally {
@@ -59,7 +65,7 @@ const fetchData = async () => {
   const getFilteredData = () => {
     if (!searchText) return data;
     return data.filter(item => {
-      const searchStr = activeTab === 'SUPPLIERS' ? item.companyName : item.supplierId?.companyName;
+      const searchStr = activeTab === 'SUPPLIERS' ? item.companyName : item.supplier?.companyName;
       return searchStr?.toLowerCase().includes(searchText.toLowerCase());
     });
   };
@@ -145,13 +151,13 @@ const fetchData = async () => {
             >
               <View style={[styles.cardContent, { flex: 1 }]}>
                 <Text style={styles.supplierName}>
-                  {activeTab === 'SUPPLIERS' ? item.companyName : item.supplierId?.companyName || "Unknown Supplier"}
+                  {activeTab === 'SUPPLIERS' ? item.companyName : item.supplier?.companyName || "Unknown Supplier"}
                 </Text>
 
                 {activeTab === 'SUPPLIERS' ? (
                   <Text style={styles.infoText}>Agent: {item.agentName || 'N/A'}</Text>
                 ) : (
-                  <Text style={styles.subtitle}>{item.items?.length || 0} Items - {item.status}</Text>
+                  <Text style={styles.subtitle}>{item.items?.length || 0} Items - {item.status === 'Sent' ? 'Pending' : item.status}</Text>
                 )}
               </View>
 
