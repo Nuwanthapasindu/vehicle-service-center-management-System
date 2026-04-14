@@ -50,6 +50,10 @@ const enums = Object.freeze({
     "Diagnostics",
     "Tire Service",
   ],
+  INVOICE_STATUS: {
+    COMPLETED: "COMPLETED",
+    WORK_IN_PROGRESS: "WORK IN PROGRESS",
+  },
 });
 
 export default enums;

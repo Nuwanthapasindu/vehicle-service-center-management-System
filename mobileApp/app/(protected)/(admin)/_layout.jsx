@@ -139,6 +139,18 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
+          name="invoice"
+          options={{
+            drawerLabel: "Invoice",
+            title: "All Invoice",
+            headerShown: false,
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="newspaper-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
           name="Profile"
           options={{
             drawerLabel: "Profile",
@@ -150,30 +162,30 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-            name="(employee)"
-            options={{
-              headerShown: false,
-              drawerLabel: "Employee", 
-              title: "EMPLOYEE DIRECTORY", 
-              drawerIcon: ({ color, size }) => (
-                <Ionicons name="person-outline" size={size} color={color} />
-              ),
-            }}
+          name="(employee)"
+          options={{
+            headerShown: false,
+            drawerLabel: "Employee",
+            title: "EMPLOYEE DIRECTORY",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="person-outline" size={size} color={color} />
+            ),
+          }}
         />
 
         {/* Hidden Team Route - Shows in header but hidden from Drawer Menu */}
         <Drawer.Screen
-           name="(team)"
-           options={{
-             headerShown: false,
-             drawerLabel: "Teams", // This removes it from the sidebar
-             title: "TEAM DIRECTORY",             // This shows only in the header
-             drawerIcon: ({ color, size }) => (
-                <Ionicons name="people-outline" size={size} color={color} />
-              ),
-            }}
+          name="(team)"
+          options={{
+            headerShown: false,
+            drawerLabel: "Teams", // This removes it from the sidebar
+            title: "TEAM DIRECTORY", // This shows only in the header
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="people-outline" size={size} color={color} />
+            ),
+          }}
         />
-        
+
         <Drawer.Screen
            name="(jobcard)"
            options={{
@@ -196,6 +208,7 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
+
         <Drawer.Screen
           name="timeslots"
           options={{
@@ -203,7 +216,10 @@ export default function AdminDrawerLayout() {
             title: "Time Slot Configuration",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="time-outline" size={size} color={color} />
-        
+            ),
+          }}
+        />
+
         <Drawer.Screen
           name="(Inventory)"
           options={{

@@ -52,7 +52,7 @@ const {
   getServiceById,
   updateService,
   deleteService,
-  bulkPriceUpdate,
+  getAllServicesForJobCard: getAllPublicServices,
 } = require("../controller/service.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
@@ -179,7 +179,7 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
  *                 pages:
  *                   type: integer
  */
-router.get("/", (req, res, next) => {
+router.get("/", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const query = req.query;
 
@@ -190,6 +190,37 @@ router.get("/", (req, res, next) => {
     })
     .catch((error) => next(error));
 });
+
+/**
+ * @swagger
+ * /api/v1/service/public:
+ *   get:
+ *     summary: Get all services for public users
+ *     tags: [Service]
+ *     responses:
+ *       200:
+ *         description: Successful retrieval
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 services:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Service'
+ */
+router.get("/public", (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+
+  getAllPublicServices()
+    .then((services) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ services });
+    })
+    .catch((error) => next(error));
+});
+
 
 /**
  * @swagger
@@ -214,7 +245,7 @@ router.get("/", (req, res, next) => {
  *       404:
  *         description: Service not found
  */
-router.get("/:id", (req, res, next) => {
+router.get("/:id", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { id } = req.params;
 
@@ -323,5 +354,6 @@ router.delete("/:id", authTokenMiddleware, (req, res, next) => {
     })
     .catch((error) => next(error));
 });
+
 
 module.exports = router;
