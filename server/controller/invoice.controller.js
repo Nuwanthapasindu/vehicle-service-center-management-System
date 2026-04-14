@@ -241,7 +241,6 @@ exports.getInvoiceById = async (invoiceId) => {
         {
           path: "additionalItems.item",
           select: [
-            "-_id",
             "-__v",
             "-createdAt",
             "-updatedAt",
@@ -252,7 +251,6 @@ exports.getInvoiceById = async (invoiceId) => {
         {
           path: "additionalServices.service",
           select: [
-            "-_id",
             "-__v",
             "-createdAt",
             "-updatedAt",
