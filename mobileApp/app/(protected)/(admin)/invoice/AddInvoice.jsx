@@ -250,7 +250,7 @@ export default function AddInvoice() {
             invoiceResp?.data?.message || "Invoice successfully finalized.",
           position: "top",
         });
-        router.replace(`/invoice/${invoiceId}`); // Navigate to Details page
+        router.replace(`/(protected)/(admin)/invoice/${invoiceId}`); // Navigate to Details page
       } else {
         Toast.show({
           type: "success",
