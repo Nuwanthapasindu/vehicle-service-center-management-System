@@ -406,6 +406,8 @@ exports.removeInvoiceItem = async (invoiceId, payload) => {
  * @returns {Promise<string>} - Success message
  */
 exports.completeInvoice = async (invoiceId, authUser) => {
+  let stockReduced = false;
+  let inventoryItems = [];
   try {
     if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
       throw new AppError("Invalid invoice ID provided", 400);
@@ -421,13 +423,12 @@ exports.completeInvoice = async (invoiceId, authUser) => {
     }
 
     // 1. Prepare items for inventory synchronization
-    const inventoryItems = (invoice.additionalItems || []).map((i) => ({
+    inventoryItems = (invoice.additionalItems || []).map((i) => ({
       inventoryId: i.item.toString(),
       quantity: i.qty,
     }));
 
     // 2. Reduce Stock
-    let stockReduced = false;
     if (inventoryItems.length > 0) {
       const payload = { items: inventoryItems };
       await reduceStockByInvoice(payload, authUser);
@@ -435,28 +436,23 @@ exports.completeInvoice = async (invoiceId, authUser) => {
     }
 
     // 3. Mark as completed
-    try {
-      invoice.isCompleted = true;
-      await invoice.save();
-    } catch (saveError) {
-      // Manual Rollback if invoice save fails
-      if (stockReduced) {
-        // Rewind completely via mapped logic
+    invoice.isCompleted = true;
+    await invoice.save();
+
+    return `${invoice.invoiceId || "Invoice"} completed successfully`;
+  } catch (error) {
+    if (stockReduced) {
         const rollbackPayload = {
           items: inventoryItems.map((i) => ({
             inventoryId: i.inventoryId,
             quantityReceived: i.quantity,
           })),
         };
-        // Auto-revert silently capturing errors
-        await increaseStockByPO(rollbackPayload, authUser).catch(console.error);
-      }
-      throw new AppError("Failed to complete invoice. Stock has been safely reverted.", 500);
+      // Auto-revert silently capturing errors
+      await increaseStockByPO(rollbackPayload, authUser).catch(console.error);
     }
 
-    return `${invoice.invoiceId || "Invoice"} completed successfully`;
-  } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError("Failed to complete invoice", 500);
+    throw new AppError("Failed to complete invoice. If stock was deducted it has been safely reverted.", 500);
   }
 };
