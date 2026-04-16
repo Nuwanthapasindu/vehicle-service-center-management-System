@@ -40,10 +40,25 @@ const createInvoiceSchema = Joi.object({
         "any.required": "Selected package tier details are required",
       }),
   })
-    .required()
+    .optional()
     .messages({
       "any.required": "Selected package is required",
     }),
+    
+  additionalItems: Joi.array().items(
+    Joi.object({
+      item: Joi.string().length(24).hex().required(),
+      qty: Joi.number().integer().min(1).required(),
+      sellingPrice: Joi.number().min(0).required()
+    })
+  ).optional(),
+
+  additionalServices: Joi.array().items(
+    Joi.object({
+      service: Joi.string().length(24).hex().required(),
+      charge: Joi.number().min(0).required()
+    })
+  ).optional()
 })
   .xor("jobCard", "customer")
   .messages({

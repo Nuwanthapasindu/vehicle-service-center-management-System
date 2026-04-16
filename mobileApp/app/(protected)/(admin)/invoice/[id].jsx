@@ -183,7 +183,7 @@ export default function ViewInvoice() {
             title={item.item?.itemName || item.item?.name || 'Item'}
             subtitle={`Qty: ${item.qty} ${item.item?.unitType || ''}`}
             price={formatPrice((item.sellingPrice || 0) * (item.qty || 1))}
-            onDelete={() => handleRemoveItem('ITEM', item.item?._id || item.item)}
+            onDelete={() => handleRemoveItem('ITEM', item.item?._id)}
             disabled={isPaid}
           />
         ))}
@@ -195,7 +195,7 @@ export default function ViewInvoice() {
             title={service.service?.serviceName || service.service?.name || 'Service'}
             subtitle={'Labor & Service'}
             price={formatPrice(service.charge)}
-            onDelete={() => handleRemoveItem('SERVICE', service.service?._id || service.service)}
+            onDelete={() => handleRemoveItem('SERVICE', service.service?._id)}
             disabled={isPaid}
           />
         ))}

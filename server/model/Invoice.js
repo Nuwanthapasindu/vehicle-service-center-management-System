@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const crypto = require("crypto");
 const constants = require("../util/constants");
 
 const invoiceSchema = new Schema(
@@ -7,7 +8,12 @@ const invoiceSchema = new Schema(
     invoiceId: {
       type: String,
       unique: true,
-      default: Date.now().toString(),
+      default: () => {
+        const date = new Date();
+        const datePart = date.toISOString().slice(2, 10).replace(/-/g, ""); // YYMMDD
+        const randomPart = crypto.randomBytes(2).toString("hex").toUpperCase(); // 4 chars
+        return `INV${datePart}${randomPart}`;
+      },
     },
     jobCard: {
       type: Schema.Types.ObjectId,
@@ -22,8 +28,14 @@ const invoiceSchema = new Schema(
     selectedPackage: {
       package: { type: Schema.Types.ObjectId, ref: "Package" },
       selectedPackageTier: {
-        name: { type: String, required: true },
-        price: { type: Number, required: true },
+        name: { 
+          type: String, 
+          required: function() { return this.selectedPackage && this.selectedPackage.package; } 
+        },
+        price: { 
+          type: Number, 
+          required: function() { return this.selectedPackage && this.selectedPackage.package; } 
+        },
       },
     },
     additionalItems: [

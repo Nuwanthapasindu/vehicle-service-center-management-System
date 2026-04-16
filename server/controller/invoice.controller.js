@@ -12,7 +12,7 @@ const {
   validatedAddInvoiceItem,
   validatedRemoveInvoiceItem,
 } = require("../validation/invoice.validation");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 /**
  * Create a new invoice tied seamlessly to either a JobCard or a Walk-in Customer.
@@ -93,17 +93,39 @@ exports.createInvoice = async (payload) => {
       }
     }
 
+    if (value.additionalItems && value.additionalItems.length > 0) {
+      for (const add of value.additionalItems) {
+        const inventoryItem = await Inventory.findOne({ _id: add.item, isDeleted: false });
+        if (!inventoryItem) throw new AppError(`Inventory item not found`, 404);
+        if (inventoryItem.qty < add.qty) {
+          throw new AppError(`Insufficient quantity for ${inventoryItem.itemName}. Only ${inventoryItem.qty} left.`, 400);
+        }
+        if (!add.sellingPrice || add.sellingPrice === 0) add.sellingPrice = inventoryItem.sellingPrice;
+      }
+      saveData.additionalItems = value.additionalItems;
+    }
+
+    if (value.additionalServices && value.additionalServices.length > 0) {
+      for (const add of value.additionalServices) {
+        const serviceItem = await Service.findOne({ _id: add.service, isDeleted: false });
+        if (!serviceItem) throw new AppError(`Service not found`, 404);
+      }
+      saveData.additionalServices = value.additionalServices;
+    }
+
     const newInvoice = new Invoice({
       ...saveData,
-      selectedPackage: value.selectedPackage,
     });
+    if (value.selectedPackage) {
+      newInvoice.selectedPackage = value.selectedPackage;
+    }
     await newInvoice.save();
-    return `${newInvoice?.invoiceId || "Invoice"} created successfully`;
+    return { id: newInvoice._id, message: `Invoice created successfully ${newInvoice.invoiceId}` };
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
     }
-    throw new AppError("Failed to create invoice", 500);
+    throw new AppError(`Failed to create invoice: ${error.message || "Unknown db error"}`, 500);
   }
 };
 /**
@@ -219,7 +241,6 @@ exports.getInvoiceById = async (invoiceId) => {
         {
           path: "additionalItems.item",
           select: [
-            "-_id",
             "-__v",
             "-createdAt",
             "-updatedAt",
@@ -230,7 +251,6 @@ exports.getInvoiceById = async (invoiceId) => {
         {
           path: "additionalServices.service",
           select: [
-            "-_id",
             "-__v",
             "-createdAt",
             "-updatedAt",
@@ -386,6 +406,8 @@ exports.removeInvoiceItem = async (invoiceId, payload) => {
  * @returns {Promise<string>} - Success message
  */
 exports.completeInvoice = async (invoiceId, authUser) => {
+  let stockReduced = false;
+  let inventoryItems = [];
   try {
     if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
       throw new AppError("Invalid invoice ID provided", 400);
@@ -401,13 +423,12 @@ exports.completeInvoice = async (invoiceId, authUser) => {
     }
 
     // 1. Prepare items for inventory synchronization
-    const inventoryItems = (invoice.additionalItems || []).map((i) => ({
+    inventoryItems = (invoice.additionalItems || []).map((i) => ({
       inventoryId: i.item.toString(),
       quantity: i.qty,
     }));
 
     // 2. Reduce Stock
-    let stockReduced = false;
     if (inventoryItems.length > 0) {
       const payload = { items: inventoryItems };
       await reduceStockByInvoice(payload, authUser);
@@ -415,28 +436,23 @@ exports.completeInvoice = async (invoiceId, authUser) => {
     }
 
     // 3. Mark as completed
-    try {
-      invoice.isCompleted = true;
-      await invoice.save();
-    } catch (saveError) {
-      // Manual Rollback if invoice save fails
-      if (stockReduced) {
-        // Rewind completely via mapped logic
+    invoice.isCompleted = true;
+    await invoice.save();
+
+    return `${invoice.invoiceId || "Invoice"} completed successfully`;
+  } catch (error) {
+    if (stockReduced) {
         const rollbackPayload = {
           items: inventoryItems.map((i) => ({
             inventoryId: i.inventoryId,
             quantityReceived: i.quantity,
           })),
         };
-        // Auto-revert silently capturing errors
-        await increaseStockByPO(rollbackPayload, authUser).catch(console.error);
-      }
-      throw new AppError("Failed to complete invoice. Stock has been safely reverted.", 500);
+      // Auto-revert silently capturing errors
+      await increaseStockByPO(rollbackPayload, authUser).catch(console.error);
     }
 
-    return `${invoice.invoiceId || "Invoice"} completed successfully`;
-  } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError("Failed to complete invoice", 500);
+    throw new AppError("Failed to complete invoice. If stock was deducted it has been safely reverted.", 500);
   }
 };
