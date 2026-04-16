@@ -6,10 +6,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Drawer } from "expo-router/drawer";
 import axios from "axios";
 import colors from "../../../../constants/colors";
 import getImageFullUrl from "../../../../utils/getImageFullUrl";
+import getStatusColor from "../../../../utils/getStatusColor";
+import DropdownInput from "../../../../components/DropdownInput";
+import Toast from "react-native-toast-message";
 import enums from "../../../../constants/enums";
 
 const { width, height } = Dimensions.get("window");
@@ -27,9 +29,7 @@ export default function BookingDetails() {
   const [packages, setPackages] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [selectedTier, setSelectedTier] = useState(null);
-  const [statusZone, setStatusZone] = useState(enums.JOBCARD_STATUS.PENDING);
-
-  const [activeDropdown, setActiveDropdown] = useState(null); // 'package' | 'tier' | 'status'
+  const [statusZone, setStatusZone] = useState("PENDING");
 
   const FALLBACK_IMG = require("../../../../assets/default-car.png");
   const STATUSES = Object.values(enums.JOBCARD_STATUS);
@@ -47,89 +47,51 @@ export default function BookingDetails() {
     setImgError(false);
 
     try {
-      // Fetch Booking Details
-      const response = await axios.get(`/booking/admin/${id}/details`);
-      const details = response.data.payload.data;
+      // Fetch Booking Details and Packages in parallel to reconcile them
+      const [bookingResponse, pkgResponse] = await Promise.all([
+        axios.get(`/booking/admin/${id}/details`),
+        axios.get(`/job-cards/packages`)
+      ]);
+
+      const details = bookingResponse.data.payload.data;
+      const allPackages = pkgResponse.data.payload.data || [];
+
       setData(details);
+      setPackages(allPackages);
 
       if (details.assignedTeam) setAssignedTeam(details.assignedTeam);
 
-      // Fetch Packages List for Dropdown
-      const pkgResponse = await axios.get(`/job-cards/packages`);
-      const fetchedPackages = pkgResponse.data.payload.data || [];
-      setPackages(fetchedPackages);
-
-      // If backend has existing service data
+      // Hydrate selections using the full packages list to ensure pricingTiers are available
       if (details.service && details.service.package) {
-        const matchedPackage = fetchedPackages.find(p => p.name === details.service.package) || { name: details.service.package };
-        setSelectedPackage(matchedPackage);
-
-        if (details.service.pricingTier) {
-          const matchedTier = matchedPackage.pricingTiers?.find(t => t.tierName === details.service.pricingTier) || { tierName: details.service.pricingTier };
-          setSelectedTier(matchedTier);
+        const fullPkg = allPackages.find(p => p.name === details.service.package);
+        if (fullPkg) {
+          setSelectedPackage(fullPkg);
+          if (details.service.pricingTier) {
+            const fullTier = fullPkg.pricingTiers?.find(t => t.tierName === details.service.pricingTier);
+            if (fullTier) {
+              setSelectedTier(fullTier);
+            }
+          }
+        } else {
+          // Fallback if full package info is not found
+          setSelectedPackage({ name: details.service.package });
         }
-        setStatusZone(details.service.statusZone || enums.JOBCARD_STATUS.PENDING);
+        setStatusZone(details.service.statusZone || "PENDING");
       }
 
     } catch (error) {
-      console.error("Error fetching admin booking details:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.response?.data?.payload?.message || "Failed to fetch booking details",
+      });
+      router.push("/(protected)/(admin)/booking");
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case enums.JOBCARD_STATUS.PENDING: return '#F59E0B'; // Orange
-      case enums.JOBCARD_STATUS.START: return '#3B82F6'; // Blue
-      case enums.JOBCARD_STATUS.FINISH: return '#10B981'; // Green
-      default: return '#F59E0B';
-    }
-  };
 
-  const openDropdown = (type) => {
-    setActiveDropdown(type);
-  };
-
-  const closeDropdown = () => setActiveDropdown(null);
-
-  const handleSelect = (item) => {
-    if (activeDropdown === 'package') {
-      setSelectedPackage(item);
-      setSelectedTier(null); // reset tier when package changes
-    } else if (activeDropdown === 'tier') {
-      setSelectedTier(item);
-    } else if (activeDropdown === 'status') {
-      setStatusZone(item);
-    }
-    closeDropdown();
-  };
-
-  // Render Modal List Items based on what's active
-  const renderDropdownItems = () => {
-    if (activeDropdown === 'package') {
-      return packages.map((pkg, idx) => (
-        <TouchableOpacity key={idx} style={styles.dropdownOption} onPress={() => handleSelect(pkg)}>
-          <Text style={styles.dropdownOptionText}>{pkg.name}</Text>
-        </TouchableOpacity>
-      ));
-    } else if (activeDropdown === 'tier') {
-      if (!selectedPackage || !selectedPackage.pricingTiers) {
-        return <Text style={{ padding: 20, textAlign: 'center', color: colors.SECONDARY }}>Select a package first</Text>;
-      }
-      return selectedPackage.pricingTiers.map((tier, idx) => (
-        <TouchableOpacity key={idx} style={styles.dropdownOption} onPress={() => handleSelect(tier)}>
-          <Text style={styles.dropdownOptionText}>{tier.tierName} - LKR {tier.price}</Text>
-        </TouchableOpacity>
-      ));
-    } else if (activeDropdown === 'status') {
-      return STATUSES.map((status, idx) => (
-        <TouchableOpacity key={idx} style={styles.dropdownOption} onPress={() => handleSelect(status)}>
-          <Text style={[styles.dropdownOptionText, { color: getStatusColor(status), fontWeight: 'bold' }]}>{status}</Text>
-        </TouchableOpacity>
-      ));
-    }
-  };
 
   if (loading) {
     return (
@@ -150,12 +112,11 @@ export default function BookingDetails() {
     );
   }
 
-  const imgSource = data.vehicle.image ? { uri: getImageFullUrl(data.vehicle.image) } : FALLBACK_IMG;
+  const imagePath = typeof data.vehicle.image === 'object' ? data.vehicle.image?.filePath : data.vehicle.image;
+  const imgSource = imagePath ? { uri: getImageFullUrl(imagePath) } : FALLBACK_IMG;
 
   return (
     <SafeAreaView style={styles.container}>
-      <Drawer.Screen options={{ headerShown: false }} />
-
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.push("/(protected)/(admin)/booking")}>
@@ -173,7 +134,7 @@ export default function BookingDetails() {
             <Ionicons name="time-outline" size={16} color={colors.SECONDARY} />
             <Text style={styles.timeText}>{data.time || "Unknown"}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusZone === enums.JOBCARD_STATUS.PENDING ? "#FEF3C7" : "#E0F2FE" }]}>
+          <View style={[styles.statusBadge, { backgroundColor: statusZone === 'PENDING' ? "#FEF3C7" : "#E0F2FE" }]}>
             <View style={[styles.dot, { backgroundColor: getStatusColor(statusZone) }]} />
             <Text style={[styles.statusBadgeText, { color: getStatusColor(statusZone) }]}>{statusZone}</Text>
           </View>
@@ -211,24 +172,40 @@ export default function BookingDetails() {
 
         <View style={styles.card}>
           <Text style={styles.label}>Assign Package / Service</Text>
-          <TouchableOpacity style={styles.dropdownInput} onPress={() => openDropdown('package')}>
-            <Ionicons name="search-outline" size={18} color={colors.SECONDARY} style={styles.inputIcon} />
-            <Text style={styles.inputText}>{selectedPackage ? selectedPackage.name : "Pending Selection"}</Text>
-            <Ionicons name="chevron-down" size={18} color={colors.SECONDARY} />
-          </TouchableOpacity>
+          <DropdownInput
+            value={selectedPackage ? selectedPackage.name : null}
+            options={packages.map(p => p.name)}
+            placeholder="Pending Selection"
+            modalTitle="Assign Package"
+            onSelect={(name) => {
+              const pkg = packages.find(p => p.name === name);
+              setSelectedPackage(pkg);
+              setSelectedTier(null);
+            }}
+          />
 
           <Text style={styles.label}>Select Pricing tier</Text>
-          <TouchableOpacity style={styles.dropdownInput} onPress={() => openDropdown('tier')}>
-            <Ionicons name="search-outline" size={18} color={colors.SECONDARY} style={styles.inputIcon} />
-            <Text style={styles.inputText}>{selectedTier ? selectedTier.tierName : "Pending Selection"}</Text>
-            <Ionicons name="chevron-down" size={18} color={colors.SECONDARY} />
-          </TouchableOpacity>
+          <DropdownInput
+            value={selectedTier ? (selectedTier.price !== undefined ? `${selectedTier.tierName} - LKR ${selectedTier.price}` : selectedTier.tierName) : null}
+            options={selectedPackage && selectedPackage.pricingTiers ? selectedPackage.pricingTiers.map(t => `${t.tierName} - LKR ${t.price}`) : []}
+            placeholder="Pending Selection"
+            modalTitle="Select Pricing tier"
+            onSelect={(str) => {
+              if (selectedPackage && selectedPackage.pricingTiers) {
+                const tr = selectedPackage.pricingTiers.find(t => `${t.tierName} - LKR ${t.price}` === str);
+                if (tr) setSelectedTier(tr);
+              }
+            }}
+          />
 
           <Text style={styles.label}>Status Zone</Text>
-          <TouchableOpacity style={styles.dropdownInput} onPress={() => openDropdown('status')}>
-            <Text style={[styles.inputText, { color: getStatusColor(statusZone), fontWeight: "bold" }]}>{statusZone}</Text>
-            <Ionicons name="chevron-expand" size={18} color={colors.SECONDARY} />
-          </TouchableOpacity>
+          <DropdownInput
+            value={statusZone}
+            options={STATUSES}
+            placeholder="Select Status"
+            modalTitle="Select Status"
+            onSelect={(s) => setStatusZone(s)}
+          />
         </View>
 
         {/* Team Assignment */}
@@ -297,17 +274,7 @@ export default function BookingDetails() {
         </TouchableOpacity>
       </View>
 
-      {/* Dropdown Modal */}
-      <Modal visible={activeDropdown !== null} transparent={true} animationType="fade">
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={closeDropdown}>
-          <View style={styles.modalContainer}>
-            <View style={styles.indicator} />
-            <ScrollView contentContainerStyle={{ paddingVertical: 10 }}>
-              {renderDropdownItems()}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+
 
     </SafeAreaView>
   );

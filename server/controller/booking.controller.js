@@ -5,6 +5,8 @@ const User = require("../model/User");
 const Vehicle = require("../model/Vehicle");
 const Invoice = require("../model/Invoice");
 const AppError = require("../error/AppError");
+const File = require("../model/File");
+const Team = require("../model/Team");
 const { JOBCARD_STATUS } = require("../util/constants");
 
 
@@ -211,6 +213,7 @@ module.exports.getDashboardData = async (mobile) => {
 module.exports.getAdminBookingDetails = async (bookingId) => {
     try {
         const booking = await Booking.findById(bookingId)
+            .select("date vehicle slot customer isDeleted")
             .populate("customer", "name mobile")
             .populate("vehicle", "make model licensePlate image")
             .populate("slot", "startTime endTime");
@@ -218,20 +221,18 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
         if (!booking || booking.isDeleted) throw new AppError("Booking not found", 404);
         let vehicleImagePath = null;
         if (booking.vehicle?.image) {
-            const File = require("../model/File");
-            const fileData = await File.findById(booking.vehicle.image);
+            const fileData = await File.findById(booking.vehicle.image).select("filePath");
             if (fileData) vehicleImagePath = fileData.filePath.replace(/\\/g, '/');
         }
 
         // Fetch related JobCard (if exists)
         const jobCard = await JobCard.findOne({ booking: bookingId, isDeleted: false })
+            .select("selectedPackage team status")
             .populate("selectedPackage", "name")
-            .populate("selectedPackageTier", "tierName")
-            .populate("assignedTeam", "name");
+            .populate("team", "name");
 
         // Fetch all active teams
-        const Team = require("../model/Team");
-        const teams = await Team.find({ isDeleted: false });
+        const teams = await Team.find({ isDeleted: false }).select("name");
 
         // Build Team list
         const formattedTeams = teams.map(team => {
@@ -249,10 +250,9 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
 
         if (jobCard) {
             servicePkg = jobCard.selectedPackage ? jobCard.selectedPackage.name : null;
-            tier = jobCard.selectedPackageTier ? jobCard.selectedPackageTier.tierName : null;
             statusZ = jobCard.status;
-            if (jobCard.assignedTeam) {
-                assignedT = jobCard.assignedTeam._id;
+            if (jobCard.team) {
+                assignedT = jobCard.team._id;
             }
         }
 

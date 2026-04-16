@@ -9,6 +9,8 @@ import axios from "axios";
 import colors from "../../../../constants/colors";
 import { useRouter } from "expo-router";
 import { generateNextDays } from "../../../../utils/dateUtils";
+import TimeSlotCard from "../../../../components/TimeSlotCard";
+import Toast from "react-native-toast-message";
 
 const { width } = Dimensions.get("window");
 
@@ -24,7 +26,7 @@ export default function Bookings() {
 
   const fetchSchedule = async () => {
     setLoading(true);
-    setScheduleData([]);
+    setScheduleData([]); // Reset stale data before fetching new results
     try {
       const dateStr = dates[selectedDateIndex].isoDate;
       const response = await axios.get(`/timeslot/schedule?date=${dateStr}`);
@@ -32,8 +34,12 @@ export default function Bookings() {
         setScheduleData(response.data.payload.schedule);
       }
     } catch (error) {
-      console.error("Error fetching schedule:", error?.response?.data || error.message);
-      setScheduleData([]);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.response?.data?.payload?.message || "Failed to fetch schedule",
+      });
+      setScheduleData([]); // Ensure it's cleared on error as well
     } finally {
       setLoading(false);
     }
@@ -66,68 +72,7 @@ export default function Bookings() {
     );
   };
 
-  const renderTimeSlot = (slot) => {
-    const isFull = slot.isFull;
 
-    return (
-      <View key={slot.id} style={styles.timeSlotContainer}>
-        {/* Left Side: Time and Timeline */}
-        <View style={styles.timeColumn}>
-          <Text style={styles.timeText}>{slot.time}</Text>
-          <View style={styles.timelineLine} />
-        </View>
-
-        {/* Right Side: Details Card */}
-        <View
-          style={[
-            styles.slotCard,
-            isFull ? styles.slotCardFull : styles.slotCardNormal,
-          ]}
-        >
-          {/* Badge */}
-          <View
-            style={[
-              styles.badge,
-              isFull ? styles.badgeFull : styles.badgeNormal,
-            ]}
-          >
-            <Text
-              style={[
-                styles.badgeText,
-                isFull ? styles.badgeTextFull : styles.badgeTextNormal,
-              ]}
-            >
-              {slot.status}
-            </Text>
-          </View>
-
-          {/* Vehicle List */}
-          <View style={styles.vehiclesContainer}>
-            {slot.vehicles && slot.vehicles.length > 0 ? (
-              slot.vehicles.map((v, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={styles.vehicleRow}
-                  onPress={() => router.push(`/(protected)/(admin)/booking/${v.id}`)}
-                >
-                  <Text style={styles.vehiclePlate}>{v.plate}</Text>
-                  <Ionicons
-                    name={v.type === "bus" || v.type === "van" ? "bus-outline" : "build-outline"}
-                    size={16}
-                    color={colors.SECONDARY}
-                  />
-                </TouchableOpacity>
-              ))
-            ) : (
-              <View style={styles.emptySlotContainer}>
-                <Text style={styles.emptySlotText}>No bookings for this slot</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -159,7 +104,7 @@ export default function Bookings() {
         ) : (
           <View style={styles.scheduleWrapper}>
             {scheduleData.length > 0 ? (
-              scheduleData.map((slot) => renderTimeSlot(slot))
+              scheduleData.map((slot) => <TimeSlotCard key={slot.id} slot={slot} />)
             ) : (
               <Text style={styles.emptyScheduleText}>No schedule found for this date.</Text>
             )}
@@ -247,102 +192,7 @@ const styles = StyleSheet.create({
   scheduleWrapper: {
     paddingLeft: 4,
   },
-  timeSlotContainer: {
-    flexDirection: "row",
-    marginBottom: 24,
-  },
-  timeColumn: {
-    width: 70,
-    alignItems: "center",
-  },
-  timeText: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: colors.SECONDARY,
-    textAlign: "center",
-    letterSpacing: 0.5,
-  },
-  timelineLine: {
-    width: 1.5,
-    flex: 1,
-    backgroundColor: colors.BORDER_COLOR,
-    marginTop: 8,
-    opacity: 0.6,
-  },
-  slotCard: {
-    flex: 1,
-    borderRadius: 16,
-    borderWidth: 1,
-    backgroundColor: colors.LIGHT,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 2,
-    marginLeft: 8,
-  },
-  slotCardNormal: {
-    borderColor: colors.BORDER_COLOR,
-  },
-  slotCardFull: {
-    borderColor: "#FECDD3", // light red border for full slot
-    backgroundColor: "#FFFAFA",
-  },
-  badge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  badgeNormal: {
-    backgroundColor: "#F3FADD",
-    borderWidth: 1,
-    borderColor: "#E1F2A7",
-  },
-  badgeFull: {
-    backgroundColor: "#FEE2E2",
-    borderWidth: 1,
-    borderColor: "#FECDD3",
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  badgeTextNormal: {
-    color: "#65A30D",
-  },
-  badgeTextFull: {
-    color: colors.DANGER_COLOR,
-  },
-  vehiclesContainer: {
-    gap: 8,
-  },
-  vehicleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: colors.BACKGROUND_COLOR,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.03)"
-  },
-  vehiclePlate: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: colors.DARK,
-  },
-  emptySlotContainer: {
-    paddingVertical: 10,
-  },
-  emptySlotText: {
-    color: colors.SECONDARY,
-    fontSize: 13,
-    fontStyle: "italic"
-  },
+
   emptyScheduleText: {
     color: colors.SECONDARY,
     textAlign: "center",
