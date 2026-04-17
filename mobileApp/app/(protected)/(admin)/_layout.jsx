@@ -155,6 +155,18 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
+          name="invoice"
+          options={{
+            drawerLabel: "Invoice",
+            title: "All Invoice",
+            headerShown: false,
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="newspaper-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
           name="Profile"
           options={{
             drawerLabel: "Profile",
@@ -212,6 +224,7 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
+
         <Drawer.Screen
           name="timeslots"
           options={{

@@ -235,10 +235,22 @@ module.exports.deleteService = async (id) => {
   }
 };
 
+/**
+ * Get all services for job card
+ * @returns {Promise<Object>} - Services
+ */
 module.exports.getAllServicesForJobCard = async () => {
   try {
-    const services = await Service.find({ isDeleted: false })
-      .select(["name", "description", "prices"]);
+    const services = await Service.find({ isDeleted: false }).select([
+      "-isDeleted",
+      "-deletedAt",
+      "-__v",
+      "-createdAt",
+      "-updatedAt",
+    ]).populate({
+      path: "image",
+      select: ["-_id", "filePath", "fileType"],
+    });
 
     return services;
   } catch (error) {

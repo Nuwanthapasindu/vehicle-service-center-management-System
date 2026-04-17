@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
 
@@ -33,35 +40,39 @@ export default function DropdownInput({
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{modalTitle}</Text>
             </View>
-            {options.map((option) => {
-              const isActive = value === option;
-              return (
-                <TouchableOpacity
-                  key={option}
-                  style={styles.modalOption}
-                  onPress={() => {
-                    onSelect(option);
-                    setModalVisible(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.modalOptionText,
-                      isActive && styles.modalOptionTextActive,
-                    ]}
-                  >
-                    {option}
-                  </Text>
-                  {isActive && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={22}
-                      color={colors.PRIMARY}
-                    />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+            <View style={{ maxHeight: "70%" }}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {options.map((option, index) => {
+                  const isActive = value === option;
+                  return (
+                    <TouchableOpacity
+                      key={`${option}-${index}`}
+                      style={styles.modalOption}
+                      onPress={() => {
+                        onSelect(option);
+                        setModalVisible(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.modalOptionText,
+                          isActive && styles.modalOptionTextActive,
+                        ]}
+                      >
+                        {option}
+                      </Text>
+                      {isActive && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={22}
+                          color={colors.PRIMARY}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -94,7 +105,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.LIGHT,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   modalHeader: {
     padding: 20,

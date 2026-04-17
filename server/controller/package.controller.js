@@ -161,17 +161,16 @@ module.exports.getPackageById = async (id) => {
   }
 
   try {
-    const pkg = await Package.findById(id)
-      .populate([
-        {
-          path: "servicesIncluded",
-          select: ["name", "description"],
-        },
-        {
-          path: "image",
-          select: ["filePath", "fileType"],
-        },
-      ]);
+    const pkg = await Package.findById(id).populate([
+      {
+        path: "servicesIncluded",
+        select: ["name", "description"],
+      },
+      {
+        path: "image",
+        select: ["filePath", "fileType"],
+      },
+    ]);
 
     if (!pkg || pkg.isDeleted) {
       throw new AppError("Package not found", 404);
@@ -258,7 +257,6 @@ module.exports.updatePackage = async (id, payload) => {
 
     return `${updatedPackage.name} updated successfully.`;
   } catch (error) {
-    console.log(error);
     throw new AppError(error.message, error.statusCode || 500);
   }
 };
@@ -298,17 +296,28 @@ module.exports.deletePackage = async (id) => {
   }
 };
 
+/**
+ * Get all packages for job card
+ * @returns {Promise<Object>} - Packages
+ */
 module.exports.getAllPackagesForJobCard = async () => {
   try {
     const packages = await Package.find({
       isDeleted: false,
-      isPublished: true
+      isPublished: true,
     })
-    .select(["name", "pricingTiers", "servicesIncluded"])
-    .populate({
-      path: "servicesIncluded",
-      select: ["name"]
-    });
+      .select([
+        "-_id",
+        "-isDeleted",
+        "-deletedAt",
+        "-__v",
+        "-createdAt",
+        "-updatedAt",
+      ])
+      .populate({
+        path: "servicesIncluded",
+        select: ["name"],
+      });
 
     return packages;
   } catch (error) {
