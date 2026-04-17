@@ -13,6 +13,7 @@ import getStatusColor from "../../../../utils/getStatusColor";
 import DropdownInput from "../../../../components/DropdownInput";
 import Toast from "react-native-toast-message";
 import enums from "../../../../constants/enums";
+import FALLBACK_IMG from "../../../../assets/default-car.png";
 
 const { width, height } = Dimensions.get("window");
 
@@ -29,9 +30,10 @@ export default function BookingDetails() {
   const [packages, setPackages] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [selectedTier, setSelectedTier] = useState(null);
-  const [statusZone, setStatusZone] = useState("PENDING");
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'package' | 'tier' | 'status'
+  const [statusZone, setStatusZone] = useState(enums.JOBCARD_STATUS.PENDING);
 
-  const FALLBACK_IMG = require("../../../../assets/default-car.png");
+
   const STATUSES = Object.values(enums.JOBCARD_STATUS);
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export default function BookingDetails() {
           // Fallback if full package info is not found
           setSelectedPackage({ name: details.service.package });
         }
-        setStatusZone(details.service.statusZone || "PENDING");
+        setStatusZone(details.service.statusZone || enums.JOBCARD_STATUS.PENDING);
       }
 
     } catch (error) {
@@ -134,7 +136,7 @@ export default function BookingDetails() {
             <Ionicons name="time-outline" size={16} color={colors.SECONDARY} />
             <Text style={styles.timeText}>{data.time || "Unknown"}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusZone === 'PENDING' ? "#FEF3C7" : "#E0F2FE" }]}>
+          <View style={[styles.statusBadge, { backgroundColor: statusZone === enums.JOBCARD_STATUS.PENDING ? "#FEF3C7" : "#E0F2FE" }]}>
             <View style={[styles.dot, { backgroundColor: getStatusColor(statusZone) }]} />
             <Text style={[styles.statusBadgeText, { color: getStatusColor(statusZone) }]}>{statusZone}</Text>
           </View>
