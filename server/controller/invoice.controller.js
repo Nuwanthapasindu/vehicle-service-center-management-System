@@ -204,7 +204,7 @@ exports.getAllInvoices = async (queryOptions = {}) => {
         "-additionalItems.item",
         "-additionalServices.service",
       ])
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: 1 });
 
     return invoices;
   } catch (error) {
