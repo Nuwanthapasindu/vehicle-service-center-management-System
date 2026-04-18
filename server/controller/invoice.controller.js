@@ -128,6 +128,29 @@ exports.createInvoice = async (payload) => {
     throw new AppError(`Failed to create invoice: ${error.message || "Unknown db error"}`, 500);
   }
 };
+
+/**
+ * Native endpoint execution hook resolving Invoice bindings given an established JobCard ID reference.
+ * Throws 404 cleanly if no Invoice was piped to the referenced ID.
+ */
+exports.getInvoiceByJobCard = async (jobCardId) => {
+  if (!jobCardId) throw new AppError("Invalid search parameters: JobCard ID is essentially required", 400);
+
+  try {
+    const invoice = await Invoice.findOne({ jobCard: jobCardId, isDeleted: false })
+      .populate("customer", "name mobile")
+      .populate("additionalItems.item", "name sku")
+      .populate("additionalServices.service", "name category");
+
+    if (!invoice) throw new AppError("No Invoice organically found for the provided JobCard", 404);
+
+    return invoice;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError("Failed terminating backend fetch schema for jobCard mapping", 500);
+  }
+};
+
 /**
  * Fetches all non-deleted invoices within the database.
  * Allows optional boolean filtering natively through `queryOptions`,
@@ -181,7 +204,7 @@ exports.getAllInvoices = async (queryOptions = {}) => {
         "-additionalItems.item",
         "-additionalServices.service",
       ])
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: 1 });
 
     return invoices;
   } catch (error) {

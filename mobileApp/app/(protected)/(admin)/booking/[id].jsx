@@ -11,11 +11,14 @@ import colors from "../../../../constants/colors";
 import getImageFullUrl from "../../../../utils/getImageFullUrl";
 import getStatusColor from "../../../../utils/getStatusColor";
 import DropdownInput from "../../../../components/DropdownInput";
+import CustomInput from "../../../../components/CustomInput";
+import { useFormik } from "formik";
+import { createJobCardSchema } from "../../../../schema/jobCardSchema";
 import Toast from "react-native-toast-message";
 import enums from "../../../../constants/enums";
 import FALLBACK_IMG from "../../../../assets/default-car.png";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 export default function BookingDetails() {
   const { id } = useLocalSearchParams();
@@ -23,18 +26,88 @@ export default function BookingDetails() {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
-  const [assignedTeam, setAssignedTeam] = useState(null);
   const [imgError, setImgError] = useState(false);
 
   // Dropdown States
   const [packages, setPackages] = useState([]);
-  const [selectedPackage, setSelectedPackage] = useState(null);
-  const [selectedTier, setSelectedTier] = useState(null);
-  const [activeDropdown, setActiveDropdown] = useState(null); // 'package' | 'tier' | 'status'
   const [statusZone, setStatusZone] = useState(enums.JOBCARD_STATUS.PENDING);
+  const [isGenerated, setIsGenerated] = useState(false);
+  const [invoiceDetails, setInvoiceDetails] = useState(null);
 
+  // Formik for Input Validation
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      booking: id || "",
+      milageCount: "",
+      selectedPackage: "",
+      selectedTier: null,
+      assignedTeam: null,
+    },
+    validationSchema: createJobCardSchema,
+    onSubmit: async (values) => {
+      if (!data?.customer?._id) return Toast.show({ type: "error", text1: "Error", text2: "Customer data not loaded" });
 
-  const STATUSES = Object.values(enums.JOBCARD_STATUS);
+      try {
+        setLoading(true);
+
+        let newJobId = data?.service?.jobCardId;
+
+        if (!newJobId) {
+          // 1. Create Job Card
+          const jobPayload = {
+            booking: id,
+            selectedPackage: values.selectedPackage,
+            milageCount: Number(values.milageCount),
+          };
+          const jobResponse = await axios.post("/job-cards", jobPayload);
+          newJobId = jobResponse.data?.payload?.data?._id;
+
+          if (!newJobId) throw new Error("Failed to extract Job Card ID from server");
+
+          // 2. Assign Team
+          if (values.assignedTeam) {
+            await axios.patch("/job-cards/assign", {
+              jobCardId: newJobId,
+              teamId: values.assignedTeam,
+            });
+          }
+        }
+
+        // 3. Create New Invoice
+        const invoicePayload = {
+          jobCard: newJobId,
+          selectedPackage: {
+            package: values.selectedPackage,
+            selectedPackageTier: {
+              name: values.selectedTier.name,
+              price: Number(values.selectedTier.price),
+            },
+          },
+        };
+        const invoiceResponse = await axios.post("/invoice", invoicePayload);
+
+        Toast.show({
+          type: "success",
+          text1: "Job Started Successfully",
+          text2: "Job Card & Invoice Generated!",
+        });
+
+        setIsGenerated(true);
+        fetchData();
+
+      } catch (err) {
+        Toast.show({
+          type: "error",
+          text1: "Pipeline Error",
+          text2: err.response?.data?.payload?.message || err.response?.data?.message || err.message || "Operation failed",
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
 
   useEffect(() => {
     fetchData();
@@ -43,40 +116,53 @@ export default function BookingDetails() {
   const fetchData = async () => {
     setLoading(true);
     setData(null);
-    setSelectedPackage(null);
-    setSelectedTier(null);
-    setAssignedTeam(null);
+    formik.resetForm();
     setImgError(false);
 
     try {
       // Fetch Booking Details and Packages in parallel to reconcile them
       const [bookingResponse, pkgResponse] = await Promise.all([
         axios.get(`/booking/admin/${id}/details`),
-        axios.get(`/job-cards/packages`)
+        axios.get(`/package/public`)
       ]);
-
-      const details = bookingResponse.data.payload.data;
-      const allPackages = pkgResponse.data.payload.data || [];
-
+      const details = bookingResponse.data?.payload?.data;
+      const allPackages = pkgResponse.data?.payload?.packages || [];
       setData(details);
       setPackages(allPackages);
 
-      if (details.assignedTeam) setAssignedTeam(details.assignedTeam);
+      if (details.assignedTeam) formik.setFieldValue("assignedTeam", details.assignedTeam);
 
       // Hydrate selections using the full packages list to ensure pricingTiers are available
       if (details.service && details.service.package) {
+        setIsGenerated(true);
+
+        if (details.service.jobCardId) {
+          try {
+            const invoiceRes = await axios.get(`/invoice/jobcard/${details.service.jobCardId}`);
+            setInvoiceDetails(invoiceRes.data?.payload?.data || invoiceRes.data?.data);
+          } catch (e) {
+            console.warn("Invoice hydration dropped - ensuring detail is null", e.message);
+            setInvoiceDetails(null);
+          }
+        }
+
+        if (details.service.milageCount !== undefined && details.service.milageCount !== null) {
+          formik.setFieldValue("milageCount", String(details.service.milageCount));
+        }
+
         const fullPkg = allPackages.find(p => p.name === details.service.package);
         if (fullPkg) {
-          setSelectedPackage(fullPkg);
+          formik.setFieldValue("selectedPackage", fullPkg._id);
           if (details.service.pricingTier) {
-            const fullTier = fullPkg.pricingTiers?.find(t => t.tierName === details.service.pricingTier);
+            const fullTier = fullPkg.pricingTiers?.find(t => t.name === details.service.pricingTier);
             if (fullTier) {
-              setSelectedTier(fullTier);
+              formik.setFieldValue("selectedTier", fullTier);
             }
           }
         } else {
-          // Fallback if full package info is not found
-          setSelectedPackage({ name: details.service.package });
+          // Fallback if full package info is not found (Needs ID string)
+          const fallbackPkg = allPackages.find(p => p.name === details.service.package);
+          if (fallbackPkg) formik.setFieldValue("selectedPackage", String(fallbackPkg._id || fallbackPkg.id));
         }
         setStatusZone(details.service.statusZone || enums.JOBCARD_STATUS.PENDING);
       }
@@ -173,41 +259,60 @@ export default function BookingDetails() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>Assign Package / Service</Text>
+          <CustomInput
+            label="Vehicle Milage (km)"
+            placeholder="e.g. 45000"
+            keyboardType="numeric"
+            icon={<Ionicons name="speedometer-outline" size={18} color={colors.SECONDARY} />}
+            value={String(formik.values.milageCount)}
+            onChangeText={formik.handleChange("milageCount")}
+            onBlur={formik.handleBlur("milageCount")}
+            error={formik.errors.milageCount}
+            touched={formik.touched.milageCount}
+            editable={!isGenerated}
+          />
+
+          <Text style={styles.label}>Assign Package</Text>
           <DropdownInput
-            value={selectedPackage ? selectedPackage.name : null}
+            value={packages.find(p => String(p._id || p.id) === String(formik.values.selectedPackage))?.name || null}
             options={packages.map(p => p.name)}
             placeholder="Pending Selection"
             modalTitle="Assign Package"
+            disabled={isGenerated}
             onSelect={(name) => {
               const pkg = packages.find(p => p.name === name);
-              setSelectedPackage(pkg);
-              setSelectedTier(null);
-            }}
-          />
-
-          <Text style={styles.label}>Select Pricing tier</Text>
-          <DropdownInput
-            value={selectedTier ? (selectedTier.price !== undefined ? `${selectedTier.tierName} - LKR ${selectedTier.price}` : selectedTier.tierName) : null}
-            options={selectedPackage && selectedPackage.pricingTiers ? selectedPackage.pricingTiers.map(t => `${t.tierName} - LKR ${t.price}`) : []}
-            placeholder="Pending Selection"
-            modalTitle="Select Pricing tier"
-            onSelect={(str) => {
-              if (selectedPackage && selectedPackage.pricingTiers) {
-                const tr = selectedPackage.pricingTiers.find(t => `${t.tierName} - LKR ${t.price}` === str);
-                if (tr) setSelectedTier(tr);
+              if (pkg) {
+                formik.setFieldValue("selectedPackage", String(pkg._id));
+                formik.setFieldTouched("selectedPackage", true, false);
+                formik.setFieldValue("selectedTier", null);
               }
             }}
           />
+          {formik.touched.selectedPackage && formik.errors.selectedPackage && (
+            <Text style={{ color: colors.DANGER_COLOR, fontSize: 12, marginTop: -4 }}>{formik.errors.selectedPackage}</Text>
+          )}
 
-          <Text style={styles.label}>Status Zone</Text>
+          <Text style={styles.label}>Select Pricing tier</Text>
           <DropdownInput
-            value={statusZone}
-            options={STATUSES}
-            placeholder="Select Status"
-            modalTitle="Select Status"
-            onSelect={(s) => setStatusZone(s)}
+            value={formik.values.selectedTier ? (formik.values.selectedTier.price !== undefined ? `${formik.values.selectedTier.name} - LKR ${formik.values.selectedTier.price}` : formik.values.selectedTier.name) : null}
+            options={packages.find(p => String(p._id || p.id) === String(formik.values.selectedPackage))?.pricingTiers?.map(t => `${t.name} - LKR ${t.price}`) || []}
+            placeholder="Pending Selection"
+            modalTitle="Select Pricing tier"
+            disabled={isGenerated}
+            onSelect={(str) => {
+              const selPkg = packages.find(p => String(p._id || p.id) === String(formik.values.selectedPackage));
+              if (selPkg && selPkg.pricingTiers) {
+                const tr = selPkg.pricingTiers.find(t => `${t.name} - LKR ${t.price}` === str);
+                if (tr) {
+                   formik.setFieldValue("selectedTier", tr);
+                   formik.setFieldTouched("selectedTier", true, false);
+                }
+              }
+            }}
           />
+          {formik.touched.selectedTier && formik.errors.selectedTier && (
+            <Text style={{ color: colors.DANGER_COLOR, fontSize: 12, marginTop: -4 }}>{formik.errors.selectedTier}</Text>
+          )}
         </View>
 
         {/* Team Assignment */}
@@ -215,12 +320,16 @@ export default function BookingDetails() {
           <Ionicons name="people-outline" size={16} color={colors.SECONDARY} />
           <Text style={styles.sectionHeaderText}>TEAM ASSIGNMENT</Text>
         </View>
+        
+        {formik.touched.assignedTeam && formik.errors.assignedTeam && (
+          <Text style={{ color: colors.DANGER_COLOR, fontSize: 13, alignSelf: 'center', marginBottom: 10 }}>{formik.errors.assignedTeam}</Text>
+        )}
 
         <View style={styles.teamList}>
           {data.teams.map((team) => {
             const teamStatus = team.status || "Available Now";
             const teamColor = team.statusColor || "#8EDB00";
-            const isAssigned = assignedTeam === team.id;
+            const isAssigned = formik.values.assignedTeam === team.id;
             const isBusy = teamColor === "#EF4444";
 
             return (
@@ -244,10 +353,11 @@ export default function BookingDetails() {
                   style={[
                     styles.assignButton,
                     isAssigned && styles.assignedButton,
-                    isBusy && styles.disabledButton
+                    isBusy && styles.disabledButton,
+                    isGenerated && styles.disabledButton
                   ]}
-                  disabled={isBusy}
-                  onPress={() => isAssigned ? setAssignedTeam(null) : setAssignedTeam(team.id)}
+                  disabled={isBusy || isGenerated}
+                  onPress={() => isAssigned ? formik.setFieldValue("assignedTeam", null) : formik.setFieldValue("assignedTeam", team.id)}
                 >
                   <Text style={[
                     styles.assignButtonText,
@@ -261,22 +371,51 @@ export default function BookingDetails() {
             );
           })}
         </View>
+
+        {/* Dynamic Invoice Render Block */}
+        {isGenerated && invoiceDetails && (
+          <View style={[styles.sectionHeaderRow, { marginTop: 24 }]}>
+            <Ionicons name="receipt" size={16} color={colors.PRIMARY} />
+            <Text style={styles.sectionHeaderText}>GENERATED INVOICE RECORD</Text>
+          </View>
+        )}
+        
+        {isGenerated && invoiceDetails && (
+          <View style={[styles.card, { borderColor: colors.PRIMARY_LIGHT, borderWidth: 1 }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+               <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>Invoice ID</Text>
+               <Text style={{ fontFamily: "Outfit-Regular", color: colors.SECONDARY }}>{invoiceDetails.invoiceId || invoiceDetails._id}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+               <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>Package Price</Text>
+               <Text style={{ fontFamily: "Outfit-Regular", color: colors.SECONDARY }}>LKR {invoiceDetails.selectedPackage?.selectedPackageTier?.price || "0"}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+               <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>Job Status</Text>
+               <Text style={{ fontFamily: "Outfit-Bold", color: invoiceDetails.isCompleted ? "#10B981" : "#F59E0B" }}>
+                 {invoiceDetails.isCompleted ? "COMPLETED" : "IN PROGRESS"}
+               </Text>
+            </View>
+          </View>
+        )}
+
       </ScrollView>
 
       {/* Footer Actions */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>SAVE</Text>
-          <Ionicons name="checkmark-circle-outline" size={20} color={colors.DARK} style={{ marginLeft: 6 }} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.invoiceButton}>
-          <Ionicons name="receipt-outline" size={20} color="#FFF" style={{ marginRight: 6 }} />
-          <Text style={styles.invoiceButtonText}>View / Manage Invoice</Text>
-        </TouchableOpacity>
+        {!invoiceDetails && (
+          <TouchableOpacity style={styles.saveButton} onPress={formik.handleSubmit}>
+            <Text style={styles.saveButtonText}>{isGenerated ? "GENERATE INVOICE" : "SAVE & GENERATE"}</Text>
+            <Ionicons name="checkmark-circle-outline" size={20} color={colors.DARK} style={{ marginLeft: 6 }} />
+          </TouchableOpacity>
+        )}
+        {invoiceDetails && (
+          <TouchableOpacity style={styles.invoiceButton} onPress={() => router.replace(`/(protected)/(admin)/invoice/${invoiceDetails._id}`)}>
+            <Ionicons name="receipt-outline" size={20} color="#FFF" style={{ marginRight: 6 }} />
+            <Text style={styles.invoiceButtonText}>View / Manage Invoice</Text>
+          </TouchableOpacity>
+        )}
       </View>
-
-
 
     </SafeAreaView>
   );

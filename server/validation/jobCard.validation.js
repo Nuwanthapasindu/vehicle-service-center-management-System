@@ -1,21 +1,3 @@
-/*const joi = require("joi");
-const validator = require("./core");
-
-const createJobCardSchema = joi.object({
-    booking: joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-    selectedPackage: joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-    milageCount: joi.number().min(0).default(0).required()
-});
-
-const assignTeamSchema = joi.object({
-    jobCardId: joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-    teamId: joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-});
-
-module.exports.validatedCreateJobCard = validator(createJobCardSchema);
-module.exports.validatedAssignTeam = validator(assignTeamSchema);*/
-
-const validator = require("./core");
 const Joi = require("joi");
 // ===============================
 // CREATE JOB CARD SCHEMA

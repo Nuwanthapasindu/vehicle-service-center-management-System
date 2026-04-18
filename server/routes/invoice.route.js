@@ -6,6 +6,7 @@ const {
   addInvoiceItem,
   removeInvoiceItem,
   completeInvoice,
+  getInvoiceByJobCard,
 } = require("../controller/invoice.controller");
 const responseBuilder = require("../util/responseBuilder");
 const { authTokenMiddleware } = require("../middleware/auth");
@@ -301,6 +302,37 @@ router.patch("/:id/complete", authTokenMiddleware, (req, res, next) => {
       builder.buildResponse({ message });
     })
     .catch(next);
+});
+
+/**
+ * @swagger
+ * /api/v1/invoice/jobcard/{jobCardId}:
+ *   get:
+ *     summary: Retrieve attached Invoice for a specific JobCard
+ *     tags: [Invoice]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: jobCardId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: JobCard Object ID mapping
+ *     responses:
+ *       200:
+ *         description: Responds uniquely with requested Job Card Invoice Object
+ *       404:
+ *         description: Invoice Not Found (Not automatically generated)
+ */
+router.get("/jobcard/:jobCardId", authTokenMiddleware, (req, res, next) => {
+  const rs = new responseBuilder(res);
+  getInvoiceByJobCard(req.params.jobCardId)
+    .then((data) => {
+      rs.setStatus(200);
+      rs.buildResponse({ data });
+    })
+    .catch((error) => next(error));
 });
 
 module.exports = router;

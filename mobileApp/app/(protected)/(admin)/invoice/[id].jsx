@@ -6,42 +6,126 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import colors from '../../../../constants/colors';
-import { getInvoiceHtmlContent } from '../../../../utils/invoicePdfGenerator';
+import { pdfGenerator } from '../../../../utils/pdfGenerator';
+import { getInvoiceTemplate } from '../../../../templates/pdf/invoiceTemplate';;
 import { useLocalSearchParams } from 'expo-router';
 import { invoiceService } from '../../../../services/invoice/invoice.service';
 import enums from '../../../../constants/enums';
 import getImageFullUrl from '../../../../utils/getImageFullUrl';
 import formatPrice from '../../../../utils/formatPrice';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
+import DropdownInput from '../../../../components/DropdownInput';
+import { inventoryService } from '../../../../services/inventory/inventory.service';
+import { serviceService } from '../../../../services/service/service.service';
 
 export default function ViewInvoice() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Selectors Data
+  const [availableServices, setAvailableServices] = useState([]);
+  const [availableInventory, setAvailableInventory] = useState([]);
+  const [isProcessingAdd, setIsProcessingAdd] = useState(false);
 
   useEffect(() => {
     if (id) {
-      fetchInvoiceDetails();
+      fetchInitialData();
     }
   }, [id]);
 
-  const fetchInvoiceDetails = async () => {
+  const fetchInitialData = async () => {
     try {
       setLoading(true);
-      const data = await invoiceService.fetchInvoiceById(id);
-      setInvoice(data);
+      const [invoiceData, inv, srv] = await Promise.all([
+        invoiceService.fetchInvoiceById(id),
+        inventoryService.fetchInventory(),
+        serviceService.fetchServices()
+      ]);
+      setInvoice(invoiceData);
+      setAvailableInventory(inv || []);
+      setAvailableServices(srv || []);
     } catch (error) {
+      console.warn("Fetch failed", error);
       Toast.show({
         type: 'error',
-        text1: 'Failed to fetch invoice details',
-        text2: error?.response?.data?.payload?.message || "Failed to fetch invoice details",
-      })
-      router.back();
+        text1: 'Fetch Failed',
+        text2: 'Could not load invoice or resource data.'
+      });
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchInvoiceDetails = async () => {
+    try {
+      const data = await invoiceService.fetchInvoiceById(id);
+      setInvoice(data);
+    } catch (error) {
+      console.error("Partial refresh failed", error);
+    }
+  };
+
+  const handleAddById = async (type, targetId, name, price) => {
+    try {
+      setIsProcessingAdd(true);
+      const payload = {
+        type: type,
+        data: type === 'ITEM' ? {
+          item: targetId,
+          qty: 1,
+          sellingPrice: price || 0
+        } : {
+          service: targetId,
+          charge: price || 0
+        }
+      };
+
+      await invoiceService.addInvoiceItem(id, payload);
+      await fetchInvoiceDetails();
+
+      Toast.show({
+        type: 'success',
+        text1: 'Added Successfully',
+        text2: `${name} has been appended to the invoice.`
+      });
+    } catch (error) {
+       Toast.show({
+        type: 'error',
+        text1: 'Failed to add',
+        text2: error?.response?.data?.message || "Operation failed",
+      });
+    } finally {
+      setIsProcessingAdd(false);
+    }
+  };
+
+  const updateInvoiceItem = async (targetId, currentPrice, newQty, newUnit = null) => {
+    try {
+      setLoading(true);
+      const payload = {
+        type: 'ITEM',
+        data: {
+          item: targetId,
+          qty: Number(newQty),
+          sellingPrice: currentPrice,
+        }
+      };
+      await invoiceService.addInvoiceItem(id, payload);
+      await fetchInvoiceDetails();
+    } catch (error) {
+       Toast.show({
+        type: 'error',
+        text1: 'Update Failed',
+        text2: error?.response?.data?.message || "Failed to update item",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   const handleCompleteInvoice = () => {
     Alert.alert(
@@ -69,6 +153,7 @@ export default function ViewInvoice() {
                 text1: 'Completion Failed',
                 text2: error?.response?.data?.message || "Failed to complete invoice",
               });
+            } finally {
               setLoading(false);
             }
           }
@@ -94,13 +179,15 @@ export default function ViewInvoice() {
         text1: 'Removal Failed',
         text2: error?.response?.data?.message || "Failed to remove item",
       });
+    } finally {
       setLoading(false);
     }
   };
 
   const printQuote = async () => {
     try {
-      await Print.printAsync({ html: getInvoiceHtmlContent(invoice) });
+      const html = getInvoiceTemplate(invoice);
+      await pdfGenerator.print(html);
     } catch (error) {
       console.error('Error printing:', error);
     }
@@ -108,8 +195,8 @@ export default function ViewInvoice() {
 
   const sharePDF = async () => {
     try {
-      const { uri } = await Print.printToFileAsync({ html: getInvoiceHtmlContent(invoice) });
-      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+      const html = getInvoiceTemplate(invoice);
+      await pdfGenerator.share(html, `Invoice_${invoice.invoiceId}`);
     } catch (error) {
       console.error('Error sharing pdf:', error);
     }
@@ -181,10 +268,13 @@ export default function ViewInvoice() {
           <SwipeableItemCard 
             key={`item-${index}`}
             title={item.item?.itemName || item.item?.name || 'Item'}
-            subtitle={`Qty: ${item.qty} ${item.item?.unitType || ''}`}
+            subtitle={item.item?.unitType ? `Billed in ${item.item.unitType}` : 'Part / Fluid'}
             price={formatPrice((item.sellingPrice || 0) * (item.qty || 1))}
             onDelete={() => handleRemoveItem('ITEM', item.item?._id)}
             disabled={isPaid}
+            quantity={item.qty}
+            onUpdateQuantity={(newQty) => updateInvoiceItem(item.item?._id, item.sellingPrice, newQty)}
+            unit={item.item?.unitType}
           />
         ))}
 
@@ -209,14 +299,33 @@ export default function ViewInvoice() {
           <Ionicons name="receipt-outline" size={48} color="rgba(255,255,255,0.1)" />
         </View>
 
-        {/* Search */}
+        {/* Selection Section (Matches AddInvoice Pattern) */}
         {!isPaid && (
-          <View style={styles.searchContainer}>
-            <Ionicons name="search-outline" size={20} color={colors.SECONDARY} style={styles.searchIcon} />
-            <TextInput 
-              style={styles.searchInput}
-              placeholder="Search parts or labor items..."
-              placeholderTextColor={colors.SECONDARY}
+          <View style={styles.selectorsSection}>
+            <Text style={styles.sectionTitle}>ADD ADDITIONAL SERVICE</Text>
+            <DropdownInput 
+              value={null}
+              options={availableServices.map(s => s.name)}
+              placeholder="Select Additional Service"
+              onSelect={(name) => {
+                const s = availableServices.find(srv => srv.name === name);
+                if (s) handleAddById('SERVICE', s._id || s.id, s.name, s.prices && s.prices[0]?.price);
+              }}
+              disabled={isProcessingAdd}
+            />
+
+            <View style={{ height: 16 }} />
+
+            <Text style={styles.sectionTitle}>ADD ADDITIONAL PARTS & FLUIDS</Text>
+            <DropdownInput 
+              value={null}
+              options={availableInventory.map(i => i.name)}
+              placeholder="Select Inventory Item"
+              onSelect={(name) => {
+                const i = availableInventory.find(inv => inv.name === name);
+                if (i) handleAddById('ITEM', i._id || i.id, i.name, i.sellingPrice);
+              }}
+              disabled={isProcessingAdd}
             />
           </View>
         )}
@@ -226,16 +335,18 @@ export default function ViewInvoice() {
 
       {/* Bottom Actions */}
       <View style={styles.bottomPanel}>
-        <View style={styles.rowButtons}>
-          <TouchableOpacity style={[styles.halfBtn, { marginRight: 12 }]} onPress={printQuote}>
-            <Feather name="printer" size={16} color={colors.DARK} />
-            <Text style={styles.halfBtnText}>Print Quote</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.halfBtn} onPress={sharePDF}>
-            <Feather name="share" size={16} color={colors.DARK} />
-            <Text style={styles.halfBtnText}>Share PDF</Text>
-          </TouchableOpacity>
-        </View>
+        {isPaid && (
+          <View style={styles.rowButtons}>
+            <TouchableOpacity style={[styles.halfBtn, { marginRight: 12 }]} onPress={printQuote}>
+              <Feather name="printer" size={16} color={colors.DARK} />
+              <Text style={styles.halfBtnText}>Print Quote</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.halfBtn} onPress={sharePDF}>
+              <Feather name="share" size={16} color={colors.DARK} />
+              <Text style={styles.halfBtnText}>Share PDF</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {!isPaid && (
           <TouchableOpacity style={styles.primaryBtn} onPress={handleCompleteInvoice}>
@@ -387,17 +498,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.LIGHT,
     borderRadius: 10,
     borderWidth: 1,
+  },
+  selectorsSection: {
+    marginTop: 12,
+    marginBottom: 20,
+    backgroundColor: colors.LIGHT,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
     borderColor: colors.BORDER_COLOR,
-    height: 52,
-    paddingHorizontal: 16,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.DARK,
   },
   bottomPanel: {
     backgroundColor: '#F8F9FA',

@@ -9,6 +9,7 @@ const AppError = require("../error/AppError");
 const { createJobCardSchema, assignTeamSchema } = require("../validation/jobCard.validation");
 const { getAllServicesForJobCard } = require("./service.controller");
 const { getAllPackagesForJobCard } = require("./package.controller");
+const { JOBCARD_STATUS } = require("../util/constants");
 
 // ADMIN: Create a Job Card
 exports.createJobCard = async (payload) => {
@@ -22,7 +23,7 @@ exports.createJobCard = async (payload) => {
         booking: value.booking,
         selectedPackage: value.selectedPackage,
         milageCount: value.milageCount,
-        status: "PENDING"
+        status: JOBCARD_STATUS.PENDING
     });
 
     return newJobCard;
