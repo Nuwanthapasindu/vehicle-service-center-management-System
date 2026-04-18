@@ -3,7 +3,7 @@ const Supplier = require('../model/Supplier');
 const AppError = require('../error/AppError');
 const mongoose = require('mongoose');
 const { PURCHASE_ORDER_STATUS } = require('../util/constants');
-const { purchaseOrderValidator } = require('../validation/purchaseOrder.validation');
+const { purchaseOrderValidator, purchaseOrderUpdateValidator } = require('../validation/purchaseOrder.validation');
 
 /**
  * Create a new purchase order
@@ -57,7 +57,7 @@ module.exports.updatePurchaseOrder = async (id, payload) => {
   if (payload.deletedAt !== undefined) delete payload.deletedAt;
 
   try {
-    const { error } = purchaseOrderValidator(payload);
+    const { error } = purchaseOrderUpdateValidator(payload);
     if (error) throw new AppError(error.details[0].message, 400);
 
     if (payload.supplier) {

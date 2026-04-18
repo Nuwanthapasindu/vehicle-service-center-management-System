@@ -39,3 +39,10 @@ const purchaseOrderValidationSchema = joi.object({
 });
 
 module.exports.purchaseOrderValidator = validator(purchaseOrderValidationSchema);
+
+module.exports.purchaseOrderUpdateValidator = validator(
+  purchaseOrderValidationSchema.fork(
+    ["supplier", "items"],
+    (schema) => schema.optional()
+  )
+);

@@ -119,10 +119,8 @@ export default function AddOrder({ onBack }) {
           handleSubmit,
           isSubmitting,
         }) => {
-          // Effect to handle supplier selection changed side effects
           React.useEffect(() => {
             if (values.supplier?.items && values.supplier.items.length > 0) {
-              console.log(JSON.stringify(values.supplier.items, null, 2));
               fetchInventory(values.supplier.items);
             } else {
               fetchInventory();
