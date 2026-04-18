@@ -202,17 +202,7 @@ export default function AdminDrawerLayout() {
           }}
         />
 
-        <Drawer.Screen
-          name="(jobcard)"
-          options={{
-            headerShown: false,
-            drawerLabel: "Jobcard", // This removes it from the sidebar
-            title: "Jobcard DIRECTORY",             // This shows only in the header
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="clipboard-outline" size={size} color={color} />
-            ),
-          }}
-        />
+
         <Drawer.Screen
           name="supplychain/index"
           options={{
