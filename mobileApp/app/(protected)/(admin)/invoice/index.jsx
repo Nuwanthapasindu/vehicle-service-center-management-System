@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Platform, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Platform, ActivityIndicator, RefreshControl } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import colors from '../../../../constants/colors'
@@ -10,6 +10,7 @@ export default function AllInvoice() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function AllInvoice() {
 
   const fetchInvoices = async () => {
     try {
-      setLoading(true);
+      if (!refreshing) setLoading(true);
       const params = {};
       if (searchQuery) params.search = searchQuery;
       if (activeFilter === 'Paid') params.isCompleted = true;
@@ -33,8 +34,14 @@ export default function AllInvoice() {
       console.error("Failed to fetch invoices", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchInvoices();
+  }, [searchQuery, activeFilter]);
 
   const filteredInvoices = invoices;
 
@@ -102,7 +109,7 @@ export default function AllInvoice() {
     <View style={styles.container}>
       {renderHeader()}
       
-      {loading ? (
+      {loading && !refreshing ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color={colors.PRIMARY} />
         </View>
@@ -113,6 +120,14 @@ export default function AllInvoice() {
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.PRIMARY]} // Android
+              tintColor={colors.PRIMARY} // iOS
+            />
+          }
         />
       )}
 

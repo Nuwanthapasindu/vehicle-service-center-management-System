@@ -128,6 +128,22 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
+          name="booking/index"
+          options={{
+            drawerLabel: "Bookings",
+            title: "Bookings",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="build-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="booking/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Drawer.Screen
           name="serviceAndPackage"
           options={{
             drawerLabel: "Catalog & Packages",
@@ -151,17 +167,6 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-          name="Profile"
-          options={{
-            drawerLabel: "Profile",
-            title: "Profile",
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="person-outline" size={size} color={color} />
-            ),
-          }}
-        />
-
-        <Drawer.Screen
           name="(employee)"
           options={{
             headerShown: false,
@@ -179,24 +184,14 @@ export default function AdminDrawerLayout() {
           options={{
             headerShown: false,
             drawerLabel: "Teams", // This removes it from the sidebar
-            title: "TEAM DIRECTORY", // This shows only in the header
+            title: "TEAM DIRECTORY",             // This shows only in the header
             drawerIcon: ({ color, size }) => (
               <Ionicons name="people-outline" size={size} color={color} />
             ),
           }}
         />
 
-        <Drawer.Screen
-           name="(jobcard)"
-           options={{
-             headerShown: false,
-             drawerLabel: "Jobcard", // This removes it from the sidebar
-             title: "Jobcard DIRECTORY",             // This shows only in the header
-             drawerIcon: ({ color, size }) => (
-                <Ionicons name="clipboard-outline" size={size} color={color} />
-              ),
-            }}
-        /> 
+
         <Drawer.Screen
           name="supplychain/index"
           options={{
@@ -212,6 +207,7 @@ export default function AdminDrawerLayout() {
         <Drawer.Screen
           name="timeslots"
           options={{
+            headerShown: false,
             drawerLabel: "Time Slots",
             title: "Time Slot Configuration",
             drawerIcon: ({ color, size }) => (

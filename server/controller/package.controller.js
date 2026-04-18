@@ -307,7 +307,6 @@ module.exports.getAllPackagesForJobCard = async () => {
       isPublished: true,
     })
       .select([
-        "-_id",
         "-isDeleted",
         "-deletedAt",
         "-__v",

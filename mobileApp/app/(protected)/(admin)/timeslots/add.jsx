@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import timeslotSchema from "../../../../schema/timeslotSchema";
 import {
@@ -24,6 +24,7 @@ import { formatSyncTime, formatDisplayTime } from "../../../../utils/timeFormatt
 
 export default function AddTimeslot() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const formik = useFormik({
     initialValues: {
       startTime: new Date(),
@@ -119,7 +120,7 @@ export default function AddTimeslot() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>OPERATIONAL LIMITS</Text>
             <View style={styles.sectionCard}>
-               <CustomInput
+              <CustomInput
                 label="Maximum Capacity"
                 placeholder="e.g. 5"
                 value={formik.values.maxCapacity}

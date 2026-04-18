@@ -23,7 +23,9 @@ module.exports.getAvailableTimeslots = async (dateStr) => {
     if (!dateStr) throw new AppError("Date is required", 400);
 
     try {
-        const checkDate = new Date(dateStr);
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const checkDate = new Date();
+        checkDate.setFullYear(year, month - 1, day);
         checkDate.setHours(0, 0, 0, 0);
 
         const nextDay = new Date(checkDate);
@@ -49,6 +51,45 @@ module.exports.getAvailableTimeslots = async (dateStr) => {
         });
 
         return slotAvailability;
+    } catch (error) {
+        throw new AppError(error.message, error.statusCode || 500);
+    }
+};
+
+module.exports.getDailySchedule = async (dateStr) => {
+    if (!dateStr) throw new AppError("Date is required", 400);
+
+    try {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const checkDate = new Date();
+        checkDate.setFullYear(year, month - 1, day);
+        checkDate.setHours(0, 0, 0, 0);
+
+        const nextDay = new Date(checkDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+
+        const timeslots = await Timeslot.find({ isDeleted: false }).sort({ startTime: 1 });
+        const bookings = await Booking.find({
+            date: { $gte: checkDate, $lt: nextDay },
+            isDeleted: false
+        }).populate("vehicle", "licensePlate vehicleType");
+
+        const schedule = timeslots.map(slot => {
+            const bookingsForSlot = bookings.filter(b => b.slot.toString() === slot._id.toString());
+            return {
+                id: slot._id,
+                time: slot.startTime,
+                status: `${bookingsForSlot.length}/${slot.maxCapacity} ${bookingsForSlot.length >= slot.maxCapacity ? 'FULL' : 'BOOKED'}`,
+                isFull: bookingsForSlot.length >= slot.maxCapacity,
+                vehicles: bookingsForSlot.map(b => ({
+                    id: b._id,
+                    plate: b.vehicle?.licensePlate || "Unknown",
+                    type: b.vehicle?.vehicleType || "car"
+                }))
+            };
+        });
+
+        return schedule;
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500);
     }

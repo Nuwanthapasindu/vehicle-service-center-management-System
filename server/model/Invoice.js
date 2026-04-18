@@ -28,13 +28,17 @@ const invoiceSchema = new Schema(
     selectedPackage: {
       package: { type: Schema.Types.ObjectId, ref: "Package" },
       selectedPackageTier: {
-        name: { 
-          type: String, 
-          required: function() { return this.selectedPackage && this.selectedPackage.package; } 
+        name: {
+          type: String,
+          required: function () {
+            return this.selectedPackage && this.selectedPackage.package;
+          },
         },
-        price: { 
-          type: Number, 
-          required: function() { return this.selectedPackage && this.selectedPackage.package; } 
+        price: {
+          type: Number,
+          required: function () {
+            return this.selectedPackage && this.selectedPackage.package;
+          },
         },
       },
     },
@@ -111,6 +115,5 @@ invoiceSchema.virtual("totalPrice").get(function () {
 
   return total;
 });
-
 
 module.exports = mongoose.model("Invoice", invoiceSchema);

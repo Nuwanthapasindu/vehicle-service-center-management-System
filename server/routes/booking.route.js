@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { createBooking, getBookingHistory, getDashboardData } = require("../controller/booking.controller");
+const { createBooking, getBookingHistory, getDashboardData, getAdminBookingDetails } = require("../controller/booking.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
 
@@ -34,6 +34,22 @@ router.get("/dashboard", authTokenMiddleware, (req, res, next) => {
     const mobile = req.user.mobile;
 
     getDashboardData(mobile)
+        .then((data) => {
+            responseBuilder.setStatus(200);
+            responseBuilder.buildResponse({ data });
+        })
+        .catch((error) => next(error));
+});
+
+// Admin Booking Details
+router.get("/admin/:id/details", authTokenMiddleware, (req, res, next) => {
+    const { USER_ROLES } = require("../util/constants");
+    if (req.user.role !== USER_ROLES.ADMIN) return res.status(403).json({ success: false, message: "Unauthorized" });
+
+    const responseBuilder = new responseBuild(res);
+    const bookingId = req.params.id;
+
+    getAdminBookingDetails(bookingId)
         .then((data) => {
             responseBuilder.setStatus(200);
             responseBuilder.buildResponse({ data });

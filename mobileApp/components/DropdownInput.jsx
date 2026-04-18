@@ -16,19 +16,22 @@ export default function DropdownInput({
   onSelect,
   placeholder = "Select...",
   modalTitle = "Select Option",
+  disabled = false,
 }) {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
     <>
       <TouchableOpacity
-        style={styles.dropdown}
+        style={[styles.dropdown, disabled && { backgroundColor: "#F3F4F6", opacity: 0.7 }]}
         activeOpacity={0.7}
+        disabled={disabled}
         onPress={() => setModalVisible(true)}
       >
         <Text style={styles.dropdownText}>{value || placeholder}</Text>
         <Ionicons name="chevron-down" size={20} color={colors.SECONDARY} />
       </TouchableOpacity>
+
 
       <Modal visible={modalVisible} transparent animationType="fade">
         <TouchableOpacity
