@@ -46,33 +46,37 @@ export default function BookingDetails() {
     },
     validationSchema: createJobCardSchema,
     onSubmit: async (values) => {
-    
+      if (!data?.customer?._id) return Toast.show({ type: "error", text1: "Error", text2: "Customer data not loaded" });
+
       try {
         setLoading(true);
 
-        // 1. Create Job Card
-        const jobPayload = {
-          booking: id,
-          selectedPackage: values.selectedPackage,
-          milageCount: Number(values.milageCount),
-        };
-        const jobResponse = await axios.post("/job-cards", jobPayload);
-        const newJobId = jobResponse.data?.payload?.data?._id;
+        let newJobId = data?.service?.jobCardId;
 
-        if (!newJobId) throw new Error("Failed to extract Job Card ID from server");
+        if (!newJobId) {
+          // 1. Create Job Card
+          const jobPayload = {
+            booking: id,
+            selectedPackage: values.selectedPackage,
+            milageCount: Number(values.milageCount),
+          };
+          const jobResponse = await axios.post("/job-cards", jobPayload);
+          newJobId = jobResponse.data?.payload?.data?._id;
 
-        // 2. Assign Team
-        if (values.assignedTeam) {
-          await axios.patch("/job-cards/assign", {
-            jobCardId: newJobId,
-            teamId: values.assignedTeam,
-          });
+          if (!newJobId) throw new Error("Failed to extract Job Card ID from server");
+
+          // 2. Assign Team
+          if (values.assignedTeam) {
+            await axios.patch("/job-cards/assign", {
+              jobCardId: newJobId,
+              teamId: values.assignedTeam,
+            });
+          }
         }
 
         // 3. Create New Invoice
         const invoicePayload = {
           jobCard: newJobId,
-          customer: data.customer._id,
           selectedPackage: {
             package: values.selectedPackage,
             selectedPackageTier: {
@@ -82,7 +86,6 @@ export default function BookingDetails() {
           },
         };
         const invoiceResponse = await axios.post("/invoice", invoicePayload);
-        const invoiceIdStr = invoiceResponse.data?.payload?.id;
 
         Toast.show({
           type: "success",
@@ -138,7 +141,8 @@ export default function BookingDetails() {
             const invoiceRes = await axios.get(`/invoice/jobcard/${details.service.jobCardId}`);
             setInvoiceDetails(invoiceRes.data?.payload?.data || invoiceRes.data?.data);
           } catch (e) {
-            console.warn("Invoice hydration dropped silently", e);
+            console.warn("Invoice hydration dropped - ensuring detail is null", e.message);
+            setInvoiceDetails(null);
           }
         }
 
@@ -163,9 +167,6 @@ export default function BookingDetails() {
         setStatusZone(details.service.statusZone || enums.JOBCARD_STATUS.PENDING);
       }
 
-      if (details.milageCount) {
-        formik.setValues({ milageCount: details.milageCount.toString() });
-      }
     } catch (error) {
       Toast.show({
         type: "error",
@@ -402,19 +403,18 @@ export default function BookingDetails() {
 
       {/* Footer Actions */}
       <View style={styles.footer}>
-        {!isGenerated && (
+        {!invoiceDetails && (
           <TouchableOpacity style={styles.saveButton} onPress={formik.handleSubmit}>
-            <Text style={styles.saveButtonText}>SAVE & GENERATE</Text>
+            <Text style={styles.saveButtonText}>{isGenerated ? "GENERATE INVOICE" : "SAVE & GENERATE"}</Text>
             <Ionicons name="checkmark-circle-outline" size={20} color={colors.DARK} style={{ marginLeft: 6 }} />
           </TouchableOpacity>
         )}
-        {isGenerated && invoiceDetails && (
+        {invoiceDetails && (
           <TouchableOpacity style={styles.invoiceButton} onPress={() => router.replace(`/(protected)/(admin)/invoice/${invoiceDetails._id}`)}>
             <Ionicons name="receipt-outline" size={20} color="#FFF" style={{ marginRight: 6 }} />
             <Text style={styles.invoiceButtonText}>View / Manage Invoice</Text>
           </TouchableOpacity>
         )}
-   
       </View>
 
     </SafeAreaView>
