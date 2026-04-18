@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   FileText,
 } from "lucide-react-native";
-import axios from "axios";
 import { Alert } from "react-native";
 import Toast from "react-native-toast-message";
 import * as Print from "expo-print";
@@ -15,6 +14,7 @@ import * as Sharing from "expo-sharing";
 import { styles } from "./styles";
 import CustomButton from "../../../../components/CustomButton";
 import enums from "../../../../constants/enums";
+import supplyChainService from "../../../../services/supplychain/supplychain.service";
 
 export default function EditOrder({ order, onBack }) {
   const displayOrder = order || {};
@@ -24,7 +24,7 @@ export default function EditOrder({ order, onBack }) {
 
   const handleUpdateStatus = async (newStatus) => {
     try {
-      await axios.put(`/purchase-orders/${displayOrder._id}`, {
+      await supplyChainService.updatePurchaseOrder(displayOrder._id, {
         status: newStatus,
       });
 
@@ -47,7 +47,7 @@ export default function EditOrder({ order, onBack }) {
             quantityReceived: i.qty,
           })),
         };
-        await axios.patch(`/inventory/increase-stock`, inventoryPayload);
+        await supplyChainService.increaseStock(inventoryPayload);
         Toast.show({
           type: "success",
           text1: "Success",
@@ -81,7 +81,7 @@ export default function EditOrder({ order, onBack }) {
           style: "destructive",
           onPress: async () => {
             try {
-              await axios.delete(`/purchase-orders/${displayOrder._id}`);
+              await supplyChainService.deletePurchaseOrder(displayOrder._id);
               Toast.show({ type: "success", text1: "Deleted", text2: "Order removed" });
               onBack();
             } catch (err) {

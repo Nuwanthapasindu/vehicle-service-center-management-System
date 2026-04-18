@@ -5,8 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Menu, Plus, Search, Phone, ClipboardList, Truck, AlertTriangle, X } from 'lucide-react-native';
 import { useNavigation } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
-import axios from 'axios';
-
 import { styles } from './styles';
 import AddSupplier from './addSupplier';
 import EditSupplier from './editSupplier';
@@ -14,6 +12,7 @@ import AddOrder from './AddOrder';
 import EditOrder from './editOrder';
 
 import enums from '../../../../constants/enums';
+import supplyChainService from '../../../../services/supplychain/supplychain.service';
 
 export default function SupplyChainApp() {
   const navigation = useNavigation();
@@ -28,37 +27,42 @@ export default function SupplyChainApp() {
   const [lowStockItems, setLowStockItems] = useState([]);
   const [isWarningDismissed, setIsWarningDismissed] = useState(false);
 
-const fetchData = async () => {
-  setIsLoading(true);
-  try {
-    if (activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS) {
-      const response = await axios.get(`/suppliers`);
-      setData(response.data?.payload?.suppliers || []);
-    } else {
-      const response = await axios.get(`/purchase-orders`);
-      const rawOrders = response.data?.payload?.orders || [];
-      const ordersWithCost = rawOrders.map(o => {
-        const totalCost = o.items?.reduce((sum, item) => sum + ((item.cost || 0) * (item.qty || 1)), 0);
-        return { ...o, totalCost };
-      });
-      setData(ordersWithCost); 
-    }
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      if (activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS) {
+        const suppliers = await supplyChainService.getSuppliers();
+        setData(suppliers);
+      } else {
+        const rawOrders = await supplyChainService.getPurchaseOrders();
+        const ordersWithCost = rawOrders.map((o) => {
+          const totalCost = o.items?.reduce(
+            (sum, item) => sum + (item.cost || 0) * (item.qty || 1),
+            0,
+          );
+          return { ...o, totalCost };
+        });
+        setData(ordersWithCost);
+      }
 
-    const stockRes = await axios.get(`/inventory`);
-    const invData = stockRes.data?.payload?.data || [];
-    const lowStock = invData.filter(item => item.qty <= (item.reorderLevel !== undefined ? item.reorderLevel : 10));
-    setLowStockItems(lowStock);
-    setLowStockWarning(lowStock.length > 0);
-  } catch (error) {
-    Toast.show({
-      type: "error",
-      text1: "Failed to fetch data",
-      text2: error.response?.data?.payload?.message || error.message,
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
+      const invData = await supplyChainService.getInventory();
+      const lowStock = invData.filter(
+        (item) =>
+          item.qty <=
+          (item.reorderLevel !== undefined ? item.reorderLevel : 10),
+      );
+      setLowStockItems(lowStock);
+      setLowStockWarning(lowStock.length > 0);
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Failed to fetch data",
+        text2: error.response?.data?.payload?.message || error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (currentView === enums.SUPPLY_CHAIN_VIEWS.LIST) {

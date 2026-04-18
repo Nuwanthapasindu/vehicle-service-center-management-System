@@ -15,7 +15,6 @@ import {
   CheckCircle,
   Save,
 } from "lucide-react-native";
-import axios from "axios";
 import { ActivityIndicator } from "react-native";
 import Toast from "react-native-toast-message";
 import { styles } from "./styles";
@@ -23,6 +22,7 @@ import enums from "../../../../constants/enums";
 import DropdownInput from "../../../../components/DropdownInput";
 import { Formik } from "formik";
 import { purchaseOrderSchema } from "../../../../schema/purchaseOrder.schema";
+import supplyChainService from "../../../../services/supplychain/supplychain.service";
 
 export default function AddOrder({ onBack }) {
   const initialValues = {
@@ -33,13 +33,11 @@ export default function AddOrder({ onBack }) {
 
   const [suppliers, setSuppliers] = useState([]);
   const [inventoryList, setInventoryList] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchInventory = async (names = []) => {
     try {
-      const params = names.length > 0 ? { names: names.join(",") } : {};
-      const invRes = await axios.get(`/inventory`, { params });
-      setInventoryList(invRes.data?.payload?.data || []);
+      const data = await supplyChainService.getInventory(names);
+      setInventoryList(data);
     } catch (err) {
       Toast.show({
         type: "error",
@@ -52,8 +50,8 @@ export default function AddOrder({ onBack }) {
   React.useEffect(() => {
     const fetchSuppliers = async () => {
       try {
-        const supRes = await axios.get(`/suppliers`);
-        setSuppliers(supRes.data?.payload?.suppliers || []);
+        const suppliers = await supplyChainService.getSuppliers();
+        setSuppliers(suppliers);
       } catch (err) {
         Toast.show({
           type: "error",
@@ -78,7 +76,7 @@ export default function AddOrder({ onBack }) {
     };
 
     try {
-      await axios.post(`/purchase-orders`, payload);
+      await supplyChainService.createPurchaseOrder(payload);
       Toast.show({
         type: "success",
         text1: "Success",

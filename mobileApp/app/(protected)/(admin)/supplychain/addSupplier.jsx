@@ -16,13 +16,13 @@ import {
   Trash2,
   Box,
 } from "lucide-react-native";
-import axios from "axios";
 import { Formik } from "formik";
 import Toast from "react-native-toast-message";
 import { ChevronDown } from "lucide-react-native";
 import { supplierValidationSchema } from "../../../../schema/supplier.schema";
 import { styles } from "./styles";
 import DropdownInput from "../../../../components/DropdownInput";
+import supplyChainService from "../../../../services/supplychain/supplychain.service";
 
 const Form = {
   Item: ({ help, status, children, style }) => (
@@ -57,13 +57,13 @@ export default function AddSupplier({ onBack }) {
   React.useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const response = await axios.get(`/inventory`);
-        setInventoryList(response.data?.payload?.data || []);
+        const data = await supplyChainService.getInventory();
+        setInventoryList(data);
       } catch (err) {
         Toast.show({
           type: "error",
           text1: "Fetch Error",
-          text2: "Failed to load inventory list."
+          text2: "Failed to load inventory list.",
         });
       }
     };
@@ -72,7 +72,7 @@ export default function AddSupplier({ onBack }) {
 
   const handleSave = async (values, { setSubmitting }) => {
     try {
-      await axios.post(`/suppliers`, {
+      await supplyChainService.createSupplier({
         companyName: values.companyName,
         agentName: values.agentName,
         companyMobile: values.companyMobile.filter((p) => p.trim() !== ""),

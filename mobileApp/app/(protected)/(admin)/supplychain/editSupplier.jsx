@@ -18,12 +18,12 @@ import {
   PlusCircle,
   ChevronDown,
 } from "lucide-react-native";
-import axios from "axios";
 import { Formik } from "formik";
 import Toast from "react-native-toast-message";
 import { supplierValidationSchema } from "../../../../schema/supplier.schema";
 import { styles } from "./styles";
 import DropdownInput from "../../../../components/DropdownInput";
+import supplyChainService from "../../../../services/supplychain/supplychain.service";
 
 const Form = {
   Item: ({ help, status, children, style }) => (
@@ -60,13 +60,13 @@ export default function EditSupplier({ supplier, onBack }) {
   React.useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const response = await axios.get(`/inventory`);
-        setInventoryList(response.data?.payload?.data || []);
+        const data = await supplyChainService.getInventory();
+        setInventoryList(data);
       } catch (err) {
         Toast.show({
           type: "error",
           text1: "Fetch Error",
-          text2: "Failed to load inventory for supplier items."
+          text2: "Failed to load inventory for supplier items.",
         });
       }
     };
@@ -75,7 +75,7 @@ export default function EditSupplier({ supplier, onBack }) {
 
   const handleUpdate = async (values, { setSubmitting }) => {
     try {
-      await axios.put(`/suppliers/${supplier._id}`, {
+      await supplyChainService.updateSupplier(supplier._id, {
         companyName: values.companyName,
         agentName: values.agentName,
         companyMobile: values.companyMobile.filter((p) => p.trim() !== ""),
@@ -85,7 +85,7 @@ export default function EditSupplier({ supplier, onBack }) {
       onBack();
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || "Could not update supplier";
+        error.response?.data?.payload?.message || "Could not update supplier";
       Toast.show({ type: "error", text1: "Error", text2: errorMessage });
     } finally {
       setSubmitting(false);
@@ -103,8 +103,12 @@ export default function EditSupplier({ supplier, onBack }) {
           style: "destructive",
           onPress: async () => {
             try {
-              await axios.delete(`/suppliers/${supplier._id}`);
-              Toast.show({ type: "success", text1: "Deleted", text2: "Supplier removed." });
+              await supplyChainService.deleteSupplier(supplier._id);
+              Toast.show({
+                type: "success",
+                text1: "Deleted",
+                text2: "Supplier removed.",
+              });
               onBack();
             } catch (error) {
               Toast.show({ type: "error", text1: "Error", text2: "Could not delete supplier" });
