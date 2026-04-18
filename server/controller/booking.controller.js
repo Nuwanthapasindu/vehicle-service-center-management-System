@@ -5,6 +5,10 @@ const User = require("../model/User");
 const Vehicle = require("../model/Vehicle");
 const Invoice = require("../model/Invoice");
 const AppError = require("../error/AppError");
+const File = require("../model/File");
+const Team = require("../model/Team");
+const { JOBCARD_STATUS } = require("../util/constants");
+
 
 const { validatedCreateBooking } = require("../validation/booking.validation");
 
@@ -201,6 +205,78 @@ module.exports.getDashboardData = async (mobile) => {
             recentHistory
         };
 
+    } catch (error) {
+        throw new AppError(error.message, error.statusCode || 500);
+    }
+};
+
+module.exports.getAdminBookingDetails = async (bookingId) => {
+    try {
+        const booking = await Booking.findById(bookingId)
+            .select("date vehicle slot customer isDeleted")
+            .populate("customer", "name mobile")
+            .populate("vehicle", "make model licensePlate image")
+            .populate("slot", "startTime endTime");
+
+        if (!booking || booking.isDeleted) throw new AppError("Booking not found", 404);
+        let vehicleImagePath = null;
+        if (booking.vehicle?.image) {
+            const fileData = await File.findById(booking.vehicle.image).select("filePath");
+            if (fileData) vehicleImagePath = fileData.filePath.replace(/\\/g, '/');
+        }
+
+        // Fetch related JobCard (if exists)
+        const jobCard = await JobCard.findOne({ booking: bookingId, isDeleted: false })
+            .select("selectedPackage team status")
+            .populate("selectedPackage", "name")
+            .populate("team", "name");
+
+        // Fetch all active teams
+        const teams = await Team.find({ isDeleted: false }).select("name");
+
+        // Build Team list
+        const formattedTeams = teams.map(team => {
+            return {
+                id: team._id,
+                name: team.name
+            }
+        });
+
+        // Determine JobCard values
+        let servicePkg = null;
+        let tier = null;
+        let statusZ = JOBCARD_STATUS.PENDING;
+        let assignedT = null;
+
+        if (jobCard) {
+            servicePkg = jobCard.selectedPackage ? jobCard.selectedPackage.name : null;
+            statusZ = jobCard.status;
+            if (jobCard.team) {
+                assignedT = jobCard.team._id;
+            }
+        }
+
+        return {
+            date: booking.date.toISOString().split("T")[0],
+            time: booking.slot ? booking.slot.startTime : null,
+            status: statusZ,
+            customer: {
+                name: booking.customer ? booking.customer.name : null,
+                phone: booking.customer ? booking.customer.mobile : null
+            },
+            vehicle: {
+                name: booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model}` : null,
+                plate: booking.vehicle ? booking.vehicle.licensePlate : null,
+                image: vehicleImagePath
+            },
+            service: {
+                package: servicePkg,
+                pricingTier: tier,
+                statusZone: statusZ
+            },
+            assignedTeam: assignedT,
+            teams: formattedTeams
+        };
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500);
     }
