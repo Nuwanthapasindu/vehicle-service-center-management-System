@@ -271,8 +271,8 @@ export default function ViewInvoice() {
             onDelete={() => handleRemoveItem('ITEM', item.item?._id)}
             disabled={isPaid}
             quantity={item.qty}
-            onUpdateQuantity={(newQty) => updateInvoiceItem(item.item?._id, item.sellingPrice, newQty, item.unitType)}
-            unit={item.unitType}
+            onUpdateQuantity={(newQty) => updateInvoiceItem(item.item?._id, item.sellingPrice, newQty)}
+            unit={item.item?.unitType}
           />
         ))}
 
