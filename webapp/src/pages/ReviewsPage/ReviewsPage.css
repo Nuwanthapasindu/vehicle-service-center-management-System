@@ -135,6 +135,38 @@
     color: #1A1D23;
     cursor: pointer;
     font-size: 0.9rem;
+    padding: 0.5rem 0;
+}
+
+.service-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.5rem;
+    background-color: #FFFFFF;
+    border: 1px solid #F1F5F9;
+    border-radius: 12px;
+    padding: 0.5rem;
+    min-width: 240px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #475569;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #F8FAFC;
+    color: #8EDB00;
 }
 
 .sort-group {
@@ -283,12 +315,14 @@
         flex-direction: column;
         gap: 3rem;
     }
+
     .reviews-controls {
         flex-direction: column;
         gap: 2rem;
         padding: 2.5rem;
         align-items: flex-start;
     }
+
     .reviews-grid {
         grid-template-columns: 1fr;
     }

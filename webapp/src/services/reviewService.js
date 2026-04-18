@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const addReview = (payload) => {
-  return axios.post("/review", payload);
+    return axios.post("/review", payload);
 };
 
 const getBookingDetailsForReview = (bookingId) => {
@@ -24,13 +24,18 @@ const getReviewDetail = (reviewId) => {
     return axios.get(`/review/detail/${reviewId}`);
 };
 
+const getPublicReviews = (params) => {
+    return axios.get(`/review`, { params });
+};
+
 const reviewService = {
-  addReview,
-  getBookingDetailsForReview,
-  getMyReviews,
-  updateReview,
-  deleteReview,
-  getReviewDetail
+    addReview,
+    getBookingDetailsForReview,
+    getMyReviews,
+    updateReview,
+    deleteReview,
+    getReviewDetail,
+    getPublicReviews
 };
 
 
