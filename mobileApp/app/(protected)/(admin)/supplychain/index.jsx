@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Menu, Plus, Search, Phone, ClipboardList, Truck, AlertTriangle, X } from 'lucide-react-native';
 import { useNavigation } from 'expo-router';
@@ -12,12 +13,12 @@ import EditSupplier from './editSupplier';
 import AddOrder from './AddOrder';
 import EditOrder from './editOrder';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ? process.env.EXPO_PUBLIC_API_URL.replace('/v1', '') : 'http://localhost:5000/api';
+import enums from '../../../../constants/enums';
 
 export default function SupplyChainApp() {
   const navigation = useNavigation();
-  const [currentView, setCurrentView] = useState('LIST');
-  const [activeTab, setActiveTab] = useState('SUPPLIERS');
+  const [currentView, setCurrentView] = useState(enums.SUPPLY_CHAIN_VIEWS.LIST);
+  const [activeTab, setActiveTab] = useState(enums.SUPPLY_CHAIN_TABS.SUPPLIERS);
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchText, setSearchText] = useState('');
 
@@ -30,11 +31,11 @@ export default function SupplyChainApp() {
 const fetchData = async () => {
   setIsLoading(true);
   try {
-    if (activeTab === 'SUPPLIERS') {
-      const response = await axios.get(`${API_URL}/suppliers`);
+    if (activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS) {
+      const response = await axios.get(`/suppliers`);
       setData(response.data?.payload?.suppliers || []);
     } else {
-      const response = await axios.get(`${API_URL}/purchaseOrders`);
+      const response = await axios.get(`/purchase-orders`);
       const rawOrders = response.data?.payload?.orders || [];
       const ordersWithCost = rawOrders.map(o => {
         const totalCost = o.items?.reduce((sum, item) => sum + ((item.cost || 0) * (item.qty || 1)), 0);
@@ -43,20 +44,24 @@ const fetchData = async () => {
       setData(ordersWithCost); 
     }
 
-    const stockRes = await axios.get(`${API_URL}/v1/inventory`);
+    const stockRes = await axios.get(`/inventory`);
     const invData = stockRes.data?.payload?.data || [];
     const lowStock = invData.filter(item => item.qty <= (item.reorderLevel !== undefined ? item.reorderLevel : 10));
     setLowStockItems(lowStock);
     setLowStockWarning(lowStock.length > 0);
   } catch (error) {
-    console.error("Fetch Error:", error.response?.data || error.message);
+    Toast.show({
+      type: "error",
+      text1: "Failed to fetch data",
+      text2: error.response?.data?.payload?.message || error.message,
+    });
   } finally {
     setIsLoading(false);
   }
 };
 
   useEffect(() => {
-    if (currentView === 'LIST') {
+    if (currentView === enums.SUPPLY_CHAIN_VIEWS.LIST) {
       fetchData();
       setIsWarningDismissed(false);
     }
@@ -65,27 +70,27 @@ const fetchData = async () => {
   const getFilteredData = () => {
     if (!searchText) return data;
     return data.filter(item => {
-      const searchStr = activeTab === 'SUPPLIERS' ? item.companyName : item.supplier?.companyName;
+      const searchStr = activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? item.companyName : item.supplier?.companyName;
       return searchStr?.toLowerCase().includes(searchText.toLowerCase());
     });
   };
 
   const handleFabPress = () => {
-    setCurrentView(activeTab === 'SUPPLIERS' ? 'ADD_SUPPLIER' : 'ADD_ORDER');
+    setCurrentView(activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? enums.SUPPLY_CHAIN_VIEWS.ADD_SUPPLIER : enums.SUPPLY_CHAIN_VIEWS.ADD_ORDER);
   };
 
   const callSupplier = (phoneNumbers) => {
     if (phoneNumbers && phoneNumbers.length > 0) {
       Linking.openURL(`tel:${phoneNumbers[0]}`);
     } else {
-      Alert.alert("No Number", "This supplier doesn't have a registered mobile number.");
+      Toast.show({ type: "error", text1: "No Number", text2: "This supplier doesn't have a registered mobile number." });
     }
   };
 
-  if (currentView === 'ADD_SUPPLIER') return <AddSupplier onBack={() => setCurrentView('LIST')} API={API_URL} />;
-  if (currentView === 'EDIT_SUPPLIER') return <EditSupplier supplier={selectedItem} onBack={() => setCurrentView('LIST')} API={API_URL} />;
-  if (currentView === 'ADD_ORDER') return <AddOrder onBack={() => setCurrentView('LIST')} API={API_URL} />;
-  if (currentView === 'EDIT_ORDER') return <EditOrder order={selectedItem} onBack={() => setCurrentView('LIST')} API={API_URL} />;
+  if (currentView === enums.SUPPLY_CHAIN_VIEWS.ADD_SUPPLIER) return <AddSupplier onBack={() => setCurrentView(enums.SUPPLY_CHAIN_VIEWS.LIST)} />;
+  if (currentView === enums.SUPPLY_CHAIN_VIEWS.EDIT_SUPPLIER) return <EditSupplier supplier={selectedItem} onBack={() => setCurrentView(enums.SUPPLY_CHAIN_VIEWS.LIST)} />;
+  if (currentView === enums.SUPPLY_CHAIN_VIEWS.ADD_ORDER) return <AddOrder onBack={() => setCurrentView(enums.SUPPLY_CHAIN_VIEWS.LIST)} />;
+  if (currentView === enums.SUPPLY_CHAIN_VIEWS.EDIT_ORDER) return <EditOrder order={selectedItem} onBack={() => setCurrentView(enums.SUPPLY_CHAIN_VIEWS.LIST)} />;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -139,30 +144,30 @@ const fetchData = async () => {
             <TouchableOpacity
               style={[
                 styles.card,
-                activeTab === 'SUPPLIES' && {
+                activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIES && {
                   borderLeftWidth: 5,
-                  borderLeftColor: item.status === 'Received' ? '#84CC16' : (item.status === 'Sent' ? '#3B82F6' : '#FFB800')
+                  borderLeftColor: item.status === enums.PURCHASE_ORDER_STATUS.RECEIVED ? '#84CC16' : (item.status === enums.PURCHASE_ORDER_STATUS.SENT ? '#3B82F6' : '#FFB800')
                 }
               ]}
               onPress={() => {
                 setSelectedItem(item);
-                setCurrentView(activeTab === 'SUPPLIERS' ? 'EDIT_SUPPLIER' : 'EDIT_ORDER');
+                setCurrentView(activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? enums.SUPPLY_CHAIN_VIEWS.EDIT_SUPPLIER : enums.SUPPLY_CHAIN_VIEWS.EDIT_ORDER);
               }}
             >
               <View style={[styles.cardContent, { flex: 1 }]}>
                 <Text style={styles.supplierName}>
-                  {activeTab === 'SUPPLIERS' ? item.companyName : item.supplier?.companyName || "Unknown Supplier"}
+                  {activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? item.companyName : item.supplier?.companyName || "Unknown Supplier"}
                 </Text>
 
-                {activeTab === 'SUPPLIERS' ? (
+                {activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? (
                   <Text style={styles.infoText}>Agent: {item.agentName || 'N/A'}</Text>
                 ) : (
-                  <Text style={styles.subtitle}>{item.items?.length || 0} Items - {item.status === 'Sent' ? 'Pending' : item.status}</Text>
+                  <Text style={styles.subtitle}>{item.items?.length || 0} Items - {item.status === enums.PURCHASE_ORDER_STATUS.SENT ? 'Pending' : item.status}</Text>
                 )}
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                {activeTab === 'SUPPLIERS' ? (
+                {activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? (
                   <TouchableOpacity style={styles.callButton} onPress={() => callSupplier(item.companyMobile)}>
                     <Phone size={20} color="#1F2937" />
                   </TouchableOpacity>
@@ -180,14 +185,14 @@ const fetchData = async () => {
       </TouchableOpacity>
 
       <View style={styles.bottomTabs}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => { setActiveTab('SUPPLIERS'); setSearchText(''); }}>
-          <Truck size={24} color={activeTab === 'SUPPLIERS' ? '#84CC16' : '#9CA3AF'} />
-          <Text style={[styles.tabText, activeTab === 'SUPPLIERS' && styles.activeTabText]}>SUPPLIERS</Text>
+        <TouchableOpacity style={styles.tabItem} onPress={() => { setActiveTab(enums.SUPPLY_CHAIN_TABS.SUPPLIERS); setSearchText(''); }}>
+          <Truck size={24} color={activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? '#84CC16' : '#9CA3AF'} />
+          <Text style={[styles.tabText, activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS && styles.activeTabText]}>SUPPLIERS</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.tabItem} onPress={() => { setActiveTab('SUPPLIES'); setSearchText(''); }}>
-          <ClipboardList size={24} color={activeTab === 'SUPPLIES' ? '#84CC16' : '#9CA3AF'} />
-          <Text style={[styles.tabText, activeTab === 'SUPPLIES' && styles.activeTabText]}>SUPPLIES</Text>
+        <TouchableOpacity style={styles.tabItem} onPress={() => { setActiveTab(enums.SUPPLY_CHAIN_TABS.SUPPLIES); setSearchText(''); }}>
+          <ClipboardList size={24} color={activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIES ? '#84CC16' : '#9CA3AF'} />
+          <Text style={[styles.tabText, activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIES && styles.activeTabText]}>SUPPLIES</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

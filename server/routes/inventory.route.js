@@ -31,9 +31,9 @@ const responseBuild = require("../util/responseBuilder");
  */
 router.get("/", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
-  const { search } = req.query;
-
-  getInventory(search)
+  const { search, names } = req.query;
+  const searchedNames = names ? names.split(",") : undefined;
+  getInventory(search, searchedNames)
     .then((items) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({

@@ -1,26 +1,22 @@
-const Inventory = require('../model/Inventory');
-const InventoryLog = require('../model/InventoryLog');
-const User = require('../model/User');
-const AppError = require('../error/AppError');
-const { INVENTORY_ACTION_TYPES } = require('../util/constants');
+const Inventory = require("../model/Inventory");
+const InventoryLog = require("../model/InventoryLog");
+const User = require("../model/User");
+const AppError = require("../error/AppError");
+const { INVENTORY_ACTION_TYPES } = require("../util/constants");
 const {
   inventorySchema,
   stockAdjustmentSchema,
-} = require('../validation/inventory.validation');
+} = require("../validation/inventory.validation");
 
-const adjustStockInternal = async (
-  inventoryId,
-  change,
-  actionType,
-  userId
-) => {
+const adjustStockInternal = async (inventoryId, change, actionType, userId) => {
   try {
     const item = await Inventory.findOne({
       _id: inventoryId,
       isDeleted: false,
     });
 
-    if (!item) throw new AppError(`Inventory item ${inventoryId} not found`, 404);
+    if (!item)
+      throw new AppError(`Inventory item ${inventoryId} not found`, 404);
 
     const oldQty = item.qty;
 
@@ -49,13 +45,17 @@ const adjustStockInternal = async (
 module.exports.adjustStockHelper = adjustStockInternal;
 
 // GET INVENTORY
-module.exports.getInventory = async (search) => {
+module.exports.getInventory = async (search, names) => {
   const query = {
     isDeleted: false,
   };
 
   if (search) {
     query.name = { $regex: new RegExp(search.trim(), "i") };
+  }
+
+  if (names && Array.isArray(names) && names.length > 0) {
+    query.name = { $in: names };
   }
 
   try {
@@ -80,7 +80,9 @@ module.exports.addItem = async (payload, authUser) => {
       mobile: authUser.mobile,
       isActive: true,
       isDeleted: false,
-    }).select("_id").lean();
+    })
+      .select("_id")
+      .lean();
 
     if (!user) throw new AppError("User not found", 404);
 
@@ -121,7 +123,9 @@ module.exports.manualAdjustment = async (id, payload, authUser) => {
       mobile: authUser.mobile,
       isActive: true,
       isDeleted: false,
-    }).select("_id").lean();
+    })
+      .select("_id")
+      .lean();
 
     if (!user) throw new AppError("User not found", 404);
 
@@ -129,7 +133,7 @@ module.exports.manualAdjustment = async (id, payload, authUser) => {
       id,
       payload.quantityChange,
       INVENTORY_ACTION_TYPES.MANUAL_ADJUSTMENT,
-      user._id
+      user._id,
     );
 
     return `${result.name} adjusted successfully.`;
@@ -151,19 +155,24 @@ module.exports.reduceStockByInvoice = async (payload, authUser) => {
       mobile: authUser.mobile,
       isActive: true,
       isDeleted: false,
-    }).select("_id").lean();
+    })
+      .select("_id")
+      .lean();
 
     if (!user) throw new AppError("User not found", 404);
 
     const promises = items.map((item) => {
       if (!item.inventoryId || !item.quantity)
-        throw new AppError("Each item must include a valid inventory ID and received quantity", 400);
+        throw new AppError(
+          "Each item must include a valid inventory ID and received quantity",
+          400,
+        );
 
       return adjustStockInternal(
         item.inventoryId,
         -Math.abs(item.quantity),
         INVENTORY_ACTION_TYPES.INVOICE_SALE,
-        user._id
+        user._id,
       );
     });
 
@@ -188,24 +197,39 @@ module.exports.increaseStockByPO = async (payload, authUser) => {
       mobile: authUser.mobile,
       isActive: true,
       isDeleted: false,
-    }).select("_id").lean();
+    })
+      .select("_id")
+      .lean();
 
     if (!user) throw new AppError("User not found", 404);
 
     const promises = items.map((item) => {
-      if (!item.inventoryId || item.quantityReceived === undefined || item.quantityReceived === null) {
-        throw new AppError("Each item must include inventory ID and quantity received", 400);
+      if (
+        !item.inventoryId ||
+        item.quantityReceived === undefined ||
+        item.quantityReceived === null
+      ) {
+        throw new AppError(
+          "Each item must include inventory ID and quantity received",
+          400,
+        );
       }
 
-      if (typeof item.quantityReceived !== "number" || item.quantityReceived < 0) {
-        throw new AppError("Quantity received must be a non-negative number", 400);
+      if (
+        typeof item.quantityReceived !== "number" ||
+        item.quantityReceived < 0
+      ) {
+        throw new AppError(
+          "Quantity received must be a non-negative number",
+          400,
+        );
       }
 
       return adjustStockInternal(
         item.inventoryId,
         item.quantityReceived,
         INVENTORY_ACTION_TYPES.PO_RECEIVE,
-        user._id
+        user._id,
       );
     });
 
@@ -224,7 +248,7 @@ module.exports.updateItem = async (id, payload) => {
     const item = await Inventory.findOneAndUpdate(
       { _id: id, isDeleted: false },
       payload,
-      { new: true }
+      { new: true },
     );
 
     if (!item) throw new AppError("Item not found", 404);
@@ -242,7 +266,7 @@ module.exports.deleteItem = async (id) => {
     const item = await Inventory.findOneAndUpdate(
       { _id: id, isDeleted: false },
       { isDeleted: true, deletedAt: new Date() },
-      { new: true }
+      { new: true },
     );
 
     if (!item) throw new AppError("Item not found", 404);

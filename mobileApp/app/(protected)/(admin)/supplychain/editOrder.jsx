@@ -1,39 +1,72 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Trash2, CheckCircle2, FileText } from 'lucide-react-native';
-import axios from 'axios';
-import { Alert } from 'react-native';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
-import { styles } from './styles';
-import CustomButton from '../../../../components/CustomButton';
+import React from "react";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  ChevronLeft,
+  Trash2,
+  CheckCircle2,
+  FileText,
+} from "lucide-react-native";
+import axios from "axios";
+import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import { styles } from "./styles";
+import CustomButton from "../../../../components/CustomButton";
+import enums from "../../../../constants/enums";
 
-export default function EditOrder({ order, onBack, API }) {
+export default function EditOrder({ order, onBack }) {
   const displayOrder = order || {};
 
-  const isPending = displayOrder?.status === 'Sent'; 
-  const isDraft = displayOrder?.status === 'Draft';
+  const isPending = displayOrder?.status === enums.PURCHASE_ORDER_STATUS.SENT;
+  const isDraft = displayOrder?.status === enums.PURCHASE_ORDER_STATUS.DRAFT;
 
   const handleUpdateStatus = async (newStatus) => {
     try {
-      await axios.put(`${API}/purchaseOrders/${displayOrder._id}`, { status: newStatus });
-      
-      if (newStatus === 'Received') {
-         const inventoryPayload = {
-            items: (displayOrder.items || []).map(i => ({
-               inventoryId: i.itemId._id || i.itemId,
-               quantityReceived: i.qty
-            }))
-         };
-         await axios.patch(`${API}/v1/inventory/increase-stock`, inventoryPayload);
-         Alert.alert("Success", "Order marked as Received and Inventory Stock updated!");
+      await axios.put(`/purchase-orders/${displayOrder._id}`, {
+        status: newStatus,
+      });
+
+      if (newStatus === enums.PURCHASE_ORDER_STATUS.RECEIVED) {
+        const itemsWithId = (displayOrder.items || []).filter(
+          (i) => !!(i.itemId?._id || i.itemId),
+        );
+
+        if (itemsWithId.length !== (displayOrder.items || []).length) {
+          return Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Order contains items not linked to inventory. Cannot update stock automatically.",
+          });
+        }
+
+        const inventoryPayload = {
+          items: itemsWithId.map((i) => ({
+            inventoryId: i.itemId._id || i.itemId,
+            quantityReceived: i.qty,
+          })),
+        };
+        await axios.patch(`/inventory/increase-stock`, inventoryPayload);
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Order marked as Received and Inventory Stock updated!",
+        });
       } else {
-         Alert.alert("Success", `Order marked as ${newStatus === 'Sent' ? 'Pending' : newStatus}`);
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: `Order marked as ${newStatus}`,
+        });
       }
       onBack();
     } catch (err) {
-      Alert.alert("Error", err.response?.data?.payload?.message || err.message || "Could not update order");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: err.response?.data?.payload?.message || err.message || "Could not update order",
+      });
     }
   };
 
@@ -43,17 +76,20 @@ export default function EditOrder({ order, onBack, API }) {
       "Are you sure you want to remove this order?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: async () => {
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
             try {
-              await axios.delete(`${API}/purchaseOrders/${displayOrder._id}`);
-              Alert.alert("Deleted", "Order removed");
+              await axios.delete(`/purchase-orders/${displayOrder._id}`);
+              Toast.show({ type: "success", text1: "Deleted", text2: "Order removed" });
               onBack();
             } catch (err) {
-              Alert.alert("Error", "Could not delete order");
+              Toast.show({ type: "error", text1: "Error", text2: "Could not delete order" });
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   };
 
@@ -79,9 +115,9 @@ export default function EditOrder({ order, onBack, API }) {
               <h1>PURCHASE ORDER</h1>
             </div>
             <div class="details">
-              <p><strong>Order ID:</strong> ${displayOrder?._id || 'N/A'}</p>
-              <p><strong>Supplier:</strong> ${displayOrder?.supplier?.companyName || 'Unknown Supplier'}</p>
-              <p><strong>Status:</strong> ${displayOrder?.status === 'Sent' ? 'Pending' : (displayOrder?.status || 'Unknown')}</p>
+              <p><strong>Order ID:</strong> ${displayOrder?._id || "N/A"}</p>
+              <p><strong>Supplier:</strong> ${displayOrder?.supplier?.companyName || "Unknown Supplier"}</p>
+              <p><strong>Status:</strong> ${displayOrder?.status || "Unknown"}</p>
               <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
             </div>
             <table>
@@ -94,18 +130,22 @@ export default function EditOrder({ order, onBack, API }) {
                 </tr>
               </thead>
               <tbody>
-                ${(displayOrder?.items || []).map(item => `
+                ${(displayOrder?.items || [])
+                  .map(
+                    (item) => `
                   <tr>
-                    <td>${item.itemId?.name || item.name || 'Unknown Item'}</td>
-                    <td>${item.qty} ${item.unitType || 'Nos'}</td>
+                    <td>${item.itemId?.name || item.name || "Unknown Item"}</td>
+                    <td>${item.qty} ${item.unitType || "Nos"}</td>
                     <td>Rs. ${item.cost || 0}</td>
                     <td>Rs. ${(item.cost || 0) * (item.qty || 0)}</td>
                   </tr>
-                `).join('')}
+                `,
+                  )
+                  .join("")}
               </tbody>
             </table>
             <div class="total">
-              <p>Total Cost: Rs. ${(displayOrder?.items || []).reduce((sum, item) => sum + ((item.cost || 0) * (item.qty || 1)), 0)}</p>
+              <p>Total Cost: Rs. ${(displayOrder?.items || []).reduce((sum, item) => sum + (item.cost || 0) * (item.qty || 1), 0)}</p>
             </div>
           </body>
         </html>
@@ -113,40 +153,57 @@ export default function EditOrder({ order, onBack, API }) {
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri);
     } catch (err) {
-      Alert.alert('Error', 'Failed to generate PDF');
+      Toast.show({ type: "error", text1: "Error", text2: "Failed to generate PDF" });
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}><ChevronLeft color="#84CC16" size={32} /></TouchableOpacity>
+        <TouchableOpacity onPress={onBack}>
+          <ChevronLeft color="#84CC16" size={32} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>ORDER DETAILS</Text>
         <View style={{ width: 32 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={{ marginBottom: 20 }}>
           <Text style={styles.tinyLabel}>SUPPLIER INFO</Text>
-          <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{displayOrder?.supplier?.companyName || 'Unknown Supplier'}</Text>
-          <Text style={{ fontSize: 14, color: '#6B7280' }}>Status: {displayOrder?.status === 'Sent' ? 'Pending' : displayOrder?.status}</Text>
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+            {displayOrder?.supplier?.companyName || "Unknown Supplier"}
+          </Text>
+          <Text style={{ fontSize: 14, color: "#6B7280" }}>
+            Status: {displayOrder?.status}
+          </Text>
         </View>
 
         <Text style={styles.tinyLabel}>ORDER ITEMS</Text>
-        {displayOrder?.items?.map(item => (
+        {displayOrder?.items?.map((item, index) => (
           <View key={item._id || index} style={styles.orderItemCard}>
             <View style={styles.itemHeader}>
-              <Text style={styles.itemName}>{item.itemId?.name || item.name || 'Unknown Item'}</Text>
+              <Text style={styles.itemName}>
+                {item.itemId?.name || item.name || "Unknown Item"}
+              </Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.tinyLabel}>QTY: {item.qty} {item.unitType}</Text>
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
+              <Text style={styles.tinyLabel}>
+                QTY: {item.qty} {item.unitType}
+              </Text>
               <Text style={styles.tinyLabel}>COST: Rs.{item.cost}</Text>
             </View>
           </View>
         ))}
 
-        <View style={{ marginTop: 20, alignItems: 'flex-end' }}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Total: Rs. {displayOrder?.totalCost || 0}</Text>
+        <View style={{ marginTop: 20, alignItems: "flex-end" }}>
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+            Total: Rs. {displayOrder?.totalCost || 0}
+          </Text>
         </View>
       </ScrollView>
 
@@ -155,8 +212,11 @@ export default function EditOrder({ order, onBack, API }) {
           text="DOWNLOAD PDF"
           icon={<FileText size={18} color="#1F2937" />}
           onPress={generatePDF}
-          style={[styles.saveSupplierBtn, { backgroundColor: '#E5E7EB', marginBottom: 10 }]}
-          textStyle={[styles.saveSupplierBtnText, { color: '#1F2937' }]}
+          style={[
+            styles.saveSupplierBtn,
+            { backgroundColor: "#E5E7EB", marginBottom: 10 },
+          ]}
+          textStyle={[styles.saveSupplierBtnText, { color: "#1F2937" }]}
           iconStyle={{ marginLeft: 8 }}
         />
         {isPending ? (
@@ -164,7 +224,7 @@ export default function EditOrder({ order, onBack, API }) {
             <CustomButton
               text="MARK AS RECEIVED"
               icon={<CheckCircle2 size={20} color="#1F2937" />}
-              onPress={() => handleUpdateStatus('Received')}
+              onPress={() => handleUpdateStatus(enums.PURCHASE_ORDER_STATUS.RECEIVED)}
               style={styles.saveSupplierBtn}
               textStyle={styles.saveSupplierBtnText}
               iconStyle={{ marginLeft: 8 }}
@@ -174,8 +234,16 @@ export default function EditOrder({ order, onBack, API }) {
               text="DELETE ORDER"
               icon={<Trash2 size={18} color="#EF4444" />}
               onPress={handleDelete}
-              style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444', marginTop: 10 }]}
-              textStyle={[styles.saveSupplierBtnText, { color: '#EF4444' }]}
+              style={[
+                styles.saveSupplierBtn,
+                {
+                  backgroundColor: "transparent",
+                  borderWidth: 1,
+                  borderColor: "#EF4444",
+                  marginTop: 10,
+                },
+              ]}
+              textStyle={[styles.saveSupplierBtnText, { color: "#EF4444" }]}
               iconStyle={{ marginRight: 8 }}
             />
           </View>
@@ -184,7 +252,7 @@ export default function EditOrder({ order, onBack, API }) {
             <CustomButton
               text="MARK AS SENT"
               icon={<CheckCircle2 size={20} color="#1F2937" />}
-              onPress={() => handleUpdateStatus('Sent')}
+              onPress={() => handleUpdateStatus(enums.PURCHASE_ORDER_STATUS.SENT)}
               style={styles.saveSupplierBtn}
               textStyle={styles.saveSupplierBtnText}
               iconStyle={{ marginLeft: 8 }}
@@ -194,8 +262,16 @@ export default function EditOrder({ order, onBack, API }) {
               text="DELETE ORDER"
               icon={<Trash2 size={18} color="#EF4444" />}
               onPress={handleDelete}
-              style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444', marginTop: 10 }]}
-              textStyle={[styles.saveSupplierBtnText, { color: '#EF4444' }]}
+              style={[
+                styles.saveSupplierBtn,
+                {
+                  backgroundColor: "transparent",
+                  borderWidth: 1,
+                  borderColor: "#EF4444",
+                  marginTop: 10,
+                },
+              ]}
+              textStyle={[styles.saveSupplierBtnText, { color: "#EF4444" }]}
               iconStyle={{ marginRight: 8 }}
             />
           </View>
@@ -204,8 +280,15 @@ export default function EditOrder({ order, onBack, API }) {
             text="DELETE RECORD"
             icon={<Trash2 size={18} color="#EF4444" />}
             onPress={handleDelete}
-            style={[styles.saveSupplierBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]}
-            textStyle={[styles.saveSupplierBtnText, { color: '#EF4444' }]}
+            style={[
+              styles.saveSupplierBtn,
+              {
+                backgroundColor: "transparent",
+                borderWidth: 1,
+                borderColor: "#EF4444",
+              },
+            ]}
+            textStyle={[styles.saveSupplierBtnText, { color: "#EF4444" }]}
             iconStyle={{ marginRight: 8 }}
           />
         )}
