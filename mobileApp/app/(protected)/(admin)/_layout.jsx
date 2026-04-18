@@ -167,17 +167,6 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-          name="Profile"
-          options={{
-            drawerLabel: "Profile",
-            title: "Profile",
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="person-outline" size={size} color={color} />
-            ),
-          }}
-        />
-
-        <Drawer.Screen
           name="(employee)"
           options={{
             headerShown: false,
