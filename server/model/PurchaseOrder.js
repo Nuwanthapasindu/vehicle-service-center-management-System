@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const { PURCHASE_ORDER_STATUS, INVENTORY_UNIT_TYPES } = require("../util/constants");
+const {
+  PURCHASE_ORDER_STATUS,
+  INVENTORY_UNIT_TYPES,
+} = require("../util/constants");
 
 const purchaseOrderSchema = new Schema(
   {
@@ -11,7 +14,11 @@ const purchaseOrderSchema = new Schema(
     },
     items: [
       {
-        itemId: { type: Schema.Types.ObjectId, ref: "Inventory" },
+        itemId: {
+          type: Schema.Types.ObjectId,
+          ref: "Inventory",
+          required: true,
+        },
         qty: { type: Number, required: true },
         unitType: {
           type: String,
