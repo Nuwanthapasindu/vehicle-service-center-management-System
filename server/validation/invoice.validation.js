@@ -7,7 +7,6 @@ const createInvoiceSchema = Joi.object({
     "string.length": "JobCard must be a valid ObjectId",
     "string.hex": "JobCard must be a valid hex string",
     "string.empty": "JobCard cannot be empty",
-    
   }),
 
   customer: Joi.string().length(24).hex().optional().messages({
@@ -44,21 +43,25 @@ const createInvoiceSchema = Joi.object({
     .messages({
       "any.required": "Selected package is required",
     }),
-    
-  additionalItems: Joi.array().items(
-    Joi.object({
-      item: Joi.string().length(24).hex().required(),
-      qty: Joi.number().integer().min(1).required(),
-      sellingPrice: Joi.number().min(0).required()
-    })
-  ).optional(),
 
-  additionalServices: Joi.array().items(
-    Joi.object({
-      service: Joi.string().length(24).hex().required(),
-      charge: Joi.number().min(0).required()
-    })
-  ).optional()
+  additionalItems: Joi.array()
+    .items(
+      Joi.object({
+        item: Joi.string().length(24).hex().required(),
+        qty: Joi.number().integer().min(1).required(),
+        sellingPrice: Joi.number().min(0).required(),
+      }),
+    )
+    .optional(),
+
+  additionalServices: Joi.array()
+    .items(
+      Joi.object({
+        service: Joi.string().length(24).hex().required(),
+        charge: Joi.number().min(0).required(),
+      }),
+    )
+    .optional(),
 })
   .xor("jobCard", "customer")
   .messages({
@@ -66,13 +69,14 @@ const createInvoiceSchema = Joi.object({
     "object.missing": "Must provide either JobCard or Customer.",
   });
 
-
-
 const addInvoiceItemSchema = Joi.object({
-  type: Joi.string().valid(...Object.values(constants.INVOICE_UPDATE_TYPES)).required().messages({
-    "any.only": "Type must be either ITEM or SERVICE",
-    "any.required": "Type is required",
-  }),
+  type: Joi.string()
+    .valid(...Object.values(constants.INVOICE_UPDATE_TYPES))
+    .required()
+    .messages({
+      "any.only": "Type must be either ITEM or SERVICE",
+      "any.required": "Type is required",
+    }),
   data: Joi.object()
     .when("type", {
       is: constants.INVOICE_UPDATE_TYPES.ITEM,
@@ -84,10 +88,9 @@ const addInvoiceItemSchema = Joi.object({
           "string.empty": "Item ID cannot be empty",
           "any.required": "Item ID is required",
         }),
-        qty: Joi.number().integer().min(1).required().messages({
+        qty: Joi.number().min(0.1).required().messages({
           "number.base": "Quantity must be a number",
-          "number.integer": "Quantity must be an integer",
-          "number.min": "Quantity must be at least 1",
+          "number.min": "Quantity must be at least 0.1",
           "any.required": "Quantity is required",
         }),
         sellingPrice: Joi.number().min(0).required().messages({
@@ -102,7 +105,11 @@ const addInvoiceItemSchema = Joi.object({
           .messages({
             "any.only": "Invalid item type",
           }),
-      }).required().messages({ "any.required": "Item data details are required for type ITEM" }),
+      })
+        .required()
+        .messages({
+          "any.required": "Item data details are required for type ITEM",
+        }),
     })
     .when("type", {
       is: constants.INVOICE_UPDATE_TYPES.SERVICE,
@@ -119,16 +126,22 @@ const addInvoiceItemSchema = Joi.object({
           "number.min": "Service charge cannot be negative",
           "any.required": "Service charge is required",
         }),
-      }).required().messages({ "any.required": "Service data details are required for type SERVICE" }),
+      })
+        .required()
+        .messages({
+          "any.required": "Service data details are required for type SERVICE",
+        }),
     }),
 });
 
-
 const removeInvoiceItemSchema = Joi.object({
-  type: Joi.string().valid(...Object.values(constants.INVOICE_UPDATE_TYPES)).required().messages({
-    "any.only": "Type must be either ITEM or SERVICE",
-    "any.required": "Type is required",
-  }),
+  type: Joi.string()
+    .valid(...Object.values(constants.INVOICE_UPDATE_TYPES))
+    .required()
+    .messages({
+      "any.only": "Type must be either ITEM or SERVICE",
+      "any.required": "Type is required",
+    }),
   targetId: Joi.string().length(24).hex().required().messages({
     "string.base": "Target ID must be a string",
     "string.length": "Target ID must be a valid 24-character ObjectId",

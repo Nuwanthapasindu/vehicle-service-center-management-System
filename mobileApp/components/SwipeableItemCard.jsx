@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, ScrollView, Platform } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import colors from '../constants/colors';
+import enums from '../constants/enums';
 
 export default function SwipeableItemCard({ 
   title,
@@ -12,8 +13,24 @@ export default function SwipeableItemCard({
   icon, 
   disabled = false,
   quantity,
-  onUpdateQuantity
+  onUpdateQuantity,
+  unit
 }) {
+  const [localQty, setLocalQty] = React.useState(quantity?.toString());
+  const [modalVisible, setModalVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    setLocalQty(quantity?.toString());
+  }, [quantity]);
+
+  const handleQtyBlur = () => {
+    const val = parseFloat(localQty);
+    if (!isNaN(val)) {
+      onUpdateQuantity(val);
+    } else {
+      setLocalQty(quantity?.toString());
+    }
+  };
 
   const renderRightActions = () => {
     if (disabled || !onDelete) return null;
@@ -42,23 +59,18 @@ export default function SwipeableItemCard({
         </View>
 
         {quantity !== undefined && onUpdateQuantity && (
-          <View style={styles.qtySelector}>
-            <TouchableOpacity 
-              onPress={() => onUpdateQuantity(Math.max(1, quantity - 1))}
-              style={styles.qtyBtn}
-            >
-              <Ionicons name="remove" size={16} color={colors.DARK} />
-            </TouchableOpacity>
-            <Text style={styles.qtyText}>{quantity}</Text>
-            <TouchableOpacity 
-              onPress={() => onUpdateQuantity(quantity + 1)}
-              style={styles.qtyBtn}
-            >
-              <Ionicons name="add" size={16} color={colors.DARK} />
-            </TouchableOpacity>
+          <View style={styles.inputArea}>
+             <TextInput 
+                style={styles.qtyInputField}
+                value={localQty}
+                onChangeText={setLocalQty}
+                onBlur={handleQtyBlur}
+                keyboardType="numeric"
+                editable={!disabled}
+                placeholder="0"
+             />
           </View>
         )}
-
         <View style={styles.priceContainer}>
            <Text style={styles.itemPrice}>{price}</Text>
         </View>
@@ -102,32 +114,63 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   priceContainer: {
-    marginLeft: 12,
+    marginLeft: 8,
+    minWidth: 70,
+    alignItems: 'flex-end',
   },
   itemPrice: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '900',
     color: colors.DARK,
   },
-  qtySelector: {
-    flexDirection: 'row',
+  inputArea: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
     marginRight: 4,
   },
-  qtyBtn: {
-    padding: 6,
-  },
-  qtyText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.DARK,
-    paddingHorizontal: 4,
-    minWidth: 24,
+  qtyInputField: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    borderRadius: 6,
+    width: 65,
+    height: 36,
     textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.DARK,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.LIGHT,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '40%',
+  },
+  modalHeader: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: colors.SECONDARY,
+    marginBottom: 16,
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  optItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.BORDER_COLOR + '40',
+  },
+  optText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.DARK,
   },
   deleteSwipeAction: {
     backgroundColor: '#EF4444',
