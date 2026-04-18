@@ -15,7 +15,7 @@ import Toast from "react-native-toast-message";
 import enums from "../../../../constants/enums";
 import FALLBACK_IMG from "../../../../assets/default-car.png";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 export default function BookingDetails() {
   const { id } = useLocalSearchParams();
@@ -52,11 +52,10 @@ export default function BookingDetails() {
       // Fetch Booking Details and Packages in parallel to reconcile them
       const [bookingResponse, pkgResponse] = await Promise.all([
         axios.get(`/booking/admin/${id}/details`),
-        axios.get(`/job-cards/packages`)
+        axios.get(`/package/public`)
       ]);
-
-      const details = bookingResponse.data.payload.data;
-      const allPackages = pkgResponse.data.payload.data || [];
+      const details = bookingResponse.data?.payload?.data;
+      const allPackages = pkgResponse.data?.payload?.packages || [];
 
       setData(details);
       setPackages(allPackages);
@@ -69,7 +68,7 @@ export default function BookingDetails() {
         if (fullPkg) {
           setSelectedPackage(fullPkg);
           if (details.service.pricingTier) {
-            const fullTier = fullPkg.pricingTiers?.find(t => t.tierName === details.service.pricingTier);
+            const fullTier = fullPkg.pricingTiers?.find(t => t.name === details.service.pricingTier);
             if (fullTier) {
               setSelectedTier(fullTier);
             }
@@ -173,7 +172,7 @@ export default function BookingDetails() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>Assign Package / Service</Text>
+          <Text style={styles.label}>Assign Package</Text>
           <DropdownInput
             value={selectedPackage ? selectedPackage.name : null}
             options={packages.map(p => p.name)}
@@ -188,13 +187,13 @@ export default function BookingDetails() {
 
           <Text style={styles.label}>Select Pricing tier</Text>
           <DropdownInput
-            value={selectedTier ? (selectedTier.price !== undefined ? `${selectedTier.tierName} - LKR ${selectedTier.price}` : selectedTier.tierName) : null}
-            options={selectedPackage && selectedPackage.pricingTiers ? selectedPackage.pricingTiers.map(t => `${t.tierName} - LKR ${t.price}`) : []}
+            value={selectedTier ? (selectedTier.price !== undefined ? `${selectedTier.name} - LKR ${selectedTier.price}` : selectedTier.name) : null}
+            options={selectedPackage && selectedPackage.pricingTiers ? selectedPackage.pricingTiers.map(t => `${t.name} - LKR ${t.price}`) : []}
             placeholder="Pending Selection"
             modalTitle="Select Pricing tier"
             onSelect={(str) => {
               if (selectedPackage && selectedPackage.pricingTiers) {
-                const tr = selectedPackage.pricingTiers.find(t => `${t.tierName} - LKR ${t.price}` === str);
+                const tr = selectedPackage.pricingTiers.find(t => `${t.name} - LKR ${t.price}` === str);
                 if (tr) setSelectedTier(tr);
               }
             }}
