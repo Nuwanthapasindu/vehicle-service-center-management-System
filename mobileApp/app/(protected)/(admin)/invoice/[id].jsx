@@ -6,7 +6,8 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import colors from '../../../../constants/colors';
-import { getInvoiceHtmlContent } from '../../../../utils/invoicePdfGenerator';
+import { pdfGenerator } from '../../../../utils/pdfGenerator';
+import { getInvoiceTemplate } from '../../../../templates/pdf/invoiceTemplate';;
 import { useLocalSearchParams } from 'expo-router';
 import { invoiceService } from '../../../../services/invoice/invoice.service';
 import enums from '../../../../constants/enums';
@@ -185,7 +186,8 @@ export default function ViewInvoice() {
 
   const printQuote = async () => {
     try {
-      await Print.printAsync({ html: getInvoiceHtmlContent(invoice) });
+      const html = getInvoiceTemplate(invoice);
+      await pdfGenerator.print(html);
     } catch (error) {
       console.error('Error printing:', error);
     }
@@ -193,8 +195,8 @@ export default function ViewInvoice() {
 
   const sharePDF = async () => {
     try {
-      const { uri } = await Print.printToFileAsync({ html: getInvoiceHtmlContent(invoice) });
-      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+      const html = getInvoiceTemplate(invoice);
+      await pdfGenerator.share(html, `Invoice_${invoice.invoiceId}`);
     } catch (error) {
       console.error('Error sharing pdf:', error);
     }
