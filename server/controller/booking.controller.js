@@ -284,7 +284,7 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
       booking: bookingId,
       isDeleted: false,
     })
-      .select("selectedPackage team status")
+      .select("selectedPackage team status milageCount")
       .populate("selectedPackage", "name")
       .populate("team", "name");
 
@@ -334,7 +334,8 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
         package: servicePkg,
         pricingTier: tier,
         statusZone: statusZ,
-        jobCardId: jobCard ? jobCard._id : null
+        jobCardId: jobCard ? jobCard._id : null,
+        milageCount: jobCard ? jobCard.milageCount : null
       },
       assignedTeam: assignedT,
       teams: formattedTeams,

@@ -142,6 +142,10 @@ export default function BookingDetails() {
           }
         }
 
+        if (details.service.milageCount !== undefined && details.service.milageCount !== null) {
+          formik.setFieldValue("milageCount", String(details.service.milageCount));
+        }
+
         const fullPkg = allPackages.find(p => p.name === details.service.package);
         if (fullPkg) {
           formik.setFieldValue("selectedPackage", fullPkg._id);
@@ -259,11 +263,12 @@ export default function BookingDetails() {
             placeholder="e.g. 45000"
             keyboardType="numeric"
             icon={<Ionicons name="speedometer-outline" size={18} color={colors.SECONDARY} />}
-            value={formik.values.milageCount}
+            value={String(formik.values.milageCount)}
             onChangeText={formik.handleChange("milageCount")}
             onBlur={formik.handleBlur("milageCount")}
             error={formik.errors.milageCount}
             touched={formik.touched.milageCount}
+            editable={!isGenerated}
           />
 
           <Text style={styles.label}>Assign Package</Text>
@@ -272,6 +277,7 @@ export default function BookingDetails() {
             options={packages.map(p => p.name)}
             placeholder="Pending Selection"
             modalTitle="Assign Package"
+            disabled={isGenerated}
             onSelect={(name) => {
               const pkg = packages.find(p => p.name === name);
               if (pkg) {
@@ -291,6 +297,7 @@ export default function BookingDetails() {
             options={packages.find(p => String(p._id || p.id) === String(formik.values.selectedPackage))?.pricingTiers?.map(t => `${t.name} - LKR ${t.price}`) || []}
             placeholder="Pending Selection"
             modalTitle="Select Pricing tier"
+            disabled={isGenerated}
             onSelect={(str) => {
               const selPkg = packages.find(p => String(p._id || p.id) === String(formik.values.selectedPackage));
               if (selPkg && selPkg.pricingTiers) {
@@ -345,9 +352,10 @@ export default function BookingDetails() {
                   style={[
                     styles.assignButton,
                     isAssigned && styles.assignedButton,
-                    isBusy && styles.disabledButton
+                    isBusy && styles.disabledButton,
+                    isGenerated && styles.disabledButton
                   ]}
-                  disabled={isBusy}
+                  disabled={isBusy || isGenerated}
                   onPress={() => isAssigned ? formik.setFieldValue("assignedTeam", null) : formik.setFieldValue("assignedTeam", team.id)}
                 >
                   <Text style={[
@@ -401,7 +409,7 @@ export default function BookingDetails() {
           </TouchableOpacity>
         )}
         {isGenerated && invoiceDetails && (
-          <TouchableOpacity style={styles.invoiceButton} onPress={() => router.push(`/(protected)/(admin)/invoice/${invoiceDetails._id}`)}>
+          <TouchableOpacity style={styles.invoiceButton} onPress={() => router.replace(`/(protected)/(admin)/invoice/${invoiceDetails._id}`)}>
             <Ionicons name="receipt-outline" size={20} color="#FFF" style={{ marginRight: 6 }} />
             <Text style={styles.invoiceButtonText}>View / Manage Invoice</Text>
           </TouchableOpacity>
