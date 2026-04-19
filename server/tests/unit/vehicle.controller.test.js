@@ -6,11 +6,11 @@ Object.keys(mongoose.models).forEach((key) => {
   delete mongoose.models[key];
 });
 
-const User = require("../model/User");
-const Vehicle = require("../model/Vehicle");
-const File = require("../model/File");
-const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle } = require("../controller/vehicle.controller");
-const AppError = require("../error/AppError");
+const User = require("../../model/User");
+const Vehicle = require("../../model/Vehicle");
+const File = require("../../model/File");
+const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle } = require("../../controller/vehicle.controller");
+const AppError = require("../../error/AppError");
 
 let mongoServer;
 

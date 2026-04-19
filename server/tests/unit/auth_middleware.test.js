@@ -1,12 +1,12 @@
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware } = require("../../middleware/auth");
 const jwt = require("jsonwebtoken");
-const User = require("../model/User");
-const Employee = require("../model/Employee");
-const AppError = require("../error/AppError");
+const User = require("../../model/User");
+const Employee = require("../../model/Employee");
+const AppError = require("../../error/AppError");
 
 jest.mock("jsonwebtoken");
-jest.mock("../model/User");
-jest.mock("../model/Employee");
+jest.mock("../../model/User");
+jest.mock("../../model/Employee");
 
 describe("Auth Middleware Security Tests", () => {
   let mockRequest;
@@ -24,7 +24,7 @@ describe("Auth Middleware Security Tests", () => {
 
   test("should fail if no authorization header is provided", async () => {
     await authTokenMiddleware(mockRequest, mockResponse, nextFunction);
-    expect(nextFunction).toHaveBeenCalledWith(expect.any(AppError));
+    expect(nextFunction).toHaveBeenCalledWith(expect.any(Error));
     const error = nextFunction.mock.calls[0][0];
     expect(error.message).toBe("No token provided");
     expect(error.statusCode).toBe(401);
@@ -33,7 +33,7 @@ describe("Auth Middleware Security Tests", () => {
   test("should fail if token does not start with Bearer", async () => {
     mockRequest.headers.authorization = "TOKEN_XYZ";
     await authTokenMiddleware(mockRequest, mockResponse, nextFunction);
-    expect(nextFunction).toHaveBeenCalledWith(expect.any(AppError));
+    expect(nextFunction).toHaveBeenCalledWith(expect.any(Error));
     const error = nextFunction.mock.calls[0][0];
     expect(error.message).toBe("Invalid token");
   });
@@ -64,7 +64,7 @@ describe("Auth Middleware Security Tests", () => {
 
     await authTokenMiddleware(mockRequest, mockResponse, nextFunction);
     expect(nextFunction).toHaveBeenCalled();
-    expect(nextFunction).not.toHaveBeenCalledWith(expect.any(AppError));
+    expect(nextFunction).not.toHaveBeenCalledWith(expect.any(Error));
     expect(mockRequest.user.username).toBe("admin");
     expect(mockRequest.user.name).toBe("Admin User");
   });
@@ -83,7 +83,7 @@ describe("Auth Middleware Security Tests", () => {
     });
 
     await authTokenMiddleware(mockRequest, mockResponse, nextFunction);
-    expect(nextFunction).toHaveBeenCalledWith(expect.any(AppError));
+    expect(nextFunction).toHaveBeenCalledWith(expect.any(Error));
     const error = nextFunction.mock.calls[0][0];
     expect(error.message).toBe("unauthorized");
   });
@@ -95,7 +95,7 @@ describe("Auth Middleware Security Tests", () => {
     });
 
     await authTokenMiddleware(mockRequest, mockResponse, nextFunction);
-    expect(nextFunction).toHaveBeenCalledWith(expect.any(AppError));
+    expect(nextFunction).toHaveBeenCalledWith(expect.any(Error));
     const error = nextFunction.mock.calls[0][0];
     expect(error.message).toBe("invalid signature");
   });

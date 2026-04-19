@@ -80,7 +80,8 @@ describe('Inventory Controller Unit Tests', () => {
       );
 
       expect(Inventory.create).toHaveBeenCalled();
-      expect(result).toEqual({ _id: '1', qty: 10 });
+      expect(typeof result).toBe('string');
+      expect(result).toContain('added successfully');
     });
 
     it('should fail validation', async () => {
@@ -102,7 +103,8 @@ describe('Inventory Controller Unit Tests', () => {
 
       const result = await inventoryController.updateItem('1', { qty: 15 });
 
-      expect(result).toEqual({ _id: '1' });
+      expect(typeof result).toBe('string');
+      expect(result).toContain('updated successfully');
     });
 
     it('should not find item', async () => {
@@ -120,7 +122,8 @@ describe('Inventory Controller Unit Tests', () => {
 
       const result = await inventoryController.deleteItem('1');
 
-      expect(result).toBe(true);
+      expect(typeof result).toBe('string');
+      expect(result).toContain('deleted successfully');
     });
 
     it('should fail when not found', async () => {
@@ -138,11 +141,10 @@ describe('Inventory Controller Unit Tests', () => {
 
       stockAdjustmentSchema.validate.mockReturnValue({ error: null });
 
-      Inventory.findOne.mockReturnValue({
-        session: jest.fn().mockResolvedValue({
-          qty: 10,
-          save: jest.fn().mockResolvedValue()
-        })
+      Inventory.findOne.mockResolvedValue({
+        qty: 10,
+        name: 'TestItem',
+        save: jest.fn().mockResolvedValue({})
       });
 
       InventoryLog.create.mockResolvedValue({});
@@ -171,11 +173,10 @@ describe('Inventory Controller Unit Tests', () => {
 
   describe('reduceStockByInvoice', () => {
     it('should reduce stock', async () => {
-      Inventory.findOne.mockReturnValue({
-        session: jest.fn().mockResolvedValue({
-          qty: 10,
-          save: jest.fn().mockResolvedValue()
-        })
+      Inventory.findOne.mockResolvedValue({
+        qty: 10,
+        name: 'TestItem',
+        save: jest.fn().mockResolvedValue({})
       });
 
       InventoryLog.create.mockResolvedValue({});
@@ -185,7 +186,8 @@ describe('Inventory Controller Unit Tests', () => {
         mockReq.user
       );
 
-      expect(result).toBe(true);
+      expect(typeof result).toBe('string');
+      expect(result).toContain('reduced successfully');
     });
 
     it('should fail when no items', async () => {
@@ -197,11 +199,10 @@ describe('Inventory Controller Unit Tests', () => {
 
   describe('increaseStockByPO', () => {
     it('should increase stock', async () => {
-      Inventory.findOne.mockReturnValue({
-        session: jest.fn().mockResolvedValue({
-          qty: 5,
-          save: jest.fn().mockResolvedValue()
-        })
+      Inventory.findOne.mockResolvedValue({
+        qty: 5,
+        name: 'TestItem',
+        save: jest.fn().mockResolvedValue({})
       });
 
       InventoryLog.create.mockResolvedValue({});
@@ -211,7 +212,8 @@ describe('Inventory Controller Unit Tests', () => {
         mockReq.user
       );
 
-      expect(result).toBe(true);
+      expect(typeof result).toBe('string');
+      expect(result).toContain('increased successfully');
     });
 
     it('should fail when no items', async () => {

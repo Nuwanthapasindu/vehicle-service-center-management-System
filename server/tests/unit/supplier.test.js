@@ -1,30 +1,22 @@
-//mpn test
-const { validateSupplier } = require('../validation/supplier.validation');
+const { validatedCreateSupplier } = require('../../validation/supplier.validation');
 
 describe('Supplier Validation Logic', () => {
   
-  it('should return 400 Error if Company Name is missing', () => {
-    const req = { body: { companyMobile: ['0771234567'] } }; 
-    const res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn()
-    };
-    const next = jest.fn();
+  it('should return error if Company Name is missing', () => {
+    const reqBody = { companyMobile: ['0771234567'] }; 
 
-    validateSupplier(req, res, next);
+    const { error } = validatedCreateSupplier(reqBody);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: "Company Name is required." });
+    expect(error).toBeDefined();
+    expect(error.details[0].message).toContain("Company name is required");
   });
 
-  it('should pass and call next() if all data is correct', () => {
-    const req = { body: { companyName: 'AMW Parts', companyMobile: ['0771234567'] } };
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-    const next = jest.fn();
+  it('should pass if all data is correct', () => {
+    const reqBody = { companyName: 'AMW Parts', companyMobile: ['0771234567'] };
 
-    validateSupplier(req, res, next);
+    const { error } = validatedCreateSupplier(reqBody);
 
-    expect(next).toHaveBeenCalled();
+    expect(error).toBeUndefined();
   });
 
 });

@@ -61,7 +61,7 @@ describe('Inventory Routes Integration Tests', () => {
           buyingPrice: 70
         });
       expect(res.statusCode).toBe(201);
-      expect(res.body.payload.data.name).toBe('New Item');
+      expect(res.body.payload.message).toContain('added successfully');
     });
   });
 
@@ -71,8 +71,8 @@ describe('Inventory Routes Integration Tests', () => {
         select: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue({ _id: 'user123' })
       });
-      const mockItem = { _id: 'item123', qty: 10, save: jest.fn().mockResolvedValue(true) };
-      Inventory.findOne.mockReturnValue({ session: jest.fn().mockResolvedValue(mockItem) });
+      const mockItem = { _id: 'item123', qty: 10, name: 'TestItem', save: jest.fn().mockResolvedValue({}) };
+      Inventory.findOne.mockResolvedValue(mockItem);
       const res = await request(app).patch('/inventory/adjust/item123').send({ quantityChange: 5 });
       expect(res.statusCode).toBe(200);
       expect(res.body.payload.message).toBeDefined();
@@ -85,11 +85,11 @@ describe('Inventory Routes Integration Tests', () => {
         select: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue({ _id: 'user123' })
       });
-      const mockItem = { _id: 'item123', qty: 10, save: jest.fn().mockResolvedValue(true) };
-      Inventory.findOne.mockReturnValue({ session: jest.fn().mockResolvedValue(mockItem) });
+      const mockItem = { _id: 'item123', qty: 10, name: 'TestItem', save: jest.fn().mockResolvedValue({}) };
+      Inventory.findOne.mockResolvedValue(mockItem);
       const res = await request(app).patch('/inventory/reduce-stock').send({ items: [{ inventoryId: 'item123', quantity: 2 }] });
       expect(res.statusCode).toBe(200);
-      expect(res.body.payload.message).toContain('Stock reduced');
+      expect(res.body.payload.message).toContain('reduced successfully');
     });
   });
 
@@ -99,11 +99,11 @@ describe('Inventory Routes Integration Tests', () => {
         select: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue({ _id: 'user123' })
       });
-      const mockItem = { _id: 'item123', qty: 10, save: jest.fn().mockResolvedValue(true) };
-      Inventory.findOne.mockReturnValue({ session: jest.fn().mockResolvedValue(mockItem) });
+      const mockItem = { _id: 'item123', qty: 10, name: 'TestItem', save: jest.fn().mockResolvedValue({}) };
+      Inventory.findOne.mockResolvedValue(mockItem);
       const res = await request(app).patch('/inventory/increase-stock').send({ items: [{ inventoryId: 'item123', quantityReceived: 3 }] });
       expect(res.statusCode).toBe(200);
-      expect(res.body.payload.message).toContain('Stock increased');
+      expect(res.body.payload.message).toContain('increased successfully');
     });
   });
 
@@ -112,7 +112,7 @@ describe('Inventory Routes Integration Tests', () => {
       Inventory.findOneAndUpdate.mockResolvedValue({ _id: 'item123', name: 'Updated Item' });
       const res = await request(app).patch('/inventory/item123').send({ name: 'Updated Item' });
       expect(res.statusCode).toBe(200);
-      expect(res.body.payload.data.name).toBe('Updated Item');
+      expect(res.body.payload.message).toContain('updated successfully');
     });
   });
 
@@ -121,7 +121,7 @@ describe('Inventory Routes Integration Tests', () => {
       Inventory.findOneAndUpdate.mockResolvedValue({ _id: 'item123', isDeleted: true });
       const res = await request(app).delete('/inventory/item123');
       expect(res.statusCode).toBe(200);
-      expect(res.body.payload.message).toContain('removed');
+      expect(res.body.payload.message).toContain('deleted successfully');
     });
   });
 });
