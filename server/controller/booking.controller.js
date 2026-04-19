@@ -344,3 +344,68 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
     throw new AppError(error.message, error.statusCode || 500);
   }
 };
+
+module.exports.updateBookingByAdmin = async (bookingId, payload) => {
+  const { date, slot } = payload;
+  try {
+    const booking = await Booking.findOne({ _id: bookingId, isDeleted: false });
+    if (!booking) throw new AppError("Booking not found", 404);
+
+    if (date) {
+      const checkDate = new Date(date);
+      checkDate.setHours(0, 0, 0, 0);
+      booking.date = checkDate;
+    }
+
+    if (slot) {
+      const slotDoc = await Timeslot.findOne({ _id: slot, isDeleted: false });
+      if (!slotDoc) throw new AppError("Timeslot not found", 404);
+      booking.slot = slot;
+    }
+
+    // Check for concurrency/capacity if date or slot changed
+    if (date || slot) {
+       const checkDate = new Date(booking.date);
+       checkDate.setHours(0, 0, 0, 0);
+       const nextDay = new Date(checkDate);
+       nextDay.setDate(nextDay.getDate() + 1);
+
+       const existingBookings = await Booking.find({
+         _id: { $ne: bookingId },
+         slot: booking.slot,
+         date: { $gte: checkDate, $lt: nextDay },
+         isDeleted: false,
+       });
+
+       const slotDoc = await Timeslot.findById(booking.slot);
+
+       if (existingBookings.length >= slotDoc.maxCapacity) {
+         throw new AppError("This timeslot is fully booked for the selected date", 400);
+       }
+    }
+
+    const updatedBooking = await booking.save();
+    return updatedBooking;
+  } catch (error) {
+    if (error.code === 11000) {
+      throw new AppError("This vehicle is already booked for this specific time slot on the selected date.", 409);
+    }
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
+module.exports.cancelBookingByAdmin = async (bookingId) => {
+  try {
+    const booking = await Booking.findOne({ _id: bookingId, isDeleted: false });
+    if (!booking) throw new AppError("Booking not found", 404);
+
+    booking.isDeleted = true;
+    booking.deletedAt = new Date();
+    await booking.save();
+
+    return { message: "Booking cancelled successfully" };
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
