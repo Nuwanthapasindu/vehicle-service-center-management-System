@@ -1,14 +1,27 @@
 const router = require("express").Router();
-const { 
-    addReview, 
-    getBookingDetailsForReview, 
-    getMyReviews, 
-    updateReview, 
-    deleteReview, 
-    getReviewById 
+const {
+    addReview,
+    getBookingDetailsForReview,
+    getMyReviews,
+    updateReview,
+    deleteReview,
+    getReviewById,
+    getAllPublicReviews
 } = require("../controller/review.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
+
+router.get("/", (req, res, next) => {
+    const responseBuilder = new responseBuild(res);
+    const query = req.query;
+
+    getAllPublicReviews(query)
+        .then((data) => {
+            responseBuilder.setStatus(200);
+            responseBuilder.buildResponse(data);
+        })
+        .catch((error) => next(error));
+});
 
 router.post("/", authTokenMiddleware, (req, res, next) => {
     const responseBuilder = new responseBuild(res);
