@@ -366,7 +366,10 @@ module.exports.addAdminReply = async (reviewId, payload) => {
     if (!review) throw new AppError("Review not found", 404);
 
     if (review.adminReply) {
-      throw new AppError("Review already has an admin reply. Use update instead.", 400);
+      throw new AppError(
+        "Review already has an admin reply. Use update instead.",
+        400,
+      );
     }
 
     const { error } = validatedAdminReply(payload);
@@ -422,7 +425,7 @@ module.exports.deleteAdminReply = async (reviewId) => {
     }
 
     if (!review.adminReply) {
-        throw new AppError("Review does not have an admin reply to delete.", 404);
+      throw new AppError("Review does not have an admin reply to delete.", 404);
     }
 
     review.adminReply = undefined;
@@ -439,7 +442,7 @@ module.exports.updateReviewApprovalStatus = async (reviewId, payload) => {
     if (!mongoose.Types.ObjectId.isValid(reviewId)) {
       throw new AppError("Invalid review ID", 400);
     }
-    
+
     const { error } = validatedReviewApproval(payload);
     if (error) throw new AppError(error.details[0].message, 400);
 
@@ -448,10 +451,13 @@ module.exports.updateReviewApprovalStatus = async (reviewId, payload) => {
 
     review.isApproved = payload.isApproved;
     await review.save();
-    return `Review ${payload.isApproved ? 'approved' : 'rejected'} successfully`;
+    return `Review ${payload.isApproved ? "approved" : "rejected"} successfully`;
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to update review approval status", 500);
+    throw new AppError(
+      error.message || "Failed to update review approval status",
+      500,
+    );
   }
 };
 
@@ -484,7 +490,15 @@ module.exports.getAllReviews = async (
           select: ["vehicle", "date"],
         },
       ])
-      .select(["customer", "booking", "rating", "comment", "isApproved", "adminReply", "createdAt"])
+      .select([
+        "customer",
+        "booking",
+        "rating",
+        "comment",
+        "isApproved",
+        "adminReply",
+        "createdAt",
+      ])
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
@@ -492,5 +506,43 @@ module.exports.getAllReviews = async (
   } catch (error) {
     if (error instanceof AppError) throw error;
     throw new AppError(error.message || "Failed to fetch reviews", 500);
+  }
+};
+
+module.exports.getCustomerReviewById = async (reviewId) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+      throw new AppError("Invalid review ID", 400);
+    }
+    const review = await Review.findOne({ _id: reviewId, isDeleted: false })
+      .populate([
+        {
+          path: "customer",
+          select: "name",
+        },
+        {
+          path: "booking",
+          populate: {
+            path: "vehicle",
+            populate: { path: "image", select: "filePath" },
+            select: ["make", "model", "image"],
+          },
+          select: ["vehicle", "date"],
+        },
+      ])
+      .select([
+        "customer",
+        "booking",
+        "rating",
+        "comment",
+        "isApproved",
+        "adminReply",
+        "createdAt",
+      ]);
+    if (!review) throw new AppError("Review not found", 404);
+    return review;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(error.message || "Failed to fetch review", 500);
   }
 };

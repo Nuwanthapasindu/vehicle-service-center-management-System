@@ -11,7 +11,8 @@ const {
     addAdminReply,
     updateAdminReply,
     deleteAdminReply,
-    updateReviewApprovalStatus
+    updateReviewApprovalStatus,
+    getCustomerReviewById
 } = require("../controller/review.controller");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
@@ -137,6 +138,36 @@ router.get("/admin", authTokenMiddleware, (req, res, next) => {
         .then((reviews) => {
             responseBuilder.setStatus(200);
             responseBuilder.buildResponse({reviews});
+        })
+        .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/review/admin/{reviewId}:
+ *   get:
+ *     summary: Get specific review details for admin
+ *     tags: [Review]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: reviewId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Review details
+ */
+router.get("/admin/:reviewId", authTokenMiddleware, (req, res, next) => {
+    const responseBuilder = new responseBuild(res);
+    const { reviewId } = req.params;
+
+    getCustomerReviewById(reviewId)
+        .then((review) => {
+            responseBuilder.setStatus(200);
+            responseBuilder.buildResponse({ review });
         })
         .catch((error) => next(error));
 });
