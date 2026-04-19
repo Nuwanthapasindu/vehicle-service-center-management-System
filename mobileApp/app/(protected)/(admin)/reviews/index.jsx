@@ -1,63 +1,123 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
+  Alert,
+  RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
 import colors from "../../../../constants/colors";
 import ReviewItem from "../../../../components/ReviewItem";
-
-const MOCK_REVIEWS = [
-  {
-    id: "1",
-    author: "Jonathan Miller",
-    initials: "JM",
-    service: "Full Interior Detail",
-    time: "2h ago",
-    rating: 5,
-    text: '"The attention to detail was incredible. My car looks brand new! Highly recommend the team at Shine Depot. They even got the stains out of the passenger seat."',
-    image:
-      "https://images.unsplash.com/photo-1600705436622-5f65eb5629c1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-  },
-  {
-    id: "2",
-    author: "Amanda Sterling",
-    initials: "AS",
-    service: "Ceramic Coating",
-    time: "5h ago",
-    rating: 4,
-    text: '"Excellent work on the ceramic coating. A bit pricey but worth every penny for the shine. Wait time was longer than expected though."',
-    image:
-      "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-  },
-  {
-    id: "3",
-    author: "Robert Kane",
-    initials: "RK",
-    service: "Oil Change",
-    time: "Yesterday",
-    rating: 5,
-    text: '"Fast service and very professional. The mechanic explained everything clearly."',
-    image: null,
-  },
-];
+import ReviewService from "../../../../services/review/review.service";
+import getImageFullUrl from "../../../../utils/getImageFullUrl";
+import enums from "../../../../constants/enums";
 
 export default function ReviewsModeration() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("Pending");
+  const [activeTab, setActiveTab] = useState(enums.REVIEW_FILTER_TABS.ALL);
+  const tabs = [enums.REVIEW_FILTER_TABS.ALL, enums.REVIEW_FILTER_TABS.PUBLISHED];
 
-  const tabs = ["Pending", "Approved", "Rejected"];
+  const [reviews, setReviews] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchReviews = async (pageNumber = 1, isRefreshing = false) => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const isApproved = activeTab === enums.REVIEW_FILTER_TABS.PUBLISHED ? true : undefined;
+      const response = await ReviewService.getAdminReviews(pageNumber, 10, isApproved);
+      const newReviews = response?.payload?.reviews || [];
+      
+      const formattedReviews = newReviews.map(formatReview);
+
+      if (isRefreshing) {
+        setReviews(formattedReviews);
+      } else {
+        setReviews((prev) => [...prev, ...formattedReviews]);
+      }
+      
+      setHasMore(newReviews.length === 10);
+      setPage(pageNumber);
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Failed to fetch reviews",
+        text2: error?.response?.data?.payload?.message || error.message || "Something went wrong",
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews(1, true);
+  }, [activeTab]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchReviews(1, true);
+  };
+
+  const loadMore = () => {
+    if (hasMore && !loading) {
+      fetchReviews(page + 1);
+    }
+  };
+
+  const formatReview = (review) => {
+    const customerName = review.customer?.name || "Unknown";
+    const initials = customerName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+    const make = review.booking?.vehicle?.make;
+    const model = review.booking?.vehicle?.model;
+    const service = make && model ? `${make} ${model}` : "General Service";
+    
+    // Format date/time
+    const dateObj = new Date(review.createdAt);
+    const time = dateObj.toLocaleDateString();
+    return {
+      id: review._id,
+      author: customerName,
+      initials,
+      service,
+      time,
+      rating: review.rating,
+      text: review.comment ? `"${review.comment}"` : "No comment",
+      image: review.booking?.vehicle?.image?.filePath ? getImageFullUrl(review.booking.vehicle.image.filePath) : null,
+      isApproved: review.isApproved,
+    };
+  };
+
+  const toggleApproval = async (id, isApproved) => {
+    try {
+      const {payload} = await ReviewService.updateApprovalStatus(id, isApproved);
+      Toast.show({
+        type: "success",
+        text1: "Review status updated successfully",
+        text2: payload?.message,
+      });
+      onRefresh(); // Refresh current tab list
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Failed to update review status",
+        text2: error?.response?.data?.payload?.message || error.message || "Something went wrong",
+      });
+    }
+  };
 
   const renderReviewItem = ({ item }) => (
     <ReviewItem
       item={item}
-      onApprove={() => console.log("Approve", item.id)}
-      onReject={() => console.log("Reject", item.id)}
+      onTogglePublish={() => toggleApproval(item.id, !item.isApproved)}
       onReply={() => router.push(`/(protected)/(admin)/reviews/${item.id}`)}
     />
   );
@@ -86,17 +146,27 @@ export default function ReviewsModeration() {
 
       {/* List */}
       <FlatList
-        data={activeTab === "Pending" ? MOCK_REVIEWS : []} // Just mapping for Pending to mock for now
+        data={reviews}
         keyExtractor={(item) => item.id}
         renderItem={renderReviewItem}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.PRIMARY]} />
+        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={
+          !loading && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No reviews found</Text>
+            </View>
+          )
+        }
         ListFooterComponent={
-          activeTab === "Pending" ? (
+          loading && !refreshing ? (
             <View style={styles.footerContainer}>
-              <View style={styles.loadingCircle}>
-                <View style={styles.loadingIndicatorFill} />
-              </View>
+              <ActivityIndicator size="large" color={colors.PRIMARY} />
               <Text style={styles.loadingText}>LOADING MORE</Text>
             </View>
           ) : null
@@ -137,24 +207,27 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
+    flexGrow: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.SECONDARY,
   },
   footerContainer: {
     alignItems: "center",
     paddingVertical: 32,
-  },
-  loadingCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 4,
-    borderColor: "#E2E8F0",
-    borderTopColor: colors.PRIMARY,
-    marginBottom: 12,
   },
   loadingText: {
     fontSize: 12,
     color: colors.SECONDARY,
     fontWeight: "bold",
     letterSpacing: 1,
+    marginTop: 12,
   },
 });

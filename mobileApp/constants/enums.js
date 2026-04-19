@@ -65,6 +65,14 @@ const enums = Object.freeze({
     ADD_ORDER: "ADD_ORDER",
     EDIT_ORDER: "EDIT_ORDER",
   },
+  REVIEW_FILTER_TABS: {
+    ALL: "All",
+    PUBLISHED: "Published",
+  },
+  REVIEW_ACTION_LABELS: {
+    PUBLISH: "Publish",
+    UNPUBLISH: "Unpublish",
+  },
 });
 
 export default enums;

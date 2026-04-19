@@ -2,8 +2,9 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
+import enums from "../constants/enums";
 
-export default function ReviewItem({ item, onApprove, onReject, onReply }) {
+export default function ReviewItem({ item, onTogglePublish, onReply }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardContent}>
@@ -21,7 +22,7 @@ export default function ReviewItem({ item, onApprove, onReject, onReply }) {
             {[...Array(5)].map((_, i) => (
               <Ionicons
                 key={i}
-                name="star-outline"
+                name={i < Math.floor(item.rating) ? "star" : "star-outline"}
                 size={14}
                 color="#F59E0B"
                 style={{ marginLeft: 2 }}
@@ -46,19 +47,19 @@ export default function ReviewItem({ item, onApprove, onReject, onReply }) {
       </View>
 
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.rejectBtn} onPress={onReject}>
-          <Ionicons name="close" size={16} color={colors.LIGHT} />
-          <Text style={styles.rejectText}>Reject</Text>
-        </TouchableOpacity>
-        
         <TouchableOpacity style={styles.replyBtn} onPress={onReply}>
           <Ionicons name="chatbubble-outline" size={16} color={colors.DARK} />
           <Text style={styles.replyBtnText}>Reply</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.approveBtn} onPress={onApprove}>
-          <Ionicons name="checkmark" size={16} color={colors.DARK} />
-          <Text style={styles.approveText}>Approve</Text>
+        <TouchableOpacity 
+          style={[styles.toggleBtn, item.isApproved ? styles.unpublishBtn : styles.publishBtn]} 
+          onPress={onTogglePublish}
+        >
+          <Ionicons name={item.isApproved ? "eye-off-outline" : "earth-outline"} size={16} color={colors.DARK} />
+          <Text style={styles.toggleBtnText}>
+            {item.isApproved ? enums.REVIEW_ACTION_LABELS.UNPUBLISH : enums.REVIEW_ACTION_LABELS.PUBLISH}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -155,19 +156,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.BORDER_COLOR,
   },
-  rejectBtn: {
-    flex: 1,
-    backgroundColor: colors.DARK,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  rejectText: {
-    color: colors.LIGHT,
-    fontWeight: "bold",
-    marginLeft: 6,
-    fontSize: 14,
-  },
   replyBtn: {
     flex: 1,
     backgroundColor: colors.LIGHT,
@@ -181,14 +169,21 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 14,
   },
-  approveBtn: {
+  toggleBtn: {
     flex: 1,
-    backgroundColor: colors.PRIMARY,
+    borderLeftWidth: 1,
+    borderLeftColor: colors.BORDER_COLOR,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  approveText: {
+  publishBtn: {
+    backgroundColor: colors.PRIMARY,
+  },
+  unpublishBtn: {
+    backgroundColor: "#FFCDD2", // light red to denote unpublishing action
+  },
+  toggleBtnText: {
     color: colors.DARK,
     fontWeight: "bold",
     marginLeft: 6,
