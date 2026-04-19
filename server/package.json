@@ -5,8 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test": "jest",
-    "test:unit": "jest /tests/unit --runInBand",                             
-    "test:integration": "jest /tests/integration --runInBand",
+    "test:unit": "jest tests/unit --runInBand",
+    "test:integration": "jest tests/integration --runInBand",
+    "test:all": "jest tests/unit tests/integration --runInBand",
     "dev": "nodemon server.js"
   },                                                                                  
   "author": "",
