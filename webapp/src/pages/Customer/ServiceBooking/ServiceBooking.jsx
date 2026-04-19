@@ -132,7 +132,8 @@ const ServiceBooking = () => {
                     <div className="booking-info-cards-row">
                         <div className="info-mini-card">
                             <div className="card-icon-box">
-                                <i className="fa-solid fa-shield-check"></i>
+                                <i className="fa-solid fa-shield-halved"></i>
+
                             </div>
                             <div className="card-text">
                                 <h5>Quality Guarantee</h5>
