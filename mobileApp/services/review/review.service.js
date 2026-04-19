@@ -1,32 +1,41 @@
 import axios from "axios";
 
-class ReviewService {
+export const reviewService = {
   /**
    * Fetch paginated reviews for admin dashboard
-   * @param {number} page 
-   * @param {number} limit 
-   * @param {boolean} isApproved 
-   * @returns {Promise<Object>}
    */
-  async getAdminReviews(page = 1, limit = 10, isApproved) {
+  getAdminReviews: async (page = 1, limit = 10, isApproved) => {
     const params = { page, limit };
     if (isApproved !== undefined) {
       params.isApproved = isApproved;
     }
     const response = await axios.get("/review/admin", { params });
     return response.data;
-  }
+  },
+
+  /**
+   * Fetch a single review by ID for admin
+   */
+  getAdminReviewById: async (reviewId) => {
+    const response = await axios.get(`/review/admin/${reviewId}`);
+    return response.data;
+  },
+
+  /**
+   * Add an admin reply to a review
+   */
+  addAdminReply: async (reviewId, reply) => {
+    const response = await axios.post(`/review/admin/${reviewId}/reply`, { reply });
+    return response.data;
+  },
 
   /**
    * Update review approval status
-   * @param {string} reviewId 
-   * @param {boolean} isApproved 
-   * @returns {Promise<Object>}
    */
-  async updateApprovalStatus(reviewId, isApproved) {
+  updateApprovalStatus: async (reviewId, isApproved) => {
     const response = await axios.patch(`/review/admin/${reviewId}/approval`, { isApproved });
     return response.data;
   }
-}
+};
 
-export default new ReviewService();
+export default reviewService;

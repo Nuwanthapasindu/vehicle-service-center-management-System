@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,94 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import Toast from "react-native-toast-message";
 import colors from "../../../../constants/colors";
+import ReviewService from "../../../../services/review/review.service";
 
 export default function AdminReviewReply() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [replyText, setReplyText] = useState("");
+  const [review, setReview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const maxChars = 500;
+
+  useEffect(() => {
+    if (id) {
+      fetchReviewDetails();
+    }
+  }, [id]);
+
+  const fetchReviewDetails = async () => {
+    try {
+      setLoading(true);
+      const data = await ReviewService.getAdminReviewById(id);
+      setReview(data.payload.review);
+      if (data.payload.review.adminReply) {
+        setReplyText(data.payload.review.adminReply);
+      }
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to fetch review details",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReplySubmit = async () => {
+    if (!replyText.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Required",
+        text2: "Please enter a reply message",
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const response = await ReviewService.addAdminReply(id, replyText);
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: response.payload.message || "Reply submitted successfully",
+      });
+      router.back();
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Submission Failed",
+        text2: error?.response?.data?.payload?.message || error.message || "Failed to submit reply",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const customerName = review?.customer?.name || "Unknown Customer";
+  const initials = customerName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+  const dateStr = review?.createdAt ? new Date(review.createdAt).toLocaleDateString() : "";
+  const rating = review?.rating || 0;
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.PRIMARY} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -47,15 +123,17 @@ export default function AdminReviewReply() {
             <View style={styles.cardHeader}>
               <View style={styles.avatarContainer}>
                 <View style={styles.avatar}>
-                  <Text style={styles.avatarInitials}>AS</Text>
+                  <Text style={styles.avatarInitials}>{initials}</Text>
                 </View>
-                <View style={styles.verifiedBadge}>
-                  <Ionicons name="checkmark" size={10} color={colors.DARK} />
-                </View>
+                {review?.isApproved && (
+                  <View style={styles.verifiedBadge}>
+                    <Ionicons name="checkmark" size={10} color={colors.DARK} />
+                  </View>
+                )}
               </View>
               <View style={styles.authorInfo}>
-                <Text style={styles.authorName}>Amanda Sterling</Text>
-                <Text style={styles.dateText}>Oct 24, 2023</Text>
+                <Text style={styles.authorName}>{customerName}</Text>
+                <Text style={styles.dateText}>{dateStr}</Text>
               </View>
             </View>
 
@@ -63,22 +141,22 @@ export default function AdminReviewReply() {
               {[...Array(5)].map((_, i) => (
                 <Ionicons
                   key={i}
-                  name="star"
+                  name={i < Math.floor(rating) ? "star" : "star-outline"}
                   size={20}
                   color={colors.PRIMARY}
                   style={{ marginRight: 2 }}
                 />
               ))}
-              <Text style={styles.ratingScore}>5.0</Text>
+              <Text style={styles.ratingScore}>{rating.toFixed(1)}</Text>
             </View>
 
             <Text style={styles.reviewText}>
-              The ceramic coating looks amazing, and the staff was very
-              professional. My car looks brand new and the attention to detail
-              was top-notch.
-              {"\n\n"}
-              I've already recommended Shine Depot to all my friends. Great
-              service!
+              {review?.comment || "No comment provided."}
+              {review?.booking?.vehicle && (
+                <Text style={styles.vehicleInfo}>
+                  {"\n\n"}Vehicle: {review.booking.vehicle.make} {review.booking.vehicle.model}
+                </Text>
+              )}
             </Text>
           </View>
 
@@ -90,7 +168,9 @@ export default function AdminReviewReply() {
                 color={colors.DARK}
                 style={{ transform: [{ scaleX: -1 }] }}
               />
-              <Text style={styles.replyHeadText}>Write a public reply</Text>
+              <Text style={styles.replyHeadText}>
+                {review?.adminReply ? "Edit your reply" : "Write a public reply"}
+              </Text>
             </View>
             <View style={styles.publicBadge}>
               <Text style={styles.publicText}>Public</Text>
@@ -100,7 +180,7 @@ export default function AdminReviewReply() {
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.textArea}
-              placeholder="Hi John, thank you for the kind words! We're thrilled you're happy with the ceramic coating..."
+              placeholder="Hi thank you for the feedback! We appreciate your business..."
               placeholderTextColor="#9ca3af"
               multiline
               numberOfLines={6}
@@ -131,14 +211,24 @@ export default function AdminReviewReply() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.submitBtn}>
-            <Text style={styles.submitBtnText}>Submit Reply</Text>
-            <Feather
-              name="send"
-              size={18}
-              color={colors.DARK}
-              style={{ marginLeft: 8 }}
-            />
+          <TouchableOpacity 
+            style={[styles.submitBtn, submitting && { opacity: 0.7 }]} 
+            onPress={handleReplySubmit}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator size="small" color={colors.DARK} />
+            ) : (
+              <>
+                <Text style={styles.submitBtnText}>Submit Reply</Text>
+                <Feather
+                  name="send"
+                  size={18}
+                  color={colors.DARK}
+                  style={{ marginLeft: 8 }}
+                />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -154,6 +244,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.BACKGROUND_COLOR,
+  },
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     flexDirection: "row",
@@ -256,6 +350,11 @@ const styles = StyleSheet.create({
     color: colors.SECONDARY,
     lineHeight: 24,
   },
+  vehicleInfo: {
+    fontSize: 13,
+    fontWeight: "bold",
+    color: colors.DARK,
+  },
   replyHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -341,6 +440,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    height: 56,
   },
   submitBtnText: {
     fontSize: 16,
