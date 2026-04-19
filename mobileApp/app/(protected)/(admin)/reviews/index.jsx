@@ -78,7 +78,7 @@ export default function ReviewsModeration() {
     const initials = customerName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
     const make = review.booking?.vehicle?.make;
     const model = review.booking?.vehicle?.model;
-    const service = make && model ? `${make} ${model}` : "General Service";
+    const vehicle = make && model ? `${make} ${model}` : "Unknown Vehicle";
     
     // Format date/time
     const dateObj = new Date(review.createdAt);
@@ -87,7 +87,7 @@ export default function ReviewsModeration() {
       id: review._id,
       author: customerName,
       initials,
-      service,
+      vehicle,
       time,
       rating: review.rating,
       text: review.comment ? `"${review.comment}"` : "No comment",

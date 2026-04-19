@@ -15,7 +15,7 @@ export default function ReviewItem({ item, onTogglePublish, onReply }) {
           <View style={styles.headerText}>
             <Text style={styles.authorName}>{item.author}</Text>
             <Text style={styles.serviceText}>
-              {item.service} • {item.time}
+              {item.vehicle} • {item.time}
             </Text>
           </View>
           <View style={styles.rating}>
