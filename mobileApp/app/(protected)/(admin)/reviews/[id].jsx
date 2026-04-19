@@ -81,7 +81,6 @@ export default function AdminReviewReply() {
         });
         router.back();
       } catch (error) {
-        console.error(error);
         Toast.show({
           type: "error",
           text1: "Error",
@@ -111,11 +110,10 @@ export default function AdminReviewReply() {
               });
               router.back();
             } catch (error) {
-              console.error(error);
               Toast.show({
                 type: "error",
                 text1: "Error",
-                text2: "Failed to delete reply",
+                text2: error?.response?.data?.payload?.message || error.message || "Failed to delete reply",
               });
             } finally {
               setDeleting(false);
