@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -24,18 +24,18 @@ export default function ManageBooking() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
-  const [booking, setBooking] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [booking, setBooking] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [isUpdating, setIsUpdating] = React.useState(false);
 
   // Reschedule state
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [availableSlots, setAvailableSlots] = useState([]);
-  const [selectedSlotId, setSelectedSlotId] = useState(null);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedDate, setSelectedDate] = React.useState(new Date());
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const [availableSlots, setAvailableSlots] = React.useState([]);
+  const [selectedSlotId, setSelectedSlotId] = React.useState(null);
+  const [loadingSlots, setLoadingSlots] = React.useState(false);
 
-  const fetchBookingDetails = useCallback(async () => {
+  const fetchBookingDetails = React.useCallback(async () => {
     try {
       const response = await axios.get(`/booking/admin/${id}/details`);
       const details = response.data.payload.data;
@@ -57,7 +57,7 @@ export default function ManageBooking() {
     }
   }, [id, router]);
 
-  const fetchSlots = useCallback(async (date) => {
+  const fetchSlots = React.useCallback(async (date) => {
     setLoadingSlots(true);
     try {
       const dateStr = date.toISOString().split("T")[0];
@@ -74,11 +74,11 @@ export default function ManageBooking() {
     }
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchBookingDetails();
   }, [fetchBookingDetails]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (selectedDate) {
       fetchSlots(selectedDate);
     }
@@ -119,7 +119,8 @@ export default function ManageBooking() {
       Toast.show({
         type: "error",
         text1: "Update Failed",
-        text2: error.response?.data?.payload?.message || "Failed to update booking",
+        text2:
+          error.response?.data?.payload?.message || "Failed to update booking",
       });
     } finally {
       setIsUpdating(false);
@@ -149,7 +150,9 @@ export default function ManageBooking() {
               Toast.show({
                 type: "error",
                 text1: "Error",
-                text2: error.response?.data?.payload?.message || "Failed to cancel booking",
+                text2:
+                  error.response?.data?.payload?.message ||
+                  "Failed to cancel booking",
               });
             } finally {
               setIsUpdating(false);
@@ -172,18 +175,27 @@ export default function ManageBooking() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
           <Ionicons name="chevron-back" size={28} color={colors.PRIMARY} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Manage Booking</Text>
       </View>
 
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Booking Summary Card */}
         <View style={styles.infoCard}>
           <View style={styles.vehicleInfo}>
-            <MaterialCommunityIcons name="car-outline" size={32} color={colors.PRIMARY} />
+            <MaterialCommunityIcons
+              name="car-outline"
+              size={32}
+              color={colors.PRIMARY}
+            />
             <View style={styles.vehicleText}>
               <Text style={styles.plateNumber}>{booking?.vehicle?.plate}</Text>
               <Text style={styles.vehicleModel}>{booking?.vehicle?.name}</Text>
@@ -192,11 +204,19 @@ export default function ManageBooking() {
           <View style={styles.divider} />
           <View style={styles.currentSchedule}>
             <View style={styles.scheduleDetail}>
-              <Ionicons name="calendar-outline" size={16} color={colors.SECONDARY} />
+              <Ionicons
+                name="calendar-outline"
+                size={16}
+                color={colors.SECONDARY}
+              />
               <Text style={styles.scheduleText}>{booking?.date}</Text>
             </View>
             <View style={styles.scheduleDetail}>
-              <Ionicons name="time-outline" size={16} color={colors.SECONDARY} />
+              <Ionicons
+                name="time-outline"
+                size={16}
+                color={colors.SECONDARY}
+              />
               <Text style={styles.scheduleText}>{booking?.time}</Text>
             </View>
           </View>
@@ -207,12 +227,21 @@ export default function ManageBooking() {
           <Text style={styles.sectionTitle}>Reschedule Service</Text>
 
           <Text style={styles.label}>Select Date</Text>
-          <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
+          <TouchableOpacity
+            style={styles.datePickerBtn}
+            onPress={() => setShowDatePicker(true)}
+          >
             <View style={styles.datePickerContent}>
               <Ionicons name="calendar" size={20} color={colors.PRIMARY} />
-              <Text style={styles.dateValue}>{selectedDate.toDateString()}</Text>
+              <Text style={styles.dateValue}>
+                {selectedDate.toDateString()}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.SECONDARY} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.SECONDARY}
+            />
           </TouchableOpacity>
 
           {showDatePicker && (
@@ -227,7 +256,10 @@ export default function ManageBooking() {
 
           <Text style={styles.label}>Select Available Timeslot</Text>
           {loadingSlots ? (
-            <ActivityIndicator color={colors.PRIMARY} style={{ marginTop: 20 }} />
+            <ActivityIndicator
+              color={colors.PRIMARY}
+              style={{ marginTop: 20 }}
+            />
           ) : (
             <View style={styles.slotsGrid}>
               {availableSlots.length > 0 ? (
@@ -241,30 +273,38 @@ export default function ManageBooking() {
                       style={[
                         styles.slotItem,
                         isSelected && styles.slotItemSelected,
-                        isFull && styles.slotItemDisabled
+                        isFull && styles.slotItemDisabled,
                       ]}
                       disabled={isFull}
                       onPress={() => setSelectedSlotId(slot.id)}
                     >
-                      <Text style={[
-                        styles.slotTime,
-                        isSelected && styles.slotTimeSelected,
-                        isFull && styles.slotTextDisabled
-                      ]}>
+                      <Text
+                        style={[
+                          styles.slotTime,
+                          isSelected && styles.slotTimeSelected,
+                          isFull && styles.slotTextDisabled,
+                        ]}
+                      >
                         {formatTimeStringForDisplay(slot.startTime)}
                       </Text>
-                      <Text style={[
-                        styles.slotCapacity,
-                        isSelected && styles.slotCapacitySelected,
-                        isFull && styles.slotTextDisabled
-                      ]}>
-                        {isFull ? "FULLY BOOKED" : `${slot.maxCapacity - slot.booked} left`}
+                      <Text
+                        style={[
+                          styles.slotCapacity,
+                          isSelected && styles.slotCapacitySelected,
+                          isFull && styles.slotTextDisabled,
+                        ]}
+                      >
+                        {isFull
+                          ? "FULLY BOOKED"
+                          : `${slot.maxCapacity - slot.booked} left`}
                       </Text>
                     </TouchableOpacity>
                   );
                 })
               ) : (
-                <Text style={styles.noSlotsText}>No active slots available for this date.</Text>
+                <Text style={styles.noSlotsText}>
+                  No active slots available for this date.
+                </Text>
               )}
             </View>
           )}
@@ -277,7 +317,11 @@ export default function ManageBooking() {
             onPress={handleReschedule}
             disabled={isUpdating}
           >
-            {isUpdating ? <ActivityIndicator color="#FFF" /> : <Text style={styles.applyBtnText}>Update Schedule</Text>}
+            {isUpdating ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.applyBtnText}>Update Schedule</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -285,7 +329,11 @@ export default function ManageBooking() {
             onPress={handleCancelBooking}
             disabled={isUpdating}
           >
-            <Ionicons name="trash-outline" size={20} color={colors.DANGER_COLOR} />
+            <Ionicons
+              name="trash-outline"
+              size={20}
+              color={colors.DANGER_COLOR}
+            />
             <Text style={styles.cancelBookingBtnText}>Cancel this booking</Text>
           </TouchableOpacity>
         </View>
