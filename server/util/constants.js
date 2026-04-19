@@ -50,5 +50,12 @@ module.exports = Object.freeze({
   INVOICE_UPDATE_TYPES: {
     ITEM: "ITEM",
     SERVICE: "SERVICE",
+  },
+  REPORT_RANGES: {
+    TODAY: "today",
+    WEEKLY: "weekly",
+    MONTHLY: "monthly",
+    YEARLY: "yearly",
+    CUSTOM: "custom"
   }
 });
