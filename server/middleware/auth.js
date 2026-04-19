@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../model/User");
 const Employee = require("../model/Employee");
-const AppError = require("../error/appError");
+const AppError = require("../error/AppError");
 const { USER_ROLES } = require("../util/constants");
 
 const authTokenMiddleware = async (request, response, next) => {
