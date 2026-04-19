@@ -114,8 +114,15 @@
 }
 
 @keyframes pin-pulse {
-    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
 }
 
 .location-card {
@@ -200,13 +207,16 @@
     .contact-method-grid {
         grid-template-columns: 1fr;
     }
+
     .opening-hours-grid {
         flex-direction: column;
         gap: 2.5rem;
     }
+
     .hour-divider {
         display: none;
     }
+
     .location-card {
         bottom: 2rem;
         left: 2rem;

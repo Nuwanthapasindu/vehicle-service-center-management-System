@@ -167,6 +167,18 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
+          name="reviews"
+          options={{
+            headerShown: false,
+            drawerLabel: "Reviews",
+            title: "Review Moderation",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="star-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
           name="(employee)"
           options={{
             headerShown: false,

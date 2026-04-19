@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../model/User");
 const Employee = require("../model/Employee");
-const AppError = require("../error/appError");
+const AppError = require("../error/AppError");
 const { USER_ROLES } = require("../util/constants");
 
 const authTokenMiddleware = async (request, response, next) => {
@@ -45,4 +45,32 @@ const authTokenMiddleware = async (request, response, next) => {
   }
 };
 
-module.exports = { authTokenMiddleware };
+/**
+ * Access control middleware
+ * 
+ * @param {string[]} roles - list of allowed roles
+ * 
+ * @returns {(req: Request, res: Response, next: NextFunction) => void} - middleware function
+ * 
+ * @throws {AppError} - if roles is not an array or if roles is empty
+ * @throws {AppError} - if user role is not in roles
+ */
+const accessControl = (roles) => {
+  return (req, res, next) => {
+    if (Array.isArray(roles) && roles.length > 0) {
+      const user = req.user;
+      if (roles.includes(user.role)) {
+        next();
+      } else {
+        next(new AppError(`Access denied for ${user.role} users`, 403));
+        return;
+      }
+    } else {
+      next(new AppError("Invalid role(s) specified", 400));
+    }
+  };
+}
+
+
+module.exports = { authTokenMiddleware, accessControl };
+

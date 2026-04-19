@@ -1,59 +1,89 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
+import reviewService from '../../services/reviewService';
+import serviceService from '../../services/serviceService';
+import { formatTimeAgo } from '../../util/dateFormatter';
 import './ReviewsPage.css';
 
 function ReviewsPage() {
-    const reviews = [
-        {
-            initials: "MR",
-            name: "Michael R.",
-            date: "2 days ago",
-            service: "CERAMIC COATING",
-            text: '"Absolutely incredible results. I brought my 2023 Tesla in for the Full Ceramic package and the hydrophobic properties are insane. Rain just flies off. Professional service from start to finish."',
-            response: "Thank you Michael! We're thrilled you're enjoying that ceramic shine. The Tesla looks amazing and that hydrophobic layer will make your maintenance washes a breeze."
-        },
-        {
-            initials: "SA",
-            name: "Sarah Adams",
-            date: "3 hours ago",
-            service: "INTERIOR DETAIL",
-            text: '"Kids and dogs destroyed the inside of my minivan. Shine Depot made it look like new. Not a single stain or dog hair left. Highly recommend the interior steam cleaning!"',
-            response: "Happy to help, Sarah! We know how tough kids and pets can be on interiors. Our steam cleaning process really does wonders for family vehicles."
-        },
-        {
-            initials: "EW",
-            name: "Emma Wilson",
-            date: "3 weeks ago",
-            service: "PAINT CORRECTION",
-            text: '"I was skeptical about paint correction at first, but after 6 months my car still washes off with just a hose. The shine is deeper than a showroom finish. The team at Shine Depot explained the maintenance perfectly."',
-            response: "Emma, we love hearing how the coating is performing long-term! It's all about that effortless maintenance. Thanks for sharing your 6-month update."
-        },
-        {
-            initials: "JT",
-            name: "Jason T.",
-            date: "2 weeks ago",
-            service: "EXPRESS WASH",
-            text: '"Fast, thorough, and reasonably priced. Great for a weekly upkeep wash."',
-            response: "Thanks for the feedback, Jason! We aim to make routine maintenance as efficient as possible. See you next week!"
-        },
-        {
-            initials: "KL",
-            name: "Kevin L.",
-            date: "1 month ago",
-            service: "WINDOW TINTING",
-            text: '"Perfect tint job. No bubbles, perfectly cut edges. Noticeable heat reduction inside the car immediately."',
-            response: "We're glad to hear you're feeling the difference in temperature, Kevin! Our premium films are designed for exactly that. Enjoy the cooler ride."
-        },
-        {
-            initials: "MR",
-            name: "Michael R.",
-            date: "2 days ago",
-            service: "CERAMIC COATING",
-            text: '"Absolutely incredible results. I brought my 2023 Tesla in for the Full Ceramic package and the hydrophobic properties are insane. Rain just flies off. Professional service from start to finish."',
-            response: "Thank you Michael! We're thrilled you're enjoying that ceramic shine. The Tesla looks amazing and that hydrophobic layer will make your maintenance washes a breeze."
+    const [reviews, setReviews] = useState([]);
+    const [stats, setStats] = useState({
+        average: 0,
+        total: 0,
+        distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    });
+    const [services, setServices] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [filterService, setFilterService] = useState('All Services');
+    const [sortBy, setSortBy] = useState('recent'); // 'recent' or 'top-rated'
+    const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+
+    const fetchDetails = async () => {
+        setLoading(true);
+        try {
+            const [reviewsRes, servicesRes] = await Promise.all([
+                reviewService.getPublicReviews({
+                    page,
+                    limit: 12,
+                    sort: sortBy,
+                    service: filterService === 'All Services' ? undefined : filterService
+                }),
+                serviceService.getServices({ limit: 100 })
+            ]);
+
+            if (reviewsRes.data?.payload) {
+                setReviews(reviewsRes.data.payload.reviews || []);
+                setStats(reviewsRes.data.payload.stats || {
+                    average: 0, total: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+                });
+            }
+
+            if (servicesRes.data?.payload?.services?.services) {
+                setServices(servicesRes.data.payload.services.services);
+            } else if (Array.isArray(servicesRes.data?.payload?.services)) {
+                setServices(servicesRes.data.payload.services);
+            } else {
+                setServices([]);
+            }
+        } catch (error) {
+            console.error("Error fetching reviews:", error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    useEffect(() => {
+        fetchDetails();
+    }, [page, filterService, sortBy]);
+
+    const getInitials = (name) => {
+        if (!name) return "??";
+        const parts = name.split(" ");
+        return parts.map(p => p[0]).join("").toUpperCase().substring(0, 2);
+    };
+
+    const renderStars = (rating) => {
+        const stars = [];
+        for (let i = 1; i <= 5; i++) {
+            stars.push(
+                <i key={i} className={`fa-solid fa-star ${i <= rating ? 'filled' : 'empty'}`}
+                    style={{ color: i <= rating ? '#8EDB00' : '#E2E8F0' }}></i>
+            );
+        }
+        return stars;
+    };
+
+    const getBarWidth = (count) => {
+        if (stats.total === 0) return '0%';
+        return `${(count / stats.total) * 100}%`;
+    };
+
+    const getBarPercent = (count) => {
+        if (stats.total === 0) return '0%';
+        return `${Math.round((count / stats.total) * 100)}%`;
+    };
 
     return (
         <div className="reviews-page-wrapper">
@@ -67,47 +97,27 @@ function ReviewsPage() {
                             <i className="fa-solid fa-circle-check"></i>
                             VERIFIED CUSTOMER FEEDBACK
                         </div>
-                        <h1 className="m-hero-title">What Our <br/> <span>Customers Say</span></h1>
+                        <h1 className="m-hero-title">What Our <br /> <span>Customers Say</span></h1>
 
                         <div className="rating-summary">
                             <div className="rating-main-box">
-                                <div className="rating-score">4.9</div>
+                                <div className="rating-score">{stats.average || '0.0'}</div>
                                 <div className="rating-stars">
-                                    <i className="fa-solid fa-star"></i>
-                                    <i className="fa-solid fa-star"></i>
-                                    <i className="fa-solid fa-star"></i>
-                                    <i className="fa-solid fa-star"></i>
-                                    <i className="fa-solid fa-star"></i>
+                                    {renderStars(Math.round(stats.average || 5))}
                                 </div>
-                                <div className="rating-count">Out of 500+ Reviews</div>
+                                <div className="rating-count">Out of {stats.total} Reviews</div>
                             </div>
 
                             <div className="rating-bars">
-                                <div className="bar-row">
-                                    <span className="bar-label">5</span>
-                                    <div className="bar-container"><div className="bar-fill" style={{width: '92%'}}></div></div>
-                                    <span className="bar-percent">92%</span>
-                                </div>
-                                <div className="bar-row">
-                                    <span className="bar-label">4</span>
-                                    <div className="bar-container"><div className="bar-fill" style={{width: '6%'}}></div></div>
-                                    <span className="bar-percent">6%</span>
-                                </div>
-                                <div className="bar-row">
-                                    <span className="bar-label">3</span>
-                                    <div className="bar-container"><div className="bar-fill" style={{width: '1%'}}></div></div>
-                                    <span className="bar-percent">1%</span>
-                                </div>
-                                <div className="bar-row">
-                                    <span className="bar-label">2</span>
-                                    <div className="bar-container"><div className="bar-fill" style={{width: '1%'}}></div></div>
-                                    <span className="bar-percent">1%</span>
-                                </div>
-                                <div className="bar-row">
-                                    <span className="bar-label">1</span>
-                                    <div className="bar-container"><div className="bar-fill" style={{width: '1%'}}></div></div>
-                                    <span className="bar-percent">1%</span>
-                                </div>
+                                {[5, 4, 3, 2, 1].map(num => (
+                                    <div className="bar-row" key={num}>
+                                        <span className="bar-label">{num}</span>
+                                        <div className="bar-container">
+                                            <div className="bar-fill" style={{ width: getBarWidth(stats.distribution[num]) }}></div>
+                                        </div>
+                                        <span className="bar-percent">{getBarPercent(stats.distribution[num])}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -118,64 +128,90 @@ function ReviewsPage() {
                     <div className="reviews-controls shadow-sm">
                         <div className="filter-group">
                             <span className="control-label">FILTER BY SERVICE</span>
-                            <div className="service-filter">
-                                <span>All Services</span>
-                                <i className="fa-solid fa-chevron-down"></i>
+                            <div className="service-filter-wrapper" style={{ position: 'relative' }}>
+                                <div className="service-filter" onClick={() => setIsServiceDropdownOpen(!isServiceDropdownOpen)}>
+                                    <span>{filterService}</span>
+                                    <i className="fa-solid fa-chevron-down"></i>
+                                </div>
+                                {isServiceDropdownOpen && (
+                                    <div className="service-dropdown shadow-xl">
+                                        <div className="dropdown-item" onClick={() => { setFilterService('All Services'); setIsServiceDropdownOpen(false); }}>All Services</div>
+                                        {services.map(s => (
+                                            <div key={s._id} className="dropdown-item" onClick={() => { setFilterService(s.name); setIsServiceDropdownOpen(false); }}>{s.name}</div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         <div className="sort-group">
-                            <div className="sort-btn active">Recent</div>
-                            <div className="sort-btn">Top Rated</div>
+                            <div className={`sort-btn ${sortBy === 'recent' ? 'active' : ''}`} onClick={() => setSortBy('recent')}>Recent</div>
+                            <div className={`sort-btn ${sortBy === 'top-rated' ? 'active' : ''}`} onClick={() => setSortBy('top-rated')}>Top Rated</div>
                         </div>
 
                         <div className="reviews-count-meta">
-                            Showing 542 reviews
+                            {loading ? 'Fetching...' : `Showing ${reviews.length} reviews`}
                         </div>
                     </div>
                 </section>
 
                 {/* Reviews Grid using m-container */}
-                <section className="m-container" style={{padding: '5rem 0 10rem'}}>
-                    <div className="reviews-grid">
-                        {reviews.map((rev, idx) => (
-                            <div className="review-card shadow-sm" key={idx}>
-                                <div className="review-card-header">
-                                    <div className="rev-user">
-                                        <div className="user-initials">{rev.initials}</div>
-                                        <div className="user-info-text">
-                                            <h4>{rev.name}</h4>
-                                            <span>{rev.date}</span>
+                <section className="m-container" style={{ padding: '5rem 0 10rem' }}>
+                    {loading && reviews.length === 0 ? (
+                        <div className="m-centered" style={{ padding: '5rem 0' }}>
+                            <i className="fa-solid fa-spinner fa-spin fa-2xl" style={{ color: '#8EDB00' }}></i>
+                        </div>
+                    ) : reviews.length > 0 ? (
+                        <div className="reviews-grid">
+                            {reviews.map((rev) => (
+                                <div className="review-card shadow-sm" key={rev._id}>
+                                    <div className="review-card-header">
+                                        <div className="rev-user">
+                                            <div className="user-initials">{getInitials(rev.customerName)}</div>
+                                            <div className="user-info-text">
+                                                <h4>{rev.customerName}</h4>
+                                                <span>{formatTimeAgo(rev.date)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="rev-stars">
+                                            {renderStars(rev.rating)}
                                         </div>
                                     </div>
-                                    <div className="rev-stars">
-                                        <i className="fa-solid fa-star"></i>
-                                        <i className="fa-solid fa-star"></i>
-                                        <i className="fa-solid fa-star"></i>
-                                        <i className="fa-solid fa-star"></i>
-                                        <i className="fa-solid fa-star"></i>
-                                    </div>
-                                </div>
-                                
-                                <span className="service-tag">{rev.service}</span>
-                                <p className="m-body-text" style={{fontSize: '1rem', color: '#475569', marginBottom: '2.5rem'}}>{rev.text}</p>
-                                
-                                {rev.response && (
-                                    <div className="official-response">
-                                        <div className="response-header">
-                                            <i className="fa-solid fa-sparkles"></i>
-                                            <h5>RESPONSE FROM SHINE DEPOT</h5>
-                                        </div>
-                                        <p style={{fontSize: '0.85rem', lineHeight: '1.6', color: '#64748B'}}>{rev.response}</p>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
 
-                    <div className="m-centered" style={{marginTop: '6rem'}}>
-                        <button className="m-btn-outline" style={{backgroundColor: '#FFFFFF'}}>View All 542 Reviews</button>
-                    </div>
+                                    <span className="service-tag">{rev.service}</span>
+                                    <p className="m-body-text" style={{ fontSize: '1rem', color: '#475569', marginBottom: '2.5rem', minHeight: '80px' }}>{rev.comment}</p>
+
+                                    {rev.adminResponse && (
+                                        <div className="official-response">
+                                            <div className="response-header">
+                                                <i className="fa-solid fa-sparkles"></i>
+                                                <h5>RESPONSE FROM SHINE DEPOT</h5>
+                                            </div>
+                                            <p style={{ fontSize: '0.85rem', lineHeight: '1.6', color: '#64748B' }}>{rev.adminResponse}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="m-centered" style={{ padding: '8rem 0' }}>
+                            <i className="fa-solid fa-comment-slash fa-4x" style={{ color: '#E2E8F0', marginBottom: '1.5rem' }}></i>
+                            <h3 style={{ color: '#64748B' }}>No reviews found</h3>
+                            <p style={{ color: '#94A3B8' }}>Try adjusting your filters or service selection.</p>
+                        </div>
+                    )}
+
+                    {reviews.length < stats.total && reviews.length > 0 && (
+                        <div className="m-centered" style={{ marginTop: '6rem' }}>
+                            <button
+                                className="m-btn-outline"
+                                style={{ backgroundColor: '#FFFFFF' }}
+                                onClick={() => setPage(p => p + 1)}
+                            >
+                                View More Reviews
+                            </button>
+                        </div>
+                    )}
                 </section>
             </main>
 

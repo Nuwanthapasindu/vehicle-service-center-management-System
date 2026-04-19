@@ -54,6 +54,25 @@ const enums = Object.freeze({
     COMPLETED: "COMPLETED",
     WORK_IN_PROGRESS: "WORK IN PROGRESS",
   },
+  SUPPLY_CHAIN_TABS: {
+    SUPPLIERS: "SUPPLIERS",
+    SUPPLIES: "SUPPLIES",
+  },
+  SUPPLY_CHAIN_VIEWS: {
+    LIST: "LIST",
+    ADD_SUPPLIER: "ADD_SUPPLIER",
+    EDIT_SUPPLIER: "EDIT_SUPPLIER",
+    ADD_ORDER: "ADD_ORDER",
+    EDIT_ORDER: "EDIT_ORDER",
+  },
+  REVIEW_FILTER_TABS: {
+    ALL: "All",
+    PUBLISHED: "Published",
+  },
+  REVIEW_ACTION_LABELS: {
+    PUBLISH: "Publish",
+    UNPUBLISH: "Unpublish",
+  },
 });
 
 export default enums;

@@ -29,14 +29,20 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-image-picker", { "photosPermission": "Allow access to photos" }],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow access to photos"
+        }
+      ],
       [
         "expo-file-system",
         {
           "supportsOpeningDocumentsInPlace": true,
           "enableFileSharing": true
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ]
   }
 }
