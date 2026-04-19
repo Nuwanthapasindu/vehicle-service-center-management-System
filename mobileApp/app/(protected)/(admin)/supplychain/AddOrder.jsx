@@ -141,7 +141,12 @@ export default function AddOrder({ onBack }) {
                     const supplier = suppliers.find(
                       (s) => s.companyName === val,
                     );
-                    if (supplier) setFieldValue("supplier", supplier);
+                    if (supplier) {
+                      if (values.supplier && values.supplier._id !== supplier._id) {
+                        setFieldValue("items", []);
+                      }
+                      setFieldValue("supplier", supplier);
+                    }
                   }}
                 />
                 {touched.supplier && errors.supplier && (
@@ -259,12 +264,9 @@ export default function AddOrder({ onBack }) {
                       <View style={{ flex: 1 }}>
                         <Text style={styles.tinyLabel}>UNIT PRICE (Rs.)</Text>
                         <TextInput
-                          style={styles.formInputSmall}
+                          style={[styles.formInputSmall, { backgroundColor: "#F3F4F6", color: "#9CA3AF" }]}
                           value={item.price}
-                          onChangeText={(val) =>
-                            setFieldValue(`items[${index}].price`, val)
-                          }
-                          keyboardType="numeric"
+                          editable={false}
                         />
                         {touched.items?.[index]?.price &&
                           errors.items?.[index]?.price && (
