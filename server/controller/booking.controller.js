@@ -7,7 +7,9 @@ const Invoice = require("../model/Invoice");
 const AppError = require("../error/AppError");
 const File = require("../model/File");
 const Team = require("../model/Team");
+const Review = require("../model/Review");
 const { JOBCARD_STATUS } = require("../util/constants");
+
 
 const { validatedCreateBooking } = require("../validation/booking.validation");
 
@@ -127,7 +129,12 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
           service: jobCard?.selectedPackage?.name || "Pending Selection",
           status: jobCard?.status || "PENDING",
           canViewDetails: !!jobCard,
+          hasReview: !!(await Review.findOne({
+            booking: booking._id,
+            isDeleted: false,
+          })),
         };
+
       }),
     );
 
