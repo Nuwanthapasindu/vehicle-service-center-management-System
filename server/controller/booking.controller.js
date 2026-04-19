@@ -21,10 +21,13 @@ module.exports.createBooking = async (payload, mobile) => {
     const owner = await User.findOne({ mobile, isDeleted: false });
     if (!owner) throw new AppError("Customer not found", 404);
 
-    const checkDate = new Date(date);
-    checkDate.setHours(0, 0, 0, 0);
+    const checkDate = new Date(typeof date === 'string' && !date.includes('T') ? `${date}T00:00:00Z` : date);
+    checkDate.setUTCHours(0, 0, 0, 0);
+
+
     const nextDay = new Date(checkDate);
-    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+
 
     const slotDoc = await Timeslot.findOne({ _id: slot, isDeleted: false });
     if (!slotDoc) throw new AppError("Timeslot not found", 404);
@@ -241,17 +244,17 @@ module.exports.getDashboardData = async (mobile) => {
       },
       upcomingBooking: upcomingBooking
         ? {
-            id: upcomingBooking._id,
-            service: "Service Scheduled", // We don't have package assigned on booking yet
-            vehicle: upcomingBooking.vehicle
-              ? `${upcomingBooking.vehicle.make} ${upcomingBooking.vehicle.model}`
-              : "Unknown",
-            date: upcomingBooking.date,
-            time: upcomingBooking.slot
-              ? `${upcomingBooking.slot.startTime} - ${upcomingBooking.slot.endTime}`
-              : "TBD",
-            status: "CONFIRMED",
-          }
+          id: upcomingBooking._id,
+          service: "Service Scheduled", // We don't have package assigned on booking yet
+          vehicle: upcomingBooking.vehicle
+            ? `${upcomingBooking.vehicle.make} ${upcomingBooking.vehicle.model}`
+            : "Unknown",
+          date: upcomingBooking.date,
+          time: upcomingBooking.slot
+            ? `${upcomingBooking.slot.startTime} - ${upcomingBooking.slot.endTime}`
+            : "TBD",
+          status: "CONFIRMED",
+        }
         : null,
       recentVehicles,
       recentHistory,
@@ -278,7 +281,7 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
       );
       if (fileData) vehicleImagePath = fileData.filePath.replace(/\\/g, "/");
     }
-
+    9
     // Fetch related JobCard (if exists)
     const jobCard = await JobCard.findOne({
       booking: bookingId,
@@ -318,6 +321,8 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
     return {
       date: booking.date.toISOString().split("T")[0],
       time: booking.slot ? booking.slot.startTime : null,
+
+
       status: statusZ,
       customer: {
         name: booking.customer ? booking.customer.name : null,
@@ -352,9 +357,10 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
     if (!booking) throw new AppError("Booking not found", 404);
 
     if (date) {
-      const checkDate = new Date(date);
-      checkDate.setHours(0, 0, 0, 0);
+      const checkDate = new Date(typeof date === 'string' && !date.includes('T') ? `${date}T00:00:00Z` : date);
+      checkDate.setUTCHours(0, 0, 0, 0);
       booking.date = checkDate;
+
     }
 
     if (slot) {
@@ -365,23 +371,24 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
 
     // Check for concurrency/capacity if date or slot changed
     if (date || slot) {
-       const checkDate = new Date(booking.date);
-       checkDate.setHours(0, 0, 0, 0);
-       const nextDay = new Date(checkDate);
-       nextDay.setDate(nextDay.getDate() + 1);
+      const checkDate = new Date(booking.date);
+      checkDate.setUTCHours(0, 0, 0, 0);
+      const nextDay = new Date(checkDate);
+      nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
-       const existingBookings = await Booking.find({
-         _id: { $ne: bookingId },
-         slot: booking.slot,
-         date: { $gte: checkDate, $lt: nextDay },
-         isDeleted: false,
-       });
 
-       const slotDoc = await Timeslot.findById(booking.slot);
+      const existingBookings = await Booking.find({
+        _id: { $ne: bookingId },
+        slot: booking.slot,
+        date: { $gte: checkDate, $lt: nextDay },
+        isDeleted: false,
+      });
 
-       if (existingBookings.length >= slotDoc.maxCapacity) {
-         throw new AppError("This timeslot is fully booked for the selected date", 400);
-       }
+      const slotDoc = await Timeslot.findById(booking.slot);
+
+      if (existingBookings.length >= slotDoc.maxCapacity) {
+        throw new AppError("This timeslot is fully booked for the selected date", 400);
+      }
     }
 
     const updatedBooking = await booking.save();

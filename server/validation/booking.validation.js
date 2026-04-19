@@ -15,10 +15,11 @@ const createBookingValidationSchema = joi.object({
     "string.hex": "Timeslot ID must be a valid hexadecimal string",
     "string.length": "Timeslot ID must be exactly 24 characters long",
   }),
-  date: joi.date().required().messages({
+  date: joi.string().required().messages({
     "any.required": "Booking date is required",
-    "date.base": "Booking date must be a valid date",
+    "string.base": "Booking date must be a valid date string",
   }),
+
   specialNote: joi.string().allow("").max(500).optional().messages({
     "string.max": "Special note must be at most 500 characters long",
   }),

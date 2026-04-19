@@ -29,27 +29,35 @@ export default function ManageBooking() {
   const [isUpdating, setIsUpdating] = React.useState(false);
 
   // Reschedule state
-  const [selectedDate, setSelectedDate] = React.useState(new Date());
+  const [selectedDate, setSelectedDate] = React.useState(null);
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [availableSlots, setAvailableSlots] = React.useState([]);
   const [selectedSlotId, setSelectedSlotId] = React.useState(null);
   const [loadingSlots, setLoadingSlots] = React.useState(false);
 
-  const fetchBookingDetails = React.useCallback(async () => {
+  // Initial data loader
+  const loadInitialData = React.useCallback(async () => {
     try {
-      const response = await axios.get(`/booking/admin/${id}/details`);
-      const details = response.data.payload.data;
+      setLoading(true);
+      // 1. Fetch Booking Details
+      const bookingRes = await axios.get(`/booking/admin/${id}/details`);
+      const details = bookingRes.data.payload.data;
       setBooking(details);
 
-      // Initialize date from booking if valid
+      // 2. Fetch Slots for the booking date
       if (details.date) {
-        setSelectedDate(new Date(details.date));
+        const targetDate = new Date(details.date);
+        setSelectedDate(targetDate);
+        
+        const dateStr = details.date; // Use string from details directly if it's YYYY-MM-DD
+        const slotsRes = await axios.get(`/timeslot/available?date=${dateStr}`);
+        setAvailableSlots(slotsRes.data.payload.slots || []);
       }
     } catch (error) {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "Failed to load booking details",
+        text2: "Failed to load management data",
       });
       router.back();
     } finally {
@@ -57,7 +65,11 @@ export default function ManageBooking() {
     }
   }, [id, router]);
 
-  const fetchSlots = React.useCallback(async (date) => {
+  React.useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  const fetchSlotsOnly = React.useCallback(async (date) => {
     setLoadingSlots(true);
     try {
       const dateStr = date.toISOString().split("T")[0];
@@ -74,21 +86,12 @@ export default function ManageBooking() {
     }
   }, []);
 
-  React.useEffect(() => {
-    fetchBookingDetails();
-  }, [fetchBookingDetails]);
-
-  React.useEffect(() => {
-    if (selectedDate) {
-      fetchSlots(selectedDate);
-    }
-  }, [selectedDate, fetchSlots]);
-
   const handleDateChange = (event, date) => {
     setShowDatePicker(false);
     if (date) {
       setSelectedDate(date);
-      setSelectedSlotId(null); // Reset slot when date changes
+      setSelectedSlotId(null);
+      fetchSlotsOnly(date);
     }
   };
 
@@ -167,6 +170,7 @@ export default function ManageBooking() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.PRIMARY} />
+        <Text style={styles.loadingText}>Loading booking details...</Text>
       </View>
     );
   }
@@ -234,7 +238,7 @@ export default function ManageBooking() {
             <View style={styles.datePickerContent}>
               <Ionicons name="calendar" size={20} color={colors.PRIMARY} />
               <Text style={styles.dateValue}>
-                {selectedDate.toDateString()}
+                {selectedDate ? selectedDate.toDateString() : "Loading..."}
               </Text>
             </View>
             <Ionicons
@@ -246,13 +250,14 @@ export default function ManageBooking() {
 
           {showDatePicker && (
             <DateTimePicker
-              value={selectedDate}
+              value={selectedDate || new Date()}
               mode="date"
               display="default"
               minimumDate={new Date()}
-              onChange={handleDateChange}
+              onValueChange={handleDateChange}
             />
           )}
+
 
           <Text style={styles.label}>Select Available Timeslot</Text>
           {loadingSlots ? (
@@ -351,6 +356,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: colors.BACKGROUND_COLOR,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: colors.SECONDARY,
+    fontWeight: "600",
   },
   header: {
     flexDirection: "row",

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+
 import {
   View,
   Text,
@@ -12,6 +13,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import { useFocusEffect } from "@react-navigation/native";
+
 import colors from "../../../../constants/colors";
 import { useRouter } from "expo-router";
 import { generateNextDays } from "../../../../utils/dateUtils";
@@ -23,17 +26,20 @@ const { width } = Dimensions.get("window");
 
 export default function Bookings() {
   const router = useRouter();
-  const [selectedDateIndex, setSelectedDateIndex] = React.useState(0);
-  const [scheduleData, setScheduleData] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+  const [selectedDateIndex, setSelectedDateIndex] = useState(0);
+  const [scheduleData, setScheduleData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
 
   // Modal states
-  const [showActionModal, setShowActionModal] = React.useState(false);
-  const [selectedBooking, setSelectedBooking] = React.useState(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
 
   // Generate next viewing days
   const DAYS_COUNT = 14;
-  const dates = React.useMemo(() => generateNextDays(DAYS_COUNT), []);
+  const dates = useMemo(() => generateNextDays(DAYS_COUNT), []);
+
 
   const fetchSchedule = async () => {
     setLoading(true);
@@ -57,9 +63,12 @@ export default function Bookings() {
     }
   };
 
-  React.useEffect(() => {
-    fetchSchedule();
-  }, [selectedDateIndex]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSchedule();
+    }, [selectedDateIndex])
+  );
+
 
   const handleBookingPress = (booking) => {
     setSelectedBooking(booking);
