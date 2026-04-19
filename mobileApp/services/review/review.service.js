@@ -30,6 +30,22 @@ export const reviewService = {
   },
 
   /**
+   * Update an existing admin reply
+   */
+  updateAdminReply: async (reviewId, reply) => {
+    const response = await axios.patch(`/review/admin/${reviewId}/reply`, { reply });
+    return response.data;
+  },
+
+  /**
+   * Delete an admin reply
+   */
+  deleteAdminReply: async (reviewId) => {
+    const response = await axios.delete(`/review/admin/${reviewId}/reply`);
+    return response.data;
+  },
+
+  /**
    * Update review approval status
    */
   updateApprovalStatus: async (reviewId, isApproved) => {

@@ -9,21 +9,23 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import colors from "../../../../constants/colors";
 import ReviewService from "../../../../services/review/review.service";
+import { adminReplySchema } from "../../../../schema/review.schema";
 
 export default function AdminReviewReply() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const [replyText, setReplyText] = useState("");
   const [review, setReview] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const maxChars = 500;
 
@@ -37,9 +39,12 @@ export default function AdminReviewReply() {
     try {
       setLoading(true);
       const data = await ReviewService.getAdminReviewById(id);
-      setReview(data.payload.review);
-      if (data.payload.review.adminReply) {
-        setReplyText(data.payload.review.adminReply);
+      const fetchedReview = data.payload.review;
+      setReview(fetchedReview);
+      
+      // Update formik initial values if a reply exists
+      if (fetchedReview.adminReply) {
+        formik.setFieldValue("reply", fetchedReview.adminReply);
       }
     } catch (error) {
       console.error(error);
@@ -53,35 +58,72 @@ export default function AdminReviewReply() {
     }
   };
 
-  const handleReplySubmit = async () => {
-    if (!replyText.trim()) {
-      Toast.show({
-        type: "error",
-        text1: "Required",
-        text2: "Please enter a reply message",
-      });
-      return;
-    }
+  const formik = useFormik({
+    initialValues: {
+      reply: "",
+    },
+    validationSchema: adminReplySchema,
+    onSubmit: async (values) => {
+      try {
+        let response;
+        if (review?.adminReply) {
+          // Update existing
+          response = await ReviewService.updateAdminReply(id, values.reply);
+        } else {
+          // Create new
+          response = await ReviewService.addAdminReply(id, values.reply);
+        }
 
-    try {
-      setSubmitting(true);
-      const response = await ReviewService.addAdminReply(id, replyText);
-      Toast.show({
-        type: "success",
-        text1: "Success",
-        text2: response.payload.message || "Reply submitted successfully",
-      });
-      router.back();
-    } catch (error) {
-      console.error(error);
-      Toast.show({
-        type: "error",
-        text1: "Submission Failed",
-        text2: error?.response?.data?.payload?.message || error.message || "Failed to submit reply",
-      });
-    } finally {
-      setSubmitting(false);
-    }
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: response?.payload?.message || "Reply processed successfully",
+        });
+        router.back();
+      } catch (error) {
+        console.error(error);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: error?.response?.data?.payload?.message || error.message || "Operation failed",
+        });
+      }
+    },
+  });
+
+  const handleDeleteReply = () => {
+    Alert.alert(
+      "Delete Reply",
+      "Are you sure you want to delete this admin reply?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setDeleting(true);
+              const response = await ReviewService.deleteAdminReply(id);
+              Toast.show({
+                type: "success",
+                text1: "Deleted",
+                text2: response?.payload?.message || "Reply deleted successfully",
+              });
+              router.back();
+            } catch (error) {
+              console.error(error);
+              Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: "Failed to delete reply",
+              });
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const customerName = review?.customer?.name || "Unknown Customer";
@@ -108,21 +150,36 @@ export default function AdminReviewReply() {
             style={styles.cancelButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="chevron-back" size={20} color={colors.PRIMARY} />
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Ionicons name="close" size={24} color={colors.DARK} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Review Details</Text>
-          <View style={{ width: 80 }} />
+          <Text style={styles.headerTitle}>
+            {review?.adminReply ? "Edit Reply" : "Admin Reply"}
+          </Text>
+          <View style={styles.headerRight}>
+            {review?.adminReply && (
+              <TouchableOpacity 
+                onPress={handleDeleteReply} 
+                disabled={deleting}
+                style={styles.deleteHeaderBtn}
+              >
+                {deleting ? (
+                  <ActivityIndicator size="small" color="#ef4444" />
+                ) : (
+                  <Feather name="trash-2" size={20} color="#ef4444" />
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.avatarContainer}>
-                <View style={styles.avatar}>
+                <View style={[styles.avatar, { backgroundColor: review?.isApproved ? "#F4FADE" : "#FEE2E2" }]}>
                   <Text style={styles.avatarInitials}>{initials}</Text>
                 </View>
                 {review?.isApproved && (
@@ -133,7 +190,7 @@ export default function AdminReviewReply() {
               </View>
               <View style={styles.authorInfo}>
                 <Text style={styles.authorName}>{customerName}</Text>
-                <Text style={styles.dateText}>{dateStr}</Text>
+                <Text style={styles.dateText}>{dateStr} • {review?.isApproved ? "Published" : "Pending"}</Text>
               </View>
             </View>
 
@@ -150,79 +207,92 @@ export default function AdminReviewReply() {
               <Text style={styles.ratingScore}>{rating.toFixed(1)}</Text>
             </View>
 
-            <Text style={styles.reviewText}>
-              {review?.comment || "No comment provided."}
-              {review?.booking?.vehicle && (
-                <Text style={styles.vehicleInfo}>
-                  {"\n\n"}Vehicle: {review.booking.vehicle.make} {review.booking.vehicle.model}
+            <Text style={styles.reviewText}>{review?.comment || "No comment"}</Text>
+            
+            {review?.booking?.vehicle && (
+              <View style={styles.vehicleChip}>
+                <Ionicons name="car-outline" size={14} color={colors.SECONDARY} />
+                <Text style={styles.vehicleText}>
+                  {review.booking.vehicle.make} {review.booking.vehicle.model}
                 </Text>
-              )}
-            </Text>
+              </View>
+            )}
           </View>
 
-          <View style={styles.replyHeaderRow}>
-            <View style={styles.replyHeadline}>
-              <Ionicons
-                name="arrow-undo-outline"
-                size={18}
-                color={colors.DARK}
-                style={{ transform: [{ scaleX: -1 }] }}
+          <View style={styles.formSection}>
+            <View style={styles.replyHeaderRow}>
+              <View style={styles.replyHeadline}>
+                <Feather name="corner-up-left" size={18} color={colors.DARK} />
+                <Text style={styles.replyHeadText}>
+                  {review?.adminReply ? "Respond to Review" : "Write a public response"}
+                </Text>
+              </View>
+              <View style={styles.publicBadge}>
+                <Text style={styles.publicText}>Public</Text>
+              </View>
+            </View>
+
+            <View style={[
+              styles.inputContainer,
+              formik.touched.reply && formik.errors.reply && styles.inputError
+            ]}>
+              <TextInput
+                style={styles.textArea}
+                placeholder="Type your response here..."
+                placeholderTextColor="#9ca3af"
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+                value={formik.values.reply}
+                onChangeText={formik.handleChange("reply")}
+                onBlur={formik.handleBlur("reply")}
               />
-              <Text style={styles.replyHeadText}>
-                {review?.adminReply ? "Edit your reply" : "Write a public reply"}
+              <View style={styles.inputFooter}>
+                <Text style={[
+                  styles.charCount,
+                  formik.values.reply.length > maxChars && { color: "#ef4444" }
+                ]}>
+                  {formik.values.reply.length} / {maxChars}
+                </Text>
+              </View>
+            </View>
+            {formik.touched.reply && formik.errors.reply && (
+              <Text style={styles.errorText}>{formik.errors.reply}</Text>
+            )}
+
+            <View style={styles.proTipContainer}>
+              <Ionicons
+                name="bulb-outline"
+                size={24}
+                color={colors.PRIMARY}
+                style={styles.bulbIcon}
+              />
+              <Text style={styles.proTipText}>
+                <Text style={styles.proTipBold}>Tip: </Text>
+                Timely responses are public and help build trust with future customers.
               </Text>
             </View>
-            <View style={styles.publicBadge}>
-              <Text style={styles.publicText}>Public</Text>
-            </View>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textArea}
-              placeholder="Hi thank you for the feedback! We appreciate your business..."
-              placeholderTextColor="#9ca3af"
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              value={replyText}
-              onChangeText={(text) => {
-                if (text.length <= maxChars) setReplyText(text);
-              }}
-            />
-            <Text style={styles.charCount}>
-              {replyText.length} / {maxChars}
-            </Text>
-          </View>
-
-          <View style={styles.proTipContainer}>
-            <Ionicons
-              name="bulb-outline"
-              size={24}
-              color={colors.PRIMARY}
-              style={styles.bulbIcon}
-            />
-            <Text style={styles.proTipText}>
-              <Text style={styles.proTipBold}>Pro Tip: </Text>
-              Professional and timely responses increase customer trust by 40%.
-              Mention specific details from the review to show you care.
-            </Text>
           </View>
         </ScrollView>
 
         <View style={styles.footer}>
           <TouchableOpacity 
-            style={[styles.submitBtn, submitting && { opacity: 0.7 }]} 
-            onPress={handleReplySubmit}
-            disabled={submitting}
+            style={[
+              styles.submitBtn, 
+              (formik.isSubmitting || !formik.isValid) && { opacity: 0.6 }
+            ]} 
+            onPress={formik.handleSubmit}
+            disabled={formik.isSubmitting || !formik.isValid}
           >
-            {submitting ? (
+            {formik.isSubmitting ? (
               <ActivityIndicator size="small" color={colors.DARK} />
             ) : (
               <>
-                <Text style={styles.submitBtnText}>Submit Reply</Text>
+                <Text style={styles.submitBtnText}>
+                  {review?.adminReply ? "Update Reply" : "Post Reply"}
+                </Text>
                 <Feather
-                  name="send"
+                  name="check"
                   size={18}
                   color={colors.DARK}
                   style={{ marginLeft: 8 }}
@@ -260,19 +330,25 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.BORDER_COLOR,
   },
   cancelButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: 80,
-  },
-  cancelText: {
-    color: colors.PRIMARY,
-    fontSize: 16,
-    fontWeight: "600",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: colors.DARK,
+  },
+  headerRight: {
+    width: 40,
+    alignItems: "flex-end",
+  },
+  deleteHeaderBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "flex-end",
   },
   scrollContent: {
     padding: 20,
@@ -280,11 +356,16 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.LIGHT,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 20,
-    marginBottom: 30,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: colors.BORDER_COLOR,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: "row",
@@ -299,7 +380,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#FCA5A5", // Peachy background observed in the image
     justifyContent: "center",
     alignItems: "center",
   },
@@ -337,7 +417,7 @@ const styles = StyleSheet.create({
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   ratingScore: {
     marginLeft: 8,
@@ -348,12 +428,26 @@ const styles = StyleSheet.create({
   reviewText: {
     fontSize: 15,
     color: colors.SECONDARY,
-    lineHeight: 24,
+    lineHeight: 22,
+    marginBottom: 16,
   },
-  vehicleInfo: {
-    fontSize: 13,
-    fontWeight: "bold",
-    color: colors.DARK,
+  vehicleChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.BACKGROUND_COLOR,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  vehicleText: {
+    fontSize: 12,
+    color: colors.SECONDARY,
+    marginLeft: 6,
+    fontWeight: "600",
+  },
+  formSection: {
+    flex: 1,
   },
   replyHeaderRow: {
     flexDirection: "row",
@@ -369,48 +463,62 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: colors.DARK,
-    marginLeft: 8,
+    marginLeft: 10,
   },
   publicBadge: {
     backgroundColor: "#F1F5F9",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 20,
   },
   publicText: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.SECONDARY,
-    fontWeight: "600",
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
   inputContainer: {
     backgroundColor: colors.LIGHT,
     borderWidth: 1,
     borderColor: colors.BORDER_COLOR,
     borderRadius: 12,
-    marginBottom: 20,
+    marginBottom: 8,
     overflow: "hidden",
   },
+  inputError: {
+    borderColor: "#ef4444",
+  },
   textArea: {
-    height: 140,
+    minHeight: 120,
     padding: 16,
     fontSize: 15,
     color: colors.DARK,
     lineHeight: 22,
   },
+  inputFooter: {
+    borderTopWidth: 1,
+    borderTopColor: colors.BORDER_COLOR,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignItems: "flex-end",
+  },
   charCount: {
-    textAlign: "right",
-    padding: 12,
     fontSize: 12,
     color: colors.SECONDARY,
     fontWeight: "600",
   },
+  errorText: {
+    color: "#ef4444",
+    fontSize: 12,
+    marginBottom: 16,
+    marginLeft: 4,
+  },
   proTipContainer: {
     flexDirection: "row",
-    backgroundColor: "#F4FADE", // Light primary-tinted background
+    backgroundColor: "#F4FADE",
     padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e1eec7", // Slightly darker green border
+    marginTop: 10,
   },
   bulbIcon: {
     marginRight: 12,
@@ -427,20 +535,23 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    padding: 20,
     backgroundColor: colors.LIGHT,
     borderTopWidth: 1,
     borderTopColor: colors.BORDER_COLOR,
   },
   submitBtn: {
     backgroundColor: colors.PRIMARY,
-    padding: 18,
-    borderRadius: 12,
+    height: 56,
+    borderRadius: 14,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    height: 56,
+    shadowColor: colors.PRIMARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitBtnText: {
     fontSize: 16,
