@@ -1,5 +1,7 @@
 const cron = require('node-cron');
 const Booking = require('../model/Booking');
+const { sendSms } = require('../util/smsSender');
+
 
 /**
  * Initializes the automated reminder system using node-cron.
@@ -27,8 +29,9 @@ const initAutomatedReminders = (isTestMode = false) => {
                 date: targetDate,
                 isDeleted: false
             })
-                .populate('customer', 'name')
+                .populate('customer', 'name mobile')
                 .populate('vehicle', 'make model');
+
 
             if (bookings.length === 0) {
                 console.log('[ Automated Reminders ] No reminders to send today.');
@@ -37,19 +40,23 @@ const initAutomatedReminders = (isTestMode = false) => {
 
             console.log(`[ Automated Reminders ] Found ${bookings.length} bookings from 90 days ago. Dispatching messages...`);
 
-            bookings.forEach(booking => {
+            for (const booking of bookings) {
                 const customerName = booking.customer?.name || 'Customer';
                 const vehicleName = booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model}` : 'Your Vehicle';
+                const mobile = booking.customer?.mobile;
 
-                // MOCK SEND MESSAGE
-                let msg = ""
-                const message = `${customerName}\n${vehicleName}\n\n${msg}`;
+                if (!mobile) continue;
 
-                console.log('----------------------------------------------------');
-                console.log('MESSAGE DISPATCHED:');
-                console.log(message);
-                console.log('----------------------------------------------------');
-            });
+                const message = `${customerName}\n${vehicleName}\n\nyou take a service, its time take a service again!`;
+
+                try {
+                    await sendSms(mobile, message);
+                    console.log(`[ Automated Reminders ] Sent to ${customerName} (${mobile})`);
+                } catch (smsError) {
+                    console.error(`[ Automated Reminders ] Failed to send to ${mobile}:`, smsError.message);
+                }
+            }
+
 
         } catch (error) {
             console.error('[ Automated Reminders ] Error executing reminder cron job:', error.message);
