@@ -158,6 +158,23 @@ export default function Dashboard() {
           <ChevronRight size={20} color="#BDBDBD" />
         </TouchableOpacity>
 
+        <TouchableOpacity 
+          style={styles.listRow}
+          onPress={() => router.push("/(protected)/(admin)/reviews/report")}
+          activeOpacity={0.7}
+        >
+          <View style={styles.listRowIconContainer}>
+            <View style={[styles.iconBox, { backgroundColor: '#E0F2F1' }]}>
+              <BarChart2 size={24} color="#00897B" />
+            </View>
+          </View>
+          <View style={styles.listRowTextContainer}>
+            <Text style={styles.listRowTitle}>Satisfaction Report</Text>
+            <Text style={styles.listRowSubtitle}>Analyze Customer Sentiment</Text>
+          </View>
+          <ChevronRight size={20} color="#BDBDBD" />
+        </TouchableOpacity>
+
       </View>
     </ScrollView>
   );

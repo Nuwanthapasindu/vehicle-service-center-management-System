@@ -14,6 +14,14 @@ export const reviewService = {
   },
 
   /**
+   * Fetch review statistics and data for Admin Report
+   */
+  getAdminReviewReport: async (params = {}) => {
+    const response = await axios.get("/review/admin/report", { params });
+    return response.data;
+  },
+
+  /**
    * Fetch a single review by ID for admin
    */
   getAdminReviewById: async (reviewId) => {
@@ -42,6 +50,14 @@ export const reviewService = {
    */
   deleteAdminReply: async (reviewId) => {
     const response = await axios.delete(`/review/admin/${reviewId}/reply`);
+    return response.data;
+  },
+
+  /**
+   * Fetch public reviews and statistics
+   */
+  getPublicReviews: async (params = {}) => {
+    const response = await axios.get("/review", { params });
     return response.data;
   },
 

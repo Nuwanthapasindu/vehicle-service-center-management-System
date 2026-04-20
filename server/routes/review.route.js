@@ -14,6 +14,7 @@ const {
   updateReviewApprovalStatus,
   getCustomerReviewById,
 } = require("../controller/review.controller");
+const { getAdminReviewReport } = require("../controller/report.controller");
 const { authTokenMiddleware, accessControl } = require("../middleware/auth");
 const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
@@ -143,6 +144,44 @@ router.get(
       .then((reviews) => {
         responseBuilder.setStatus(200);
         responseBuilder.buildResponse({ reviews });
+      })
+      .catch((error) => next(error));
+  },
+);
+
+/**
+ * @swagger
+ * /api/v1/review/admin/report:
+ *   get:
+ *     summary: Get review report statistics for admin
+ *     tags: [Review]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Admin review report statistics
+ */
+router.get(
+  "/admin/report",
+  authTokenMiddleware,
+  accessControl([USER_ROLES.ADMIN]),
+  (req, res, next) => {
+    const responseBuilder = new responseBuild(res);
+    const query = req.query;
+
+    getAdminReviewReport(query)
+      .then((data) => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse(data);
       })
       .catch((error) => next(error));
   },
