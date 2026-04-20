@@ -1,6 +1,6 @@
 const { getIncomeReport } = require("../../controller/report.controller");
 const Invoice = require("../../model/Invoice");
-const { REPORT_RANGES } = require("../../util/constants");
+const { LOG_PERIODS: REPORT_RANGES } = require("../../util/constants");
 const AppError = require("../../error/AppError");
 
 jest.mock("../../model/Invoice");

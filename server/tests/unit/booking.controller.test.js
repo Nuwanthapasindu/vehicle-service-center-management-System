@@ -70,7 +70,7 @@ describe("Booking Controller Tests", () => {
       const payload = {
         vehicle: mockVehicle._id.toString(),
         slot: mockSlot._id.toString(),
-        date: new Date().toISOString(),
+        date: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
         specialNote: "Test note",
       };
 
@@ -84,7 +84,7 @@ describe("Booking Controller Tests", () => {
     });
 
     test("should fail if timeslot is fully booked", async () => {
-       const date = new Date();
+       const date = new Date(Date.now() + 86400000);
        date.setHours(0,0,0,0);
 
        const mockVehicle2 = await new Vehicle({
@@ -130,7 +130,7 @@ describe("Booking Controller Tests", () => {
     });
 
     test("should fail if the same vehicle tries to book the same slot on the same day twice", async () => {
-        const date = new Date();
+        const date = new Date(Date.now() + 86400000);
         date.setHours(0, 0, 0, 0);
 
         // First booking
