@@ -116,12 +116,7 @@ export default function ItemLogView() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top, height: 56 + insets.top }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft size={24} color="#212529" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{name} - Logs</Text>
-      </View>
+
 
       <LogFilters
         actionType={actionType}

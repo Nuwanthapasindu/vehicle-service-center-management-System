@@ -8,6 +8,7 @@ const {
   completeInvoice,
   getInvoiceByJobCard,
 } = require("../controller/invoice.controller");
+const { getIncomeReport } = require("../controller/report.controller");
 const responseBuilder = require("../util/responseBuilder");
 const { authTokenMiddleware } = require("../middleware/auth");
 
@@ -128,6 +129,48 @@ router.get("/", authTokenMiddleware, (req, res, next) => {
     .then((invoices) => {
       builder.setStatus(200);
       builder.buildResponse({ invoices });
+    })
+    .catch(next);
+});
+
+/**
+ * @swagger
+ * /api/v1/invoice/reports/income:
+ *   get:
+ *     summary: Get invoice income report
+ *     tags: [Invoice]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         schema:
+ *           type: string
+ *           enum: [today, weekly, monthly, yearly, custom]
+ *         description: Reporting time range
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *         description: Required if range is custom
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *         description: Required if range is custom
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved income report
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/reports/income", authTokenMiddleware, (req, res, next) => {
+  const builder = new responseBuilder(res);
+  const { range, startDate, endDate } = req.query;
+  getIncomeReport(range, startDate, endDate)
+    .then((report) => {
+      builder.setStatus(200);
+      builder.buildResponse({ report });
     })
     .catch(next);
 });

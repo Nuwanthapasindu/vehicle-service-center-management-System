@@ -1,5 +1,5 @@
-const errorHandling = require("../middleware/errorHandling");
-const AppError = require("../error/AppError");
+const errorHandling = require("../../middleware/errorHandling");
+const AppError = require("../../error/AppError");
 
 describe("Error Handling Middleware Unit Tests", () => {
     let mockRequest;

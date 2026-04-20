@@ -1,12 +1,25 @@
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
+import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../../../constants/colors";
 
 export default function InventoryLogLayout() {
+  const router = useRouter();
+
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerTitle: "Inventory Logs",
+        headerTitleStyle: { fontWeight: 'bold' },
+        headerLeft: () => (
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            style={{ marginLeft: 16 }}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.DARK} />
+          </TouchableOpacity>
+        ),
         tabBarActiveTintColor: colors.PRIMARY,
         tabBarInactiveTintColor: colors.SECONDARY,
       }}

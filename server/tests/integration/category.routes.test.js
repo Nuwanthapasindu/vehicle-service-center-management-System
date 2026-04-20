@@ -12,6 +12,11 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 jest.mock('../../model/Category');
+jest.mock('../../model/Inventory');
+jest.mock('../../validation/category.validation', () => ({
+  categorySchema: { validate: jest.fn().mockReturnValue({ error: null }) },
+  deleteCategoryValidation: jest.fn().mockReturnValue({ error: null })
+}));
 
 const app = express();
 app.use(express.json());
@@ -48,7 +53,7 @@ describe('Category Routes Integration Tests', () => {
         .send({ name: 'New Category' });
 
       expect(res.statusCode).toBe(201);
-      expect(res.body.payload.data.name).toBe('New Category');
+      expect(res.body.payload.message).toContain('added successfully');
     });
   });
 
@@ -61,18 +66,20 @@ describe('Category Routes Integration Tests', () => {
         .send({ name: 'Updated Category' });
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.payload.data.name).toBe('Updated Category');
+      expect(res.body.payload.message).toContain('updated successfully');
     });
   });
 
   describe('DELETE /categories/:id', () => {
     it('should soft delete a category', async () => {
-      Category.findOneAndUpdate.mockResolvedValue({ _id: 'cat123', isDeleted: true });
+      const Inventory = require('../../model/Inventory');
+      Inventory.countDocuments.mockResolvedValue(0);
+      Category.findOneAndUpdate.mockResolvedValue({ _id: 'cat123', name: 'OldCategory', isDeleted: true });
 
       const res = await request(app).delete('/categories/cat123');
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.payload.message).toContain('Category deleted');
+      expect(res.body.payload.message).toContain('deleted successfully');
     });
   });
 });

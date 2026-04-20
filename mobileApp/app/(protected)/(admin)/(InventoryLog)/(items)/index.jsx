@@ -73,16 +73,7 @@ export default function ItemSelectionScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top, height: 56 + insets.top }]}>
-        <TouchableOpacity
-          style={styles.headerBtn}
-          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-        >
-          <Ionicons name="menu-outline" size={24} color={colors.DARK} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>SELECT ITEM FOR LOGS</Text>
-        <View style={{ width: 40 }} />
-      </View>
+
 
       <View style={styles.searchContainer}>
         <Search size={20} color="#adb5bd" style={styles.searchIcon} />

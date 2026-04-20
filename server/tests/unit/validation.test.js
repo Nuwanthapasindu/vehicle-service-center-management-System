@@ -2,7 +2,7 @@ const {
   validatedCreateService,
   validatedUpdateService,
   validatedQueryServices,
-} = require("../validation/service.validation");
+} = require("../../validation/service.validation");
 
 describe("Service Validation Unit Tests", () => {
   describe("createService Validation", () => {

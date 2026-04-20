@@ -1,9 +1,9 @@
 import { Stack, useRouter } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '../../../../constants/colors';
+import colors from '../../../../../constants/colors';
 
-export default function InventoryAnalysisLayout() {
+export default function RevenueLayout() {
   const router = useRouter();
 
   return (
@@ -21,7 +21,7 @@ export default function InventoryAnalysisLayout() {
         ),
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Stock Selection' }} />
+      <Stack.Screen name="index" options={{ title: 'Revenue Report' }} />
     </Stack>
   );
 }

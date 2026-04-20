@@ -90,17 +90,6 @@ export default function InventoryAnalysisScreen() {
 
   return (
     <View style={styles.safeArea}>
-      <View style={[styles.headerBar, { paddingTop: insets.top, height: 56 + insets.top }]}>
-        <TouchableOpacity
-          style={styles.headerBtn}
-          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-        >
-          <Ionicons name="menu-outline" size={24} color={colors.DARK} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>INVENTORY ANALYSIS</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
       <ScrollView
         contentContainerStyle={styles.container}
         refreshControl={

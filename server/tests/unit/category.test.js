@@ -3,7 +3,11 @@ const Category = require('../../model/Category');
 const AppError = require('../../error/AppError');
 
 jest.mock('../../model/Category');
-jest.mock('../../validation/category.validation');
+jest.mock('../../model/Inventory');
+jest.mock('../../validation/category.validation', () => ({
+  categorySchema: { validate: jest.fn() },
+  deleteCategoryValidation: jest.fn()
+}));
 
 describe('Category Controller Unit Tests (Updated)', () => {
 
@@ -23,7 +27,8 @@ describe('Category Controller Unit Tests (Updated)', () => {
       const result = await categoryController.createCategory(payload);
 
       expect(Category.create).toHaveBeenCalledWith(payload);
-      expect(result.name).toBe('Electronics');
+      expect(typeof result).toBe('string');
+      expect(result).toContain('added successfully');
     });
 
     it('should throw validation error', async () => {
@@ -64,7 +69,8 @@ describe('Category Controller Unit Tests (Updated)', () => {
 
       const result = await categoryController.updateCategory('1', payload);
 
-      expect(result.name).toBe('Updated');
+      expect(typeof result).toBe('string');
+      expect(result).toContain('updated successfully');
     });
 
     it('should throw not found error', async () => {
@@ -81,14 +87,27 @@ describe('Category Controller Unit Tests (Updated)', () => {
 
   describe('deleteCategory', () => {
     it('should soft delete category', async () => {
-      Category.findOneAndUpdate.mockResolvedValue({ _id: '1' });
+      const { deleteCategoryValidation } = require('../../validation/category.validation');
+      deleteCategoryValidation.mockReturnValue({ error: null });
+
+      const Inventory = require('../../model/Inventory');
+      Inventory.countDocuments.mockResolvedValue(0);
+
+      Category.findOneAndUpdate.mockResolvedValue({ _id: '1', name: 'Electronics' });
 
       const result = await categoryController.deleteCategory('1');
 
-      expect(result).toBe(true);
+      expect(typeof result).toBe('string');
+      expect(result).toContain('deleted successfully');
     });
 
     it('should throw error if not found', async () => {
+      const { deleteCategoryValidation } = require('../../validation/category.validation');
+      deleteCategoryValidation.mockReturnValue({ error: null });
+
+      const Inventory = require('../../model/Inventory');
+      Inventory.countDocuments.mockResolvedValue(0);
+
       Category.findOneAndUpdate.mockResolvedValue(null);
 
       await expect(

@@ -1,13 +1,14 @@
 const mongoose = require("mongoose");
-const Employee = require("../model/Employee");
-const User = require("../model/User");
-const Auth = require("../model/Auth");
-const { createEmployee, getEmployees, updateEmployee, toggleAvailability, deleteEmployee } = require("../controller/employee.controller");
-const AppError = require("../error/AppError");
-const { hashPassword } = require("../util/password");
+const Employee = require("../../model/Employee");
+const User = require("../../model/User");
+const Auth = require("../../model/Auth");
+const Team = require("../../model/Team");
+const { createEmployee, getEmployees, updateEmployee, toggleAvailability, deleteEmployee } = require("../../controller/employee.controller");
+const AppError = require("../../error/AppError");
+const { hashPassword } = require("../../util/password");
 
 // Mock hashPassword function
-jest.mock("../util/password", () => ({
+jest.mock("../../util/password", () => ({
   hashPassword: jest.fn((password) => `hashed-${password}`)
 }));
 
@@ -21,12 +22,17 @@ User.create = jest.fn();
 Auth.create = jest.fn();
 
 User.findOne = jest.fn();
+User.exists = jest.fn();
 User.create = jest.fn();
 User.findByIdAndUpdate = jest.fn();
 
 Auth.findOne = jest.fn();
+Auth.exists = jest.fn();
 Auth.create = jest.fn();
 Auth.findByIdAndUpdate = jest.fn();
+
+Employee.exists = jest.fn();
+Team.updateMany = jest.fn();
 
 describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
   afterEach(() => {
@@ -91,10 +97,12 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
   describe("getEmployees", () => {
     it("should return employees with isAvailable filter", async () => {
       Employee.find.mockReturnValue({
-        populate: jest.fn().mockResolvedValue([
-          { _id: "emp1", isAvailable: true, user: { name: "John" } },
-          { _id: "emp2", isAvailable: true, user: { name: "Jane" } },
-        ])
+        populate: jest.fn().mockReturnValue({
+          select: jest.fn().mockResolvedValue([
+            { _id: "emp1", isAvailable: true, user: { name: "John" } },
+            { _id: "emp2", isAvailable: true, user: { name: "Jane" } },
+          ])
+        })
       });
 
       const employees = await getEmployees({ isAvailable: "true" });
@@ -104,9 +112,11 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
 
     it("should return all employees if no filter", async () => {
       Employee.find.mockReturnValue({
-        populate: jest.fn().mockResolvedValue([
-          { _id: "emp1", isAvailable: true, user: { name: "John" } }
-        ])
+        populate: jest.fn().mockReturnValue({
+          select: jest.fn().mockResolvedValue([
+            { _id: "emp1", isAvailable: true, user: { name: "John" } }
+          ])
+        })
       });
 
       const employees = await getEmployees({});
@@ -121,6 +131,9 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
       const payload = { name: "Updated Name", password: "NewPass@123" };
 
       Employee.findById.mockResolvedValue({ _id: validId, user: "userId1" });
+      User.exists.mockResolvedValue(null);
+      Employee.exists.mockResolvedValue(null);
+      Auth.exists.mockResolvedValue(null);
       User.findByIdAndUpdate.mockResolvedValue({});
       Auth.findOne.mockResolvedValue({ _id: "authId1" });
       Auth.findByIdAndUpdate.mockResolvedValue({});
@@ -163,6 +176,7 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
       Employee.findById.mockResolvedValue(employee);
       Employee.findByIdAndUpdate.mockResolvedValue({});
       User.findByIdAndUpdate.mockResolvedValue({});
+      Team.updateMany.mockResolvedValue({});
 
       const result = await deleteEmployee(validId);
       expect(result).toBe("Employee and associated user deleted successfully");

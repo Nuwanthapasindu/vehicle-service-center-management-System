@@ -20,5 +20,9 @@ export const invoiceService = {
   },
   createInvoice: async (payload) => {
     return await axios.post('/invoice', payload);
+  },
+  fetchIncomeReport: async (range = "today") => {
+    const response = await axios.get("/invoice/reports/income", { params: { range } });
+    return response?.data?.payload?.report || response?.data?.report || { totalIncome: 0, data: [] };
   }
 };

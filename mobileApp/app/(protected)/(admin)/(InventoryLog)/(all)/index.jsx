@@ -125,16 +125,7 @@ export default function InventoryLogScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top, height: 56 + insets.top }]}>
-        <TouchableOpacity
-          style={styles.headerBtn}
-          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-        >
-          <Ionicons name="menu-outline" size={24} color={colors.DARK} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>STOCK MOVEMENT LOGS</Text>
-        <View style={{ width: 40 }} />
-      </View>
+
 
       <LogFilters
         actionType={actionType}
