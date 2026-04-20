@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
-import { router, useNavigation, useLocalSearchParams } from "expo-router";
+import { router, useNavigation, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
 import Toast from 'react-native-toast-message';
@@ -26,13 +26,23 @@ export default function InventoryIndex() {
   const [categoryFilters, setCategoryFilters] = useState(["All Parts"]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState(category || "All Parts");
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchInventory = async () => {
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const fetchInventory = async (isManualRefresh = false) => {
     try {
+      if (!isManualRefresh) setLoading(true);
       const data = await inventoryService.fetchInventory();
-      
+
       const formattedItems = data
         .filter((item) => item?.isDeleted !== true)
         .map((item) => ({
@@ -58,8 +68,8 @@ export default function InventoryIndex() {
       ];
 
       setCategoryFilters(uniqueCategories);
-      
-      if (!refreshing) {
+
+      if (isManualRefresh) {
         Toast.show({
           type: 'success',
           text1: 'Inventory Updated',
@@ -82,9 +92,11 @@ export default function InventoryIndex() {
     }
   };
 
-  useEffect(() => {
-    fetchInventory();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchInventory();
+    }, [])
+  );
 
   useEffect(() => {
     if (category) {
@@ -102,8 +114,8 @@ export default function InventoryIndex() {
       );
     }
 
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.trim().toLowerCase();
       result = result.filter(
         (item) =>
           item.name?.toLowerCase().includes(q) ||
@@ -112,11 +124,11 @@ export default function InventoryIndex() {
     }
 
     return result;
-  }, [items, search, selectedFilter]);
+  }, [items, debouncedSearch, selectedFilter]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchInventory();
+    fetchInventory(true);
   };
 
   const clearSearch = () => {
@@ -138,8 +150,8 @@ export default function InventoryIndex() {
   return (
     <>
       <View style={styles.container}>
-        <View style={[styles.topHeader, 
-          { paddingTop: insets.top, height: 56 + insets.top }]}>
+        <View style={[styles.topHeader,
+        { paddingTop: insets.top, height: 56 + insets.top }]}>
           <TouchableOpacity
             style={styles.headerBtn}
             onPress={() => navigation.dispatch(DrawerActions.openDrawer())}

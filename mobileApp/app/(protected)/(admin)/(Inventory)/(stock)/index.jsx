@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "expo-router";
+import { useNavigation, useFocusEffect } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -74,9 +74,11 @@ export default function StockIndex() {
     }
   };
 
-  useEffect(() => {
-    fetchStock();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchStock();
+    }, [])
+  );
 
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
