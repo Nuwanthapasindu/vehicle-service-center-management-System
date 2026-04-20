@@ -253,7 +253,8 @@ export default function UpdateTimeslot() {
             mode="time"
             is24Hour={false}
             display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onStartTimeChange}
+            onValueChange={onStartTimeChange}
+
           />
         )}
 
@@ -263,7 +264,8 @@ export default function UpdateTimeslot() {
             mode="time"
             is24Hour={false}
             display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onEndTimeChange}
+            onValueChange={onEndTimeChange}
+
           />
         )}
       </KeyboardAvoidingView>

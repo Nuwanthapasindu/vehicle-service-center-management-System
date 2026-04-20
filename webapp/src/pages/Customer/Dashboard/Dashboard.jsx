@@ -77,7 +77,8 @@ const Dashboard = () => {
                 </div>
                 <div className="global-actions">
                     <Link to="/customer/service-booking" className="book-btn" style={{ textDecoration: 'none' }}>
-                        <i className="fa-regular fa-calendar-check"></i>
+                        <i className="fa-solid fa-calendar-check"></i>
+
                         <span>BOOK NOW</span>
                     </Link>
                     <Link to="/customer/my-garage/add" className="add-btn">
@@ -165,7 +166,8 @@ const Dashboard = () => {
                         <div className="upcoming-booking-card">
                             <div className="card-header">
                                 <div className="service-icon-box">
-                                    <i className="fa-solid fa-spray-can-sparkles"></i>
+                                    <i className="fa-solid fa-spray-can"></i>
+
                                 </div>
                                 <div className="service-name-box">
                                     <h5 className="service-title">{upcoming.service || 'Service'}</h5>
@@ -194,7 +196,7 @@ const Dashboard = () => {
                     ) : (
                         <div className="empty-state-container">
                             <div className="empty-state-icon">
-                                <i className="fa-regular fa-calendar-xmark"></i>
+                                <i className="fa-solid fa-calendar-xmark"></i>
                             </div>
                             <p className="empty-state-text">No upcoming appointments</p>
                             <Link to="/customer/service-booking" className="empty-state-btn">Book Now</Link>

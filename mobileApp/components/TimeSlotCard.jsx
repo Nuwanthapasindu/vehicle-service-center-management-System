@@ -4,8 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
 import { useRouter } from "expo-router";
 
-export default function TimeSlotCard({ slot }) {
-  const router = useRouter();
+export default function TimeSlotCard({ slot, onBookingPress }) {
   const isFull = slot.isFull;
 
   return (
@@ -47,7 +46,7 @@ export default function TimeSlotCard({ slot }) {
               <TouchableOpacity
                 key={i}
                 style={styles.vehicleRow}
-                onPress={() => router.push(`/(protected)/(admin)/booking/${v.id}`)}
+                onPress={() => onBookingPress && onBookingPress(v)}
               >
                 <Text style={styles.vehiclePlate}>{v.plate}</Text>
                 <Ionicons
@@ -67,6 +66,7 @@ export default function TimeSlotCard({ slot }) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   timeSlotContainer: {

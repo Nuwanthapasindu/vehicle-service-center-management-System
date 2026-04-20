@@ -10,12 +10,15 @@ export const inventoryService = {
     return response?.data?.payload?.data || response?.data?.data || [];
   },
   addItem: async (payload) => {
-    return await axios.post("/inventory", payload);
+    const response = await axios.post("/inventory", payload);
+    return response?.data;
   },
   updateItem: async (id, payload) => {
-    return await axios.patch(`/inventory/${id}`, payload);
+    const response = await axios.patch(`/inventory/${id}`, payload);
+    return response?.data;
   },
   deleteItem: async (id) => {
-    return await axios.delete(`/inventory/${id}`);
+    const response = await axios.delete(`/inventory/${id}`);
+    return response?.data;
   }
 };

@@ -43,7 +43,7 @@ module.exports = Object.freeze({
     PROMOTIONAL: "PROMOTIONAL",
     TRANSACTIONAL: "TRANSACTIONAL",
   },
-  INVOICE_ITEM_TYPES:{
+  INVOICE_ITEM_TYPES: {
     OIL: "OIL",
     OTHER: "OTHER",
   },
@@ -51,11 +51,12 @@ module.exports = Object.freeze({
     ITEM: "ITEM",
     SERVICE: "SERVICE",
   },
-  REPORT_RANGES: {
+  LOG_PERIODS: {
+    ALL: "",
     TODAY: "today",
     WEEKLY: "weekly",
     MONTHLY: "monthly",
     YEARLY: "yearly",
-    CUSTOM: "custom"
-  }
+    CUSTOM: "custom",
+  },
 });

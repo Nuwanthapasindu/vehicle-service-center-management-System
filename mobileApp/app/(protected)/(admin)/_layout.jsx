@@ -144,6 +144,13 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
+          name="booking/manage/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Drawer.Screen
           name="serviceAndPackage"
           options={{
             drawerLabel: "Catalog & Packages",
@@ -236,6 +243,30 @@ export default function AdminDrawerLayout() {
             title: "Inventory",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="archive-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="(InventoryLog)"
+          options={{
+            headerShown: false,
+            drawerLabel: "Inventory Logs",
+            title: "Inventory Logs",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="list-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="(InventoryAnalysis)"
+          options={{
+            headerShown: false,
+            drawerLabel: "Inventory Analysis",
+            title: "Inventory Analysis",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="bar-chart-outline" size={size} color={color} />
             ),
           }}
         />
