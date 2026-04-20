@@ -54,7 +54,8 @@ const {
   deleteService,
   getAllServicesForJobCard: getAllPublicServices,
 } = require("../controller/service.controller");
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
 
 /**
@@ -98,7 +99,7 @@ const responseBuild = require("../util/responseBuilder");
  *       401:
  *         description: Unauthorized
  */
-router.post("/", authTokenMiddleware, (req, res, next) => {
+router.post("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
 
@@ -179,7 +180,7 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
  *                 pages:
  *                   type: integer
  */
-router.get("/", authTokenMiddleware, (req, res, next) => {
+router.get("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const query = req.query;
 
@@ -245,7 +246,7 @@ router.get("/public", (req, res, next) => {
  *       404:
  *         description: Service not found
  */
-router.get("/:id", authTokenMiddleware, (req, res, next) => {
+router.get("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { id } = req.params;
 
@@ -307,7 +308,7 @@ router.get("/:id", authTokenMiddleware, (req, res, next) => {
  *       404:
  *         description: Service not found
  */
-router.put("/:id", authTokenMiddleware, (req, res, next) => {
+router.put("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
   const { id } = req.params;
@@ -343,7 +344,7 @@ router.put("/:id", authTokenMiddleware, (req, res, next) => {
  *       404:
  *         description: Service not found
  */
-router.delete("/:id", authTokenMiddleware, (req, res, next) => {
+router.delete("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { id } = req.params;
 

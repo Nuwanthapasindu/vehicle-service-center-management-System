@@ -6,9 +6,10 @@ const {
   deleteSupplier,
 } = require('../controller/supplier.controller');
 const responseBuild = require('../util/responseBuilder');
-const { authTokenMiddleware } = require('../middleware/auth');
+const { authTokenMiddleware, accessControl } = require('../middleware/auth');
+const { USER_ROLES } = require('../util/constants');
 
-router.use(authTokenMiddleware);
+router.use(authTokenMiddleware, accessControl([USER_ROLES.ADMIN]));
 
 router.post('/', (req, res, next) => {
   const responseBuilder = new responseBuild(res);

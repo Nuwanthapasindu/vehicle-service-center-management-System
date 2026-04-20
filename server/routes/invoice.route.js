@@ -9,8 +9,9 @@ const {
   getInvoiceByJobCard,
 } = require("../controller/invoice.controller");
 const { getIncomeReport } = require("../controller/report.controller");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuilder = require("../util/responseBuilder");
-const { authTokenMiddleware } = require("../middleware/auth");
 
 /**
  * @swagger
@@ -93,7 +94,7 @@ const { authTokenMiddleware } = require("../middleware/auth");
  *       500:
  *         description: Internal server error
  */
-router.post("/", authTokenMiddleware, (req, res, next) => {
+router.post("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const builder = new responseBuilder(res);
   createInvoice(req.body)
     .then((invoice) => {
@@ -123,7 +124,7 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
  *       500:
  *         description: Internal server error
  */
-router.get("/", authTokenMiddleware, (req, res, next) => {
+router.get("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const builder = new responseBuilder(res);
   getAllInvoices(req.query)
     .then((invoices) => {
@@ -164,7 +165,7 @@ router.get("/", authTokenMiddleware, (req, res, next) => {
  *       500:
  *         description: Internal server error
  */
-router.get("/reports/income", authTokenMiddleware, (req, res, next) => {
+router.get("/reports/income", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const builder = new responseBuilder(res);
   const { range, startDate, endDate } = req.query;
   getIncomeReport(range, startDate, endDate)
@@ -200,7 +201,7 @@ router.get("/reports/income", authTokenMiddleware, (req, res, next) => {
  *       500:
  *         description: Internal server error
  */
-router.get("/:id", authTokenMiddleware, (req, res, next) => {
+router.get("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const builder = new responseBuilder(res);
   getInvoiceById(req.params.id)
     .then((invoice) => {
@@ -251,7 +252,7 @@ router.get("/:id", authTokenMiddleware, (req, res, next) => {
  *       500:
  *         description: Internal server error
  */
-router.put("/:id/items/add", authTokenMiddleware, (req, res, next) => {
+router.put("/:id/items/add", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const builder = new responseBuilder(res);
   addInvoiceItem(req.params.id, req.body)
     .then((message) => {
@@ -302,7 +303,7 @@ router.put("/:id/items/add", authTokenMiddleware, (req, res, next) => {
  *       500:
  *         description: Internal server error
  */
-router.delete("/:id/items/remove", authTokenMiddleware, (req, res, next) => {
+router.delete("/:id/items/remove", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const builder = new responseBuilder(res);
   removeInvoiceItem(req.params.id, req.body)
     .then((message) => {
@@ -337,7 +338,7 @@ router.delete("/:id/items/remove", authTokenMiddleware, (req, res, next) => {
  *       500:
  *         description: Internal server error or rollback triggered.
  */
-router.patch("/:id/complete", authTokenMiddleware, (req, res, next) => {
+router.patch("/:id/complete", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const builder = new responseBuilder(res);
   completeInvoice(req.params.id, req.user)
     .then((message) => {
@@ -368,7 +369,7 @@ router.patch("/:id/complete", authTokenMiddleware, (req, res, next) => {
  *       404:
  *         description: Invoice Not Found (Not automatically generated)
  */
-router.get("/jobcard/:jobCardId", authTokenMiddleware, (req, res, next) => {
+router.get("/jobcard/:jobCardId", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const rs = new responseBuilder(res);
   getInvoiceByJobCard(req.params.jobCardId)
     .then((data) => {

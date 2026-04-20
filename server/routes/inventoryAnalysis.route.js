@@ -12,7 +12,8 @@ const {
   getStockMovement,
 } = require("../controller/inventoryAnalysis.controller");
 
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
 
 /**
@@ -27,7 +28,7 @@ const responseBuild = require("../util/responseBuilder");
  *       200:
  *         description: Inventory statistics fetched successfully
  */
-router.get("/stats", authTokenMiddleware, (req, res, next) => {
+router.get("/stats", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   getInventoryStats()
@@ -52,7 +53,7 @@ router.get("/stats", authTokenMiddleware, (req, res, next) => {
  *       200:
  *         description: Category breakdown fetched successfully
  */
-router.get("/category-breakdown", authTokenMiddleware, (req, res, next) => {
+router.get("/category-breakdown", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   getCategoryBreakdown()
@@ -77,7 +78,7 @@ router.get("/category-breakdown", authTokenMiddleware, (req, res, next) => {
  *       200:
  *         description: Stock movement data fetched successfully
  */
-router.get("/movement", authTokenMiddleware, (req, res, next) => {
+router.get("/movement", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { query } = req;
 
