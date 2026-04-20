@@ -39,7 +39,7 @@ This project consists of a comprehensive backend API, a modern web dashboard for
 ### Web Dashboard (`/webapp`)
 - **Frontend**: React.jsx
 - **Build Tool**: Vite
-- **Styling**: Vanilla CSS / Tailwind (if configured)
+- **Styling**: Vanilla CSS (Native CSS)
 - **Deployment**: Dockerized with Nginx
 
 ### Mobile App (`/mobileApp`)
@@ -118,4 +118,12 @@ Once the server is running, you can access the interactive Swagger documentation
 
 ## 👥 Contributors
 
-Developed as a University Project by Nuwantha Pasindu.
+- **Nuwantha Pasindu** ([@nuwanthapasindu](https://github.com/nuwanthapasindu))
+- **Thisal D** ([@thisal-d](https://github.com/thisal-d))
+- **Malki Yasara** ([@malkiyasara](https://github.com/malkiyasara))
+- **Chamidu** ([@Chamidu2k04](https://github.com/Chamidu2k04))
+- **Dilum** ([@Dizzy-kr](https://github.com/Dizzy-kr))
+- **Tharani** ([@Tharani131](https://github.com/Tharani131))
+
+---
+*Developed for University Projects.*
