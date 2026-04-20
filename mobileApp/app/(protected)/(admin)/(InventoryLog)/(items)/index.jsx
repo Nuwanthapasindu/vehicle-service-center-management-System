@@ -9,7 +9,9 @@ import {
   TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, useFocusEffect } from "expo-router";
+import { DrawerActions } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useFocusEffect, useNavigation } from "expo-router";
 import { Search, ChevronRight, Package } from "lucide-react-native";
 import { inventoryService } from "../../../../../services/inventory/inventory.service";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +20,7 @@ import Toast from "react-native-toast-message";
 
 export default function ItemSelectionScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
@@ -71,7 +74,12 @@ export default function ItemSelectionScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top, height: 56 + insets.top }]}>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity
+          style={styles.headerBtn}
+          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+        >
+          <Ionicons name="menu-outline" size={24} color={colors.DARK} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>SELECT ITEM FOR LOGS</Text>
         <View style={{ width: 40 }} />
       </View>
