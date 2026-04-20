@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const InventoryLog = require("../model/InventoryLog");
 const AppError = require("../error/AppError");
 const { logFilterSchema } = require("../validation/inventoryLogs.validation");
+const { LOG_PERIODS } = require("../util/constants");
 
 const calculateDateRange = (period, startDate, endDate, timezoneOffset) => {
   try {
@@ -16,32 +17,32 @@ const calculateDateRange = (period, startDate, endDate, timezoneOffset) => {
 
     if (period) {
       switch (period.toLowerCase()) {
-        case "today":
+        case LOG_PERIODS.TODAY:
           start = new Date(userNow);
           start.setUTCHours(0, 0, 0, 0);
           end = new Date(userNow);
           end.setUTCHours(23, 59, 59, 999);
           break;
 
-        case "weekly":
+        case LOG_PERIODS.WEEKLY:
           start = new Date(userNow);
           start.setDate(start.getDate() - 7);
           start.setUTCHours(0, 0, 0, 0);
           break;
 
-        case "monthly":
+        case LOG_PERIODS.MONTHLY:
           start = new Date(userNow);
           start.setMonth(start.getMonth() - 1);
           start.setUTCHours(0, 0, 0, 0);
           break;
 
-        case "yearly":
+        case LOG_PERIODS.YEARLY:
           start = new Date(userNow);
           start.setFullYear(start.getFullYear() - 1);
           start.setUTCHours(0, 0, 0, 0);
           break;
 
-        case "custom":
+        case LOG_PERIODS.CUSTOM:
           if (startDate) {
             start = new Date(startDate);
             start.setUTCHours(0, 0, 0, 0);
@@ -53,7 +54,7 @@ const calculateDateRange = (period, startDate, endDate, timezoneOffset) => {
           break;
       }
 
-      if (period.toLowerCase() !== "custom" && timezoneOffset !== undefined && timezoneOffset !== null) {
+      if (period.toLowerCase() !== LOG_PERIODS.CUSTOM && timezoneOffset !== undefined && timezoneOffset !== null) {
         if (start) start = new Date(start.getTime() + (timezoneOffset * 60000));
         if (end) end = new Date(end.getTime() + (timezoneOffset * 60000));
       }

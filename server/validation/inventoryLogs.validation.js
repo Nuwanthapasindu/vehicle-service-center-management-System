@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { INVENTORY_ACTION_TYPES } = require('../util/constants');
+const { INVENTORY_ACTION_TYPES, LOG_PERIODS } = require('../util/constants');
 
 const logFilterSchema = Joi.object({
     inventoryId: Joi.string()
@@ -16,7 +16,7 @@ const logFilterSchema = Joi.object({
         }),
 
     period: Joi.string()
-        .valid('today', 'weekly', 'monthly', 'yearly', 'custom')
+        .valid(...Object.values(LOG_PERIODS))
         .allow('')
         .messages({
             'any.only': 'Invalid period filter'
