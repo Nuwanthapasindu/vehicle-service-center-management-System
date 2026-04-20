@@ -51,7 +51,7 @@ export default function RevenueReportScreen() {
     fetchReport();
   };
 
-  const renderDataRow = ({ item }) => (
+  const renderDataRow = useCallback(({ item }) => (
     <View style={styles.dataRow}>
       <View style={styles.dataRowLeft}>
         <Ionicons name="calendar-outline" size={20} color={colors.SECONDARY} />
@@ -64,7 +64,7 @@ export default function RevenueReportScreen() {
         </Text>
       </View>
     </View>
-  );
+  ), []);
 
   return (
     <View style={styles.container}>
@@ -118,6 +118,10 @@ export default function RevenueReportScreen() {
             keyExtractor={(item, index) => item._id || index.toString()}
             renderItem={renderDataRow}
             contentContainerStyle={styles.flatListContent}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.PRIMARY]} />
             }
