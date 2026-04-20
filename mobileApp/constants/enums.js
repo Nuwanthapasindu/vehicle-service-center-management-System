@@ -32,6 +32,14 @@ const enums = Object.freeze({
     PO_RECEIVE: "PO Receive",
     RESTOCK: "Restock"
   },
+  LOG_PERIODS: {
+    ALL: "",
+    TODAY: "today",
+    WEEKLY: "weekly",
+    MONTHLY: "monthly",
+    YEARLY: "yearly",
+    CUSTOM: "custom",
+  },
   PURCHASE_ORDER_STATUS: {
     DRAFT: "Draft",
     SENT: "Sent",
