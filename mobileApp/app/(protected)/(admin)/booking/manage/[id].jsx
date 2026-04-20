@@ -17,6 +17,8 @@ import colors from "../../../../../constants/colors";
 import Toast from "react-native-toast-message";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatTimeStringForDisplay } from "../../../../../utils/timeFormatter";
+import { Formik } from "formik";
+import { manageBookingSchema } from "../../../../../schemas/manageBooking.schema";
 
 const { width } = Dimensions.get("window");
 
@@ -28,11 +30,15 @@ export default function ManageBooking() {
   const [loading, setLoading] = React.useState(true);
   const [isUpdating, setIsUpdating] = React.useState(false);
 
+  // Formik Initialization State
+  const [initialFormValues, setInitialFormValues] = React.useState({
+    selectedDate: new Date(),
+    selectedSlotId: null,
+  });
+
   // Reschedule state
-  const [selectedDate, setSelectedDate] = React.useState(null);
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [availableSlots, setAvailableSlots] = React.useState([]);
-  const [selectedSlotId, setSelectedSlotId] = React.useState(null);
   const [loadingSlots, setLoadingSlots] = React.useState(false);
 
   // Initial data loader
@@ -47,8 +53,9 @@ export default function ManageBooking() {
       // 2. Fetch Slots for the booking date
       if (details.date) {
         const targetDate = new Date(details.date);
-        setSelectedDate(targetDate);
         
+        setInitialFormValues({ selectedDate: targetDate, selectedSlotId: null });
+
         const dateStr = details.date; // Use string from details directly if it's YYYY-MM-DD
         const slotsRes = await axios.get(`/timeslot/available?date=${dateStr}`);
         setAvailableSlots(slotsRes.data.payload.slots || []);
@@ -86,30 +93,13 @@ export default function ManageBooking() {
     }
   }, []);
 
-  const handleDateChange = (event, date) => {
-    setShowDatePicker(false);
-    if (date) {
-      setSelectedDate(date);
-      setSelectedSlotId(null);
-      fetchSlotsOnly(date);
-    }
-  };
-
-  const handleReschedule = async () => {
-    if (!selectedSlotId) {
-      return Toast.show({
-        type: "info",
-        text1: "Selection Required",
-        text2: "Please select a time slot to proceed",
-      });
-    }
-
+  const handleReschedule = async (values) => {
     try {
       setIsUpdating(true);
-      const dateStr = selectedDate.toISOString().split("T")[0];
+      const dateStr = values.selectedDate.toISOString().split("T")[0];
       await axios.patch(`/booking/admin/${id}`, {
         date: dateStr,
-        slot: selectedSlotId,
+        slot: values.selectedSlotId,
       });
 
       Toast.show({
@@ -226,122 +216,145 @@ export default function ManageBooking() {
           </View>
         </View>
 
-        {/* Reschedule Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Reschedule Service</Text>
+        <Formik
+          initialValues={initialFormValues}
+          enableReinitialize={true}
+          validationSchema={manageBookingSchema}
+          onSubmit={handleReschedule}
+        >
+          {({ values, setFieldValue, handleSubmit, errors, touched }) => (
+            <View>
+              {/* Reschedule Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Reschedule Service</Text>
 
-          <Text style={styles.label}>Select Date</Text>
-          <TouchableOpacity
-            style={styles.datePickerBtn}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <View style={styles.datePickerContent}>
-              <Ionicons name="calendar" size={20} color={colors.PRIMARY} />
-              <Text style={styles.dateValue}>
-                {selectedDate ? selectedDate.toDateString() : "Loading..."}
-              </Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.SECONDARY}
-            />
-          </TouchableOpacity>
+                <Text style={styles.label}>Select Date</Text>
+                <TouchableOpacity
+                  style={styles.datePickerBtn}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <View style={styles.datePickerContent}>
+                    <Ionicons name="calendar" size={20} color={colors.PRIMARY} />
+                    <Text style={styles.dateValue}>
+                      {values.selectedDate ? values.selectedDate.toDateString() : "Loading..."}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.SECONDARY}
+                  />
+                </TouchableOpacity>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={selectedDate || new Date()}
-              mode="date"
-              display="default"
-              minimumDate={new Date()}
-              onValueChange={handleDateChange}
-            />
-          )}
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={values.selectedDate || new Date()}
+                    mode="date"
+                    display="default"
+                    minimumDate={new Date()}
+                    onValueChange={(event, date) => {
+                      setShowDatePicker(false);
+                      if (date) {
+                        setFieldValue("selectedDate", date);
+                        setFieldValue("selectedSlotId", null);
+                        fetchSlotsOnly(date);
+                      }
+                    }}
+                  />
+                )}
+                {touched.selectedDate && errors.selectedDate && (
+                  <Text style={styles.errorText}>{errors.selectedDate}</Text>
+                )}
 
+                <Text style={[styles.label, { marginTop: 12 }]}>Select Available Timeslot</Text>
+                {loadingSlots ? (
+                  <ActivityIndicator
+                    color={colors.PRIMARY}
+                    style={{ marginTop: 20 }}
+                  />
+                ) : (
+                  <View style={styles.slotsGrid}>
+                    {availableSlots.length > 0 ? (
+                      availableSlots.map((slot) => {
+                        const isFull = slot.isFull;
+                        const isSelected = values.selectedSlotId === slot.id;
 
-          <Text style={styles.label}>Select Available Timeslot</Text>
-          {loadingSlots ? (
-            <ActivityIndicator
-              color={colors.PRIMARY}
-              style={{ marginTop: 20 }}
-            />
-          ) : (
-            <View style={styles.slotsGrid}>
-              {availableSlots.length > 0 ? (
-                availableSlots.map((slot) => {
-                  const isFull = slot.isFull;
-                  const isSelected = selectedSlotId === slot.id;
-
-                  return (
-                    <TouchableOpacity
-                      key={slot.id}
-                      style={[
-                        styles.slotItem,
-                        isSelected && styles.slotItemSelected,
-                        isFull && styles.slotItemDisabled,
-                      ]}
-                      disabled={isFull}
-                      onPress={() => setSelectedSlotId(slot.id)}
-                    >
-                      <Text
-                        style={[
-                          styles.slotTime,
-                          isSelected && styles.slotTimeSelected,
-                          isFull && styles.slotTextDisabled,
-                        ]}
-                      >
-                        {formatTimeStringForDisplay(slot.startTime)}
+                        return (
+                          <TouchableOpacity
+                            key={slot.id}
+                            style={[
+                              styles.slotItem,
+                              isSelected && styles.slotItemSelected,
+                              isFull && styles.slotItemDisabled,
+                            ]}
+                            disabled={isFull}
+                            onPress={() => setFieldValue("selectedSlotId", slot.id)}
+                          >
+                            <Text
+                              style={[
+                                styles.slotTime,
+                                isSelected && styles.slotTimeSelected,
+                                isFull && styles.slotTextDisabled,
+                              ]}
+                            >
+                              {formatTimeStringForDisplay(slot.startTime)}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.slotCapacity,
+                                isSelected && styles.slotCapacitySelected,
+                                isFull && styles.slotTextDisabled,
+                              ]}
+                            >
+                              {isFull
+                                ? "FULLY BOOKED"
+                                : `${slot.maxCapacity - slot.booked} left`}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })
+                    ) : (
+                      <Text style={styles.noSlotsText}>
+                        No active slots available for this date.
                       </Text>
-                      <Text
-                        style={[
-                          styles.slotCapacity,
-                          isSelected && styles.slotCapacitySelected,
-                          isFull && styles.slotTextDisabled,
-                        ]}
-                      >
-                        {isFull
-                          ? "FULLY BOOKED"
-                          : `${slot.maxCapacity - slot.booked} left`}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })
-              ) : (
-                <Text style={styles.noSlotsText}>
-                  No active slots available for this date.
-                </Text>
-              )}
+                    )}
+                  </View>
+                )}
+                {touched.selectedSlotId && errors.selectedSlotId && (
+                  <Text style={styles.errorText}>{errors.selectedSlotId}</Text>
+                )}
+              </View>
+
+              {/* Actions */}
+              <View style={styles.actionContainer}>
+                <TouchableOpacity
+                  style={[styles.applyBtn, isUpdating && { opacity: 0.7 }]}
+                  onPress={handleSubmit}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={styles.applyBtnText}>Update Schedule</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.cancelBookingBtn}
+                  onPress={handleCancelBooking}
+                  disabled={isUpdating}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={20}
+                    color={colors.DANGER_COLOR}
+                  />
+                  <Text style={styles.cancelBookingBtnText}>Cancel this booking</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
-        </View>
-
-        {/* Actions */}
-        <View style={styles.actionContainer}>
-          <TouchableOpacity
-            style={[styles.applyBtn, isUpdating && { opacity: 0.7 }]}
-            onPress={handleReschedule}
-            disabled={isUpdating}
-          >
-            {isUpdating ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.applyBtnText}>Update Schedule</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cancelBookingBtn}
-            onPress={handleCancelBooking}
-            disabled={isUpdating}
-          >
-            <Ionicons
-              name="trash-outline"
-              size={20}
-              color={colors.DANGER_COLOR}
-            />
-            <Text style={styles.cancelBookingBtnText}>Cancel this booking</Text>
-          </TouchableOpacity>
-        </View>
+        </Formik>
       </ScrollView>
     </SafeAreaView>
   );
@@ -383,7 +396,6 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "right",
   },
-
   scrollContent: {
     padding: 20,
   },
@@ -458,7 +470,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: colors.BORDER_COLOR,
-    marginBottom: 24,
+    marginBottom: 10,
   },
   datePickerContent: {
     flexDirection: "row",
@@ -474,6 +486,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
+    marginTop: 10,
   },
   slotItem: {
     width: (width - 52) / 2,
@@ -555,4 +568,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
+  errorText: {
+    color: colors.DANGER_COLOR,
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
 });
+

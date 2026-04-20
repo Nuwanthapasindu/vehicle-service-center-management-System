@@ -1,5 +1,6 @@
 const router = require("express").Router();
-const { createBooking, getBookingHistory, getDashboardData, getAdminBookingDetails } = require("../controller/booking.controller");
+const { createBooking, getBookingHistory, getDashboardData, getAdminBookingDetails, updateBookingByAdmin, cancelBookingByAdmin } = require("../controller/booking.controller");
+const { USER_ROLES } = require("../util/constants");
 const { authTokenMiddleware } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
 
@@ -43,7 +44,6 @@ router.get("/dashboard", authTokenMiddleware, (req, res, next) => {
 
 // Admin Booking Details
 router.get("/admin/:id/details", authTokenMiddleware, (req, res, next) => {
-    const { USER_ROLES } = require("../util/constants");
     if (req.user.role !== USER_ROLES.ADMIN) return res.status(403).json({ success: false, message: "Unauthorized" });
 
     const responseBuilder = new responseBuild(res);
@@ -59,10 +59,8 @@ router.get("/admin/:id/details", authTokenMiddleware, (req, res, next) => {
 
 // Admin Update Booking
 router.patch("/admin/:id", authTokenMiddleware, (req, res, next) => {
-    const { USER_ROLES } = require("../util/constants");
     if (req.user.role !== USER_ROLES.ADMIN) return res.status(403).json({ success: false, message: "Unauthorized" });
 
-    const { updateBookingByAdmin } = require("../controller/booking.controller");
     const responseBuilder = new responseBuild(res);
     const bookingId = req.params.id;
     const payload = req.body;
@@ -77,10 +75,8 @@ router.patch("/admin/:id", authTokenMiddleware, (req, res, next) => {
 
 // Admin Cancel Booking
 router.delete("/admin/:id", authTokenMiddleware, (req, res, next) => {
-    const { USER_ROLES } = require("../util/constants");
     if (req.user.role !== USER_ROLES.ADMIN) return res.status(403).json({ success: false, message: "Unauthorized" });
 
-    const { cancelBookingByAdmin } = require("../controller/booking.controller");
     const responseBuilder = new responseBuild(res);
     const bookingId = req.params.id;
 

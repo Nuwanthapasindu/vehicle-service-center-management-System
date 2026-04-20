@@ -288,7 +288,7 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
       );
       if (fileData) vehicleImagePath = fileData.filePath.replace(/\\/g, "/");
     }
-    9
+
     // Fetch related JobCard (if exists)
     const jobCard = await JobCard.findOne({
       booking: bookingId,
@@ -358,7 +358,24 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
 };
 
 module.exports.updateBookingByAdmin = async (bookingId, payload) => {
+  if (!bookingId || !/^[0-9a-fA-F]{24}$/.test(bookingId)) {
+    throw new AppError("Valid Booking ID is required", 400);
+  }
+
+  if (!payload || typeof payload !== "object" || Object.keys(payload).length === 0) {
+    throw new AppError("Payload is required and cannot be empty", 400);
+  }
+
   const { date, slot } = payload;
+
+  if (slot !== undefined && !/^[0-9a-fA-F]{24}$/.test(slot)) {
+    throw new AppError("Valid Timeslot ID is required", 400);
+  }
+
+  if (date !== undefined && isNaN(new Date(date).getTime())) {
+    throw new AppError("Valid Booking date is required", 400);
+  }
+
   try {
     const booking = await Booking.findOne({ _id: bookingId, isDeleted: false });
     if (!booking) throw new AppError("Booking not found", 404);

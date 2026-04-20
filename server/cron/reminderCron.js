@@ -18,19 +18,22 @@ const initAutomatedReminders = (isTestMode = false) => {
             console.log('[ Automated Reminders ] Running scheduled job...');
 
             // Calculate the exact date 90 days ago relative to right now
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() - 90);
+            const now = new Date();
+            now.setDate(now.getDate() - 90);
 
-            // Normalize to UTC 00:00:00.000 to match the "floating date" storage strategy implemented previously
-            targetDate.setUTCHours(0, 0, 0, 0);
+            const startOfDay = new Date(now);
+            startOfDay.setUTCHours(0, 0, 0, 0);
 
-            // Execute query finding bookings EXACTLY matching the 90-days-ago UTC date
+            const endOfDay = new Date(now);
+            endOfDay.setUTCHours(23, 59, 59, 999);
+
+            // Execute query finding bookings covering the full target day in UTC
             const bookings = await Booking.find({
-                date: targetDate,
+                date: { $gte: startOfDay, $lte: endOfDay },
                 isDeleted: false
             })
                 .populate('customer', 'name mobile')
-                .populate('vehicle', 'make model');
+                .populate('vehicle', 'make model licensePlate');
 
 
             if (bookings.length === 0) {
@@ -43,17 +46,23 @@ const initAutomatedReminders = (isTestMode = false) => {
             for (const booking of bookings) {
                 const customerName = booking.customer?.name || 'Customer';
                 const vehicleName = booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model}` : 'Your Vehicle';
+                const licensePlate = booking.vehicle?.licensePlate || 'XXX-0000';
                 const mobile = booking.customer?.mobile;
 
                 if (!mobile) continue;
 
-                const message = `${customerName}\n${vehicleName}\n\nyou take a service, its time take a service again!`;
+                const message = `Dear${customerName},\n\n
+                This is a courtesy reminder from Shine Depot that your ${vehicleName} (${licensePlate}) is due for its routine service.\n\n
+                Regular servicing helps maintain your vehicle's performance and longevity. We'd be happy to schedule an appointment at your earliest convenience.\n\n
+
+                📞${mobile}\n
+                Shine Depot`;
 
                 try {
                     await sendSms(mobile, message);
-                    console.log(`[ Automated Reminders ] Sent to ${customerName} (${mobile})`);
+                    console.log(`[Automated Reminders ] Sent to ${customerName} (${mobile})`);
                 } catch (smsError) {
-                    console.error(`[ Automated Reminders ] Failed to send to ${mobile}:`, smsError.message);
+                    console.error(`[Automated Reminders ] Failed to send to ${mobile}: `, smsError.message);
                 }
             }
 
