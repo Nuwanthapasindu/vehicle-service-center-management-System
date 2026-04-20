@@ -78,6 +78,18 @@ export default function Dashboard() {
       <Text style={styles.sectionTitle}>QUICK NAVIGATION</Text>
 
       <View style={styles.navGrid}>
+        {/* Revenue Report */}
+        <TouchableOpacity
+          style={styles.navCard}
+          onPress={() => router.push("/(protected)/(admin)/invoice/revenue")}
+        >
+          <View style={styles.navIconWrapperGreen}>
+            <Ionicons name="cash-outline" size={24} color={colors.PRIMARY} />
+          </View>
+          <Text style={styles.navTitle}>Revenue</Text>
+          <Text style={styles.navSubtitle}>FINANCIAL REPORTS</Text>
+        </TouchableOpacity>
+
         {/* Supply Chain Tile */}
         <TouchableOpacity
           style={styles.navCard}
