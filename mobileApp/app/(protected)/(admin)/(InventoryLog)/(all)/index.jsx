@@ -83,7 +83,6 @@ export default function InventoryLogScreen() {
         });
       }
     } catch (error) {
-      console.error("Error fetching logs:", error);
       Toast.show({
         type: 'error',
         text1: 'Error',

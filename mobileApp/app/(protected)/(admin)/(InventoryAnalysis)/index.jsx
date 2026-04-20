@@ -57,7 +57,6 @@ export default function InventoryAnalysisScreen() {
         });
       }
     } catch (error) {
-      console.error("Error fetching analysis data:", error);
       Toast.show({
         type: 'error',
         text1: 'Error',

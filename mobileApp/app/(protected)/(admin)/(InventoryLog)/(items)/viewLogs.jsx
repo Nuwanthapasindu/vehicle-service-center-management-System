@@ -83,7 +83,6 @@ export default function ItemLogView() {
         });
       }
     } catch (error) {
-      console.error("Error fetching item logs:", error);
       Toast.show({
         type: 'error',
         text1: 'Error',

@@ -29,7 +29,6 @@ export default function ItemSelectionScreen() {
       const data = await inventoryService.fetchInventory();
       setItems(data);
     } catch (error) {
-      console.error("Error fetching items:", error);
       Toast.show({
         type: 'error',
         text1: 'Error',
