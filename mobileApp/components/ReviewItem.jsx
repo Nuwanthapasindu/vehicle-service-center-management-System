@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
 import enums from "../constants/enums";
 
-export default function ReviewItem({ item, onTogglePublish, onReply }) {
+export default function ReviewItem({ item, onTogglePublish, onReply, hideActions }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardContent}>
@@ -46,22 +46,24 @@ export default function ReviewItem({ item, onTogglePublish, onReply }) {
         )}
       </View>
 
-      <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.replyBtn} onPress={onReply}>
-          <Ionicons name="chatbubble-outline" size={16} color={colors.DARK} />
-          <Text style={styles.replyBtnText}>Reply</Text>
-        </TouchableOpacity>
+      {!hideActions && (
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={styles.replyBtn} onPress={onReply}>
+            <Ionicons name="chatbubble-outline" size={16} color={colors.DARK} />
+            <Text style={styles.replyBtnText}>Reply</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.toggleBtn, item.isApproved ? styles.unpublishBtn : styles.publishBtn]} 
-          onPress={onTogglePublish}
-        >
-          <Ionicons name={item.isApproved ? "eye-off-outline" : "earth-outline"} size={16} color={colors.DARK} />
-          <Text style={styles.toggleBtnText}>
-            {item.isApproved ? enums.REVIEW_ACTION_LABELS.UNPUBLISH : enums.REVIEW_ACTION_LABELS.PUBLISH}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity 
+            style={[styles.toggleBtn, item.isApproved ? styles.unpublishBtn : styles.publishBtn]} 
+            onPress={onTogglePublish}
+          >
+            <Ionicons name={item.isApproved ? "eye-off-outline" : "earth-outline"} size={16} color={colors.DARK} />
+            <Text style={styles.toggleBtnText}>
+              {item.isApproved ? enums.REVIEW_ACTION_LABELS.UNPUBLISH : enums.REVIEW_ACTION_LABELS.PUBLISH}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

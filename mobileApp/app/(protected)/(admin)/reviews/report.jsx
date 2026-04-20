@@ -1,17 +1,48 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Star, TrendingUp } from "lucide-react-native";
 import colors from "../../../../constants/colors";
+import { reviewService } from "../../../../services/review/review.service";
+import Toast from "react-native-toast-message";
+import ReviewItem from "../../../../components/ReviewItem";
 
 export default function SatisfactionReport() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [recentFeedback, setRecentFeedback] = useState([]);
+
+  useEffect(() => {
+    fetchReportData();
+  }, []);
+
+  const fetchReportData = async () => {
+    try {
+      setLoading(true);
+      const response = await reviewService.getAdminReviewReport({ limit: 5 });
+      if (response && response.payload) {
+        setStats(response.payload.stats);
+        setRecentFeedback(response.payload.reviews || []);
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Failed to load report",
+        text2: error?.response?.data?.payload?.message || error.message,
+      });
+      console.log(error.response.data.payload);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }).map((_, i) => (
@@ -30,45 +61,59 @@ export default function SatisfactionReport() {
         key={i}
         size={14}
         color={i < rating ? colors.PRIMARY : "#E0E0E0"}
-        fill={i < Math.floor(rating) ? "transparent" : "transparent"} // Outline only for the design shown
+        fill={i < Math.floor(rating) ? "transparent" : "transparent"}
       />
     ));
   };
 
-  const breakdowns = [
-    { stars: 5, percentage: 72 },
-    { stars: 4, percentage: 18 },
-    { stars: 3, percentage: 6 },
-    { stars: 2, percentage: 3 },
-    { stars: 1, percentage: 1 },
-  ];
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={colors.PRIMARY} />
+      </View>
+    );
+  }
 
-  const recentFeedback = [
-    {
-      id: 1,
-      name: "Marcus Thompson",
-      service: "Oil Change",
-      time: "2 hours ago",
-      rating: 5,
-      comment: `"Incredible speed and professional service. The app made it easy to track my progress while I waited in the lounge."`
-    },
-    {
-      id: 2,
-      name: "Elena Rodriguez",
-      service: "Brake Inspection",
-      time: "Yesterday",
-      rating: 4,
-      comment: `"Technician was very thorough. Only took off one star because the parts delivery was slightly delayed."`
-    },
-    {
-      id: 3,
-      name: "Samuel Chen",
-      service: "Tire Rotation",
-      time: "2 days ago",
-      rating: 5,
-      comment: `"The best mechanic shop experience I've had in years. Highly recommend Shine Depot to everyone."`
-    }
-  ];
+  if (!stats) return null;
+
+  // Calculate percentages dynamically
+  const breakdowns = [5, 4, 3, 2, 1].map((stars) => {
+    const count = stats.distribution[stars] || 0;
+    const percentage = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+    return { stars, percentage };
+  });
+
+  const formatReviewForComponent = (review) => {
+    const getInitials = (name) => {
+      if (!name) return "U";
+      const names = name.split(" ");
+      if (names.length >= 2) return (names[0][0] + names[1][0]).toUpperCase();
+      return name[0].toUpperCase();
+    };
+
+    const getRelativeTime = (dateString) => {
+      if (!dateString) return "Recently";
+      const now = new Date();
+      const reviewDate = new Date(dateString);
+      const diffInHours = Math.floor((now - reviewDate) / (1000 * 60 * 60));
+      if (diffInHours < 24) return `${diffInHours || 0} hours ago`;
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} days ago`;
+    };
+
+    return {
+      _id: review._id,
+      initials: getInitials(review.customerName),
+      author: review.customerName,
+      vehicle: review.service || review.includedServices?.[0] || "General Service",
+      time: getRelativeTime(review.date),
+      rating: review.rating,
+      text: review.comment,
+      image: null,
+      adminReply: review.adminReply,
+      isApproved: true, // We assume true for report or ignore toggling
+    };
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -77,17 +122,17 @@ export default function SatisfactionReport() {
       <View style={styles.card}>
         <Text style={styles.cardSuperTitle}>OVERALL RATING</Text>
         <View style={styles.scoreRow}>
-          <Text style={styles.bigScore}>4.8</Text>
+          <Text style={styles.bigScore}>{stats.average}</Text>
           <Text style={styles.scoreScale}> / 5.0</Text>
         </View>
         <View style={styles.starRow}>
-          {renderStars(4.8)}
+          {renderStars(stats.average)}
         </View>
-        <Text style={styles.verifiedText}>Based on 1,240 verified reviews</Text>
+        <Text style={styles.verifiedText}>Based on {stats.total} verified reviews</Text>
         
         <View style={styles.trendPill}>
           <TrendingUp size={14} color="#2E7D32" style={styles.trendIcon} />
-          <Text style={styles.trendText}>+0.2% from last month</Text>
+          <Text style={styles.trendText}>Up to date stats</Text>
         </View>
       </View>
 
@@ -113,18 +158,18 @@ export default function SatisfactionReport() {
         </TouchableOpacity>
       </View>
 
-      {recentFeedback.map((fb) => (
-        <View key={fb.id} style={[styles.card, styles.feedbackCard]}>
-          <View style={styles.feedbackHeader}>
-            <Text style={styles.feedbackName}>{fb.name}</Text>
-            <View style={styles.smallStarRow}>
-              {renderSmallStars(fb.rating)}
-            </View>
-          </View>
-          <Text style={styles.feedbackMeta}>{fb.service} • {fb.time}</Text>
-          <Text style={styles.feedbackComment}>{fb.comment}</Text>
-        </View>
-      ))}
+      {recentFeedback.map((fb, idx) => {
+        const formattedItem = formatReviewForComponent(fb);
+        return (
+          <ReviewItem 
+            key={formattedItem._id || idx} 
+            item={formattedItem} 
+            onTogglePublish={() => router.push(`/(protected)/(admin)/reviews/${formattedItem._id}`)}
+            onReply={() => router.push(`/(protected)/(admin)/reviews/${formattedItem._id}`)}
+            hideActions={true}
+          />
+        );
+      })}
 
     </ScrollView>
   );
