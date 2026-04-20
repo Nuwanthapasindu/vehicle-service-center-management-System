@@ -27,10 +27,10 @@ const enums = Object.freeze({
     SETS: "Sets"
   },
   INVENTORY_ACTION_TYPES: {
-    USAGE: "USAGE",
-    RESTOCK: "RESTOCK",
-    ADJUSTMENT: "ADJUSTMENT",
-    WASTE: "WASTE",
+    MANUAL_ADJUSTMENT: "Manual Adjustment",
+    INVOICE_SALE: "Invoice Sale",
+    PO_RECEIVE: "PO Receive",
+    RESTOCK: "Restock"
   },
   PURCHASE_ORDER_STATUS: {
     DRAFT: "Draft",
