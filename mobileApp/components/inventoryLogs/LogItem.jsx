@@ -1,17 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Clock, User as UserIcon, ArrowUpRight, ArrowDownLeft, RefreshCcw, Edit } from 'lucide-react-native';
+import enums from '../../constants/enums';
 
 const LogItem = ({ log }) => {
   const getActionIcon = (type) => {
     switch (type) {
-      case 'Stock In':
-      case 'PO Receive':
-        return <ArrowUpRight size={16} color="#28a745" />;
-      case 'Stock Out':
-      case 'Invoice Sale':
+      case enums.INVENTORY_ACTION_TYPES.PO_RECEIVE:
+        return <ArrowUpRight size={16} color="#28a745" />;  
+      case enums.INVENTORY_ACTION_TYPES.INVOICE_SALE:
         return <ArrowDownLeft size={16} color="#dc3545" />;
-      case 'Restock':
+      case enums.INVENTORY_ACTION_TYPES.RESTOCK:
         return <RefreshCcw size={16} color="#007bff" />;
       default:
         return <Edit size={16} color="#ffc107" />;
@@ -122,4 +121,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LogItem;
+export default React.memo(LogItem);
+

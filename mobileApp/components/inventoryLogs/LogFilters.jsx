@@ -4,6 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar, Filter, ChevronRight, Activity } from 'lucide-react-native';
 import colors from '../../constants/colors';
+import enums from '../../constants/enums';
 
 const LogFilters = ({ 
   actionType, 
@@ -20,12 +21,12 @@ const LogFilters = ({
   const [showEndPicker, setShowEndPicker] = useState(false);
 
   const periods = [
-    { label: 'All', value: '' },
-    { label: 'Today', value: 'today' },
-    { label: 'Weekly', value: 'weekly' },
-    { label: 'Monthly', value: 'monthly' },
-    { label: 'Yearly', value: 'yearly' },
-    { label: 'Custom', value: 'custom' },
+    { label: 'All', value: enums.LOG_PERIODS.ALL },
+    { label: 'Today', value: enums.LOG_PERIODS.TODAY },
+    { label: 'Weekly', value: enums.LOG_PERIODS.WEEKLY },
+    { label: 'Monthly', value: enums.LOG_PERIODS.MONTHLY },
+    { label: 'Yearly', value: enums.LOG_PERIODS.YEARLY },
+    { label: 'Custom', value: enums.LOG_PERIODS.CUSTOM },
   ];
 
   const onStartDateChange = (event, selectedDate) => {
@@ -86,7 +87,7 @@ const LogFilters = ({
         </ScrollView>
       </View>
       
-      {period === 'custom' && (
+      {period === enums.LOG_PERIODS.CUSTOM && (
         <View style={styles.customDateContainer}>
           <View style={styles.dateRow}>
             <TouchableOpacity 
