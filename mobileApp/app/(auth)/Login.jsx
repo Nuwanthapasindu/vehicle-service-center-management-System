@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -68,119 +69,126 @@ export default function Login() {
 
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.contentContainer}
+          style={styles.keyboardAvoidingView}
         >
-          {/* Header & Logo */}
-          <View style={styles.headerContainer}>
-            <Image source={logo} style={styles.logo} resizeMode="contain" />
-            <Text style={styles.title}>AutoMate</Text>
-            <Text style={styles.subtitle}>SHINE DEPOT</Text>
-          </View>
-
-          {/* Form */}
-          <Formik
-            initialValues={initialValues}
-            validationSchema={loginValidationSchema}
-            onSubmit={handleLogin}
+          <ScrollView 
+            contentContainerStyle={styles.scrollContentContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            bounces={false}
           >
-            {({
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              values,
-              errors,
-              touched,
-              isSubmitting,
-              status,
-            }) => (
-              <View style={styles.formContainer}>
-                {status && (
-                  <Text
-                    style={[
-                      styles.errorText,
-                      { marginBottom: 16, fontSize: 14, textAlign: "center" },
-                    ]}
-                  >
-                    {status}
-                  </Text>
-                )}
-                {/* Username Input */}
-                <CustomInput
-                  label="Username"
-                  icon={
-                    <Ionicons
-                      name="person-outline"
-                      size={20}
-                      color={colors.SECONDARY}
-                    />
-                  }
-                  placeholder="Enter your username"
-                  value={values.userName}
-                  onChangeText={handleChange("userName")}
-                  onBlur={handleBlur("userName")}
-                  error={errors.userName}
-                  touched={touched.userName}
-                  autoCapitalize="none"
-                  autoFocus={true}
-                />
+            {/* Header & Logo */}
+            <View style={styles.headerContainer}>
+              <Image source={logo} style={styles.logo} resizeMode="contain" />
+              <Text style={styles.title}>AutoMate</Text>
+              <Text style={styles.subtitle}>SHINE DEPOT</Text>
+            </View>
 
-                {/* Password Input */}
-                <CustomInput
-                  label="Password"
-                  icon={
-                    <Ionicons
-                      name="lock-closed-outline"
-                      size={20}
-                      color={colors.SECONDARY}
-                    />
-                  }
-                  placeholder="Enter your password"
-                  value={values.password}
-                  onChangeText={handleChange("password")}
-                  onBlur={handleBlur("password")}
-                  error={errors.password}
-                  touched={touched.password}
-                  isPassword={true}
-                />
-
-                {/* Login Button */}
-                <TouchableOpacity
-                  style={[styles.loginButton, isSubmitting && { opacity: 0.7 }]}
-                  activeOpacity={0.8}
-                  onPress={handleSubmit}
-                  disabled={isSubmitting}
-                >
-                  <Text style={styles.loginButtonText}>
-                    {isSubmitting ? "Signing in..." : "Sign In"}
-                  </Text>
-                  {!isSubmitting && (
-                    <Ionicons
-                      name="log-in-outline"
-                      size={22}
-                      color={colors.DARK}
-                    />
+            {/* Form */}
+            <Formik
+              initialValues={initialValues}
+              validationSchema={loginValidationSchema}
+              onSubmit={handleLogin}
+            >
+              {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                touched,
+                isSubmitting,
+                status,
+              }) => (
+                <View style={styles.formContainer}>
+                  {status && (
+                    <Text
+                      style={[
+                        styles.errorText,
+                        { marginBottom: 16, fontSize: 14, textAlign: "center" },
+                      ]}
+                    >
+                      {status}
+                    </Text>
                   )}
-                </TouchableOpacity>
+                  {/* Username Input */}
+                  <CustomInput
+                    label="Username"
+                    icon={
+                      <Ionicons
+                        name="person-outline"
+                        size={20}
+                        color={colors.SECONDARY}
+                      />
+                    }
+                    placeholder="Enter your username"
+                    value={values.userName}
+                    onChangeText={handleChange("userName")}
+                    onBlur={handleBlur("userName")}
+                    error={errors.userName}
+                    touched={touched.userName}
+                    autoCapitalize="none"
+                    autoFocus={true}
+                  />
 
-                {/* Forgot Password */}
-                <TouchableOpacity
-                  style={styles.forgotPassword}
-                  onPress={() => router.push("/(auth)/ForgotPassword")}
-                >
-                  <Text style={styles.forgotPasswordText}>
-                    Forgot Password?
-                  </Text>
-                </TouchableOpacity>
+                  {/* Password Input */}
+                  <CustomInput
+                    label="Password"
+                    icon={
+                      <Ionicons
+                        name="lock-closed-outline"
+                        size={20}
+                        color={colors.SECONDARY}
+                      />
+                    }
+                    placeholder="Enter your password"
+                    value={values.password}
+                    onChangeText={handleChange("password")}
+                    onBlur={handleBlur("password")}
+                    error={errors.password}
+                    touched={touched.password}
+                    isPassword={true}
+                  />
 
-                {/* Divider */}
-                <View style={styles.dividerContainer}>
-                  <View style={styles.divider} />
-                  <Text style={styles.dividerText}>ADMIN SUPPORT</Text>
-                  <View style={styles.divider} />
+                  {/* Login Button */}
+                  <TouchableOpacity
+                    style={[styles.loginButton, isSubmitting && { opacity: 0.7 }]}
+                    activeOpacity={0.8}
+                    onPress={handleSubmit}
+                    disabled={isSubmitting}
+                  >
+                    <Text style={styles.loginButtonText}>
+                      {isSubmitting ? "Signing in..." : "Sign In"}
+                    </Text>
+                    {!isSubmitting && (
+                      <Ionicons
+                        name="log-in-outline"
+                        size={22}
+                        color={colors.DARK}
+                      />
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Forgot Password */}
+                  <TouchableOpacity
+                    style={styles.forgotPassword}
+                    onPress={() => router.push("/(auth)/ForgotPassword")}
+                  >
+                    <Text style={styles.forgotPasswordText}>
+                      Forgot Password?
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Divider */}
+                  <View style={styles.dividerContainer}>
+                    <View style={styles.divider} />
+                    <Text style={styles.dividerText}>ADMIN SUPPORT</Text>
+                    <View style={styles.divider} />
+                  </View>
                 </View>
-              </View>
-            )}
-          </Formik>
+              )}
+            </Formik>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </TouchableWithoutFeedback>
@@ -201,8 +209,11 @@ const styles = StyleSheet.create({
   backgroundIcon: {
     opacity: 0.25,
   },
-  contentContainer: {
+  keyboardAvoidingView: {
     flex: 1,
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: 24,
   },
