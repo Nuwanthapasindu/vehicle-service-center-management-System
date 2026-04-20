@@ -1,20 +1,60 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router"; // 1. Import the router
+import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../../../constants/colors";
+import { invoiceService } from "../../../services/invoice/invoice.service";
+import Toast from "react-native-toast-message";
 
 export default function Dashboard() {
-  const router = useRouter(); // 2. Initialize the router tool
+  const router = useRouter();
+  const [revenue, setRevenue] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const report = await invoiceService.fetchIncomeReport("today");
+      setRevenue(report.totalIncome || 0);
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Error fetching dashboard data",
+        text2:error?.response?.data?.payload?.message || error.message,
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDashboardData();
+    }, [])
+  );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ScrollView 
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.PRIMARY]} />
+      }
+    >
       {/* KEY PERFORMANCE INDICATORS */}
       <Text style={styles.sectionTitle}>KEY PERFORMANCE INDICATORS</Text>
 
@@ -23,33 +63,13 @@ export default function Dashboard() {
         <View style={styles.card}>
           <View>
             <Text style={styles.cardSubtitle}>Today's Revenue</Text>
-            <Text style={styles.revenueAmount}>$4,250.00</Text>
-          </View>
-        </View>
-
-        {/* Active Jobs Card */}
-        <View style={styles.card}>
-          <View style={styles.cardRow}>
-            <View>
-              <Text style={styles.cardSubtitle}>Active Jobs</Text>
-              <Text style={[styles.kpiValue, { color: colors.PRIMARY }]}>12</Text>
-            </View>
-            <View style={styles.iconWrapperGreen}>
-              <Ionicons name="construct-outline" size={24} color={colors.PRIMARY} />
-            </View>
-          </View>
-        </View>
-
-        {/* Pending Card */}
-        <View style={[styles.card, styles.borderedCard]}>
-          <View style={styles.cardRow}>
-            <View>
-              <Text style={styles.cardSubtitle}>Pending</Text>
-              <Text style={styles.kpiValueDark}>8</Text>
-            </View>
-            <View style={styles.iconWrapperGray}>
-              <Ionicons name="calendar-outline" size={24} color={colors.SECONDARY} />
-            </View>
+            {loading && !refreshing ? (
+              <ActivityIndicator size="small" color={colors.PRIMARY} style={{ alignSelf: 'flex-start', marginTop: 10 }} />
+            ) : (
+              <Text style={styles.revenueAmount}>
+                LKR {revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </Text>
+            )}
           </View>
         </View>
       </View>
@@ -58,10 +78,10 @@ export default function Dashboard() {
       <Text style={styles.sectionTitle}>QUICK NAVIGATION</Text>
 
       <View style={styles.navGrid}>
-        {/* 3. NEW: Supply Chain Tile */}
+        {/* Supply Chain Tile */}
         <TouchableOpacity
           style={styles.navCard}
-          onPress={() => router.push("/(protected)/(admin)/supplychain")} // Path to your folder
+          onPress={() => router.push("/(protected)/(admin)/supplychain")}
         >
           <View style={styles.navIconWrapperGreen}>
             <MaterialCommunityIcons name="truck-delivery-outline" size={24} color={colors.PRIMARY} />
@@ -76,19 +96,10 @@ export default function Dashboard() {
           onPress={() => router.push("/(protected)/(admin)/(InventoryAnalysis)")}
         >
           <View style={styles.navIconWrapperGreen}>
-            <MaterialCommunityIcons name="clipboard-list-outline" size={24} color={colors.PRIMARY} />
+            <Ionicons name="bar-chart-outline" size={24} color={colors.PRIMARY} />
           </View>
-          <Text style={styles.navTitle}>Inventory Analysis</Text>
-          <Text style={styles.navSubtitle}>STOCK ALERTS</Text>
-        </TouchableOpacity>
-
-        {/* Booking Trends */}
-        <TouchableOpacity style={styles.navCard}>
-          <View style={styles.navIconWrapperGreen}>
-            <Ionicons name="trending-up" size={24} color={colors.PRIMARY} />
-          </View>
-          <Text style={styles.navTitle}>Booking Trends</Text>
-          <Text style={styles.navSubtitle}>ANALYZE VOLUME</Text>
+          <Text style={styles.navTitle}>Stock Analysis</Text>
+          <Text style={styles.navSubtitle}>ANALYZE REPORT</Text>
         </TouchableOpacity>
 
         {/* Inventory Logs */}
@@ -97,19 +108,22 @@ export default function Dashboard() {
           onPress={() => router.push("/(protected)/(admin)/(InventoryLog)")}
         >
           <View style={styles.navIconWrapperGreen}>
-            <MaterialCommunityIcons name="clipboard-list-outline" size={24} color={colors.PRIMARY} />
+            <Ionicons name="list-outline" size={24} color={colors.PRIMARY} />
           </View>
           <Text style={styles.navTitle}>Inventory Logs</Text>
-          <Text style={styles.navSubtitle}>ITEM LOGS</Text>
+          <Text style={styles.navSubtitle}>ITEM HISTORY</Text>
         </TouchableOpacity>
 
         {/* Customer Reviews */}
-        <TouchableOpacity style={styles.navCard}>
+        <TouchableOpacity 
+          style={styles.navCard}
+          onPress={() => router.push("/(protected)/(admin)/reviews")}
+        >
           <View style={styles.navIconWrapperGreen}>
             <Ionicons name="star-outline" size={24} color={colors.PRIMARY} />
           </View>
-          <Text style={styles.navTitle}>Customer Reviews</Text>
-          <Text style={styles.navSubtitle}>RECENT FEEDBACK</Text>
+          <Text style={styles.navTitle}>Reviews</Text>
+          <Text style={styles.navSubtitle}>MODERATE FEEDBACK</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -132,6 +146,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   kpiContainer: {
+    gap: 16,
+  },
+  kpiRow: {
+    flexDirection: "row",
     gap: 16,
   },
   card: {

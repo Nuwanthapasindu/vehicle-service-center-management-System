@@ -1,6 +1,6 @@
 const Invoice = require("../model/Invoice");
 const AppError = require("../error/AppError");
-const { REPORT_RANGES, INVOICE_ITEM_TYPES } = require("../util/constants");
+const { LOG_PERIODS: REPORT_RANGES, INVOICE_ITEM_TYPES } = require("../util/constants");
 
 /**
  * Get Income Report

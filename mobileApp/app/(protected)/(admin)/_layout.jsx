@@ -251,7 +251,6 @@ export default function AdminDrawerLayout() {
           name="(InventoryLog)"
           options={{
             headerShown: false,
-            drawerLabel: "Inventory Logs",
             title: "Inventory Logs",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="list-outline" size={size} color={color} />
@@ -263,7 +262,6 @@ export default function AdminDrawerLayout() {
           name="(InventoryAnalysis)"
           options={{
             headerShown: false,
-            drawerLabel: "Inventory Analysis",
             title: "Inventory Analysis",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="bar-chart-outline" size={size} color={color} />
