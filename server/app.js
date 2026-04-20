@@ -28,6 +28,8 @@ const reviewRouter = require("./routes/review.route");
 const invoiceRouter = require("./routes/invoice.route");
 const supplierRouter = require("./routes/supplier.route");
 const purchaseOrderRouter = require("./routes/purchaseOrder.route");
+const inventoryAnalysisRouter = require("./routes/inventoryAnalysis.route");
+const inventoryLogsRouter = require("./routes/inventoryLogs.route");
 
 const app = express();
 connectDB();
@@ -70,6 +72,8 @@ app.use("/api/v1/booking", bookingRouter);
 app.use("/api/v1/timeslot", timeslotRouter);
 app.use("/api/v1/review", reviewRouter);
 app.use("/api/v1/invoice", invoiceRouter);
+app.use("/api/v1/inventory-analysis", inventoryAnalysisRouter);
+app.use("/api/v1/inventory-logs", inventoryLogsRouter);
 
 // DEFAULT ROUTE
 app.use((req, res, next) => {

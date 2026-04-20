@@ -59,7 +59,7 @@ export default function Dashboard() {
 
       <View style={styles.navGrid}>
         {/* 3. NEW: Supply Chain Tile */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.navCard}
           onPress={() => router.push("/(protected)/(admin)/supplychain")} // Path to your folder
         >
@@ -70,12 +70,15 @@ export default function Dashboard() {
           <Text style={styles.navSubtitle}>MANAGE VENDORS</Text>
         </TouchableOpacity>
 
-        {/* Inventory Status */}
-        <TouchableOpacity style={styles.navCard}>
+        {/* Inventory Analysis */}
+        <TouchableOpacity
+          style={styles.navCard}
+          onPress={() => router.push("/(protected)/(admin)/(InventoryAnalysis)")}
+        >
           <View style={styles.navIconWrapperGreen}>
             <MaterialCommunityIcons name="clipboard-list-outline" size={24} color={colors.PRIMARY} />
           </View>
-          <Text style={styles.navTitle}>Inventory Status</Text>
+          <Text style={styles.navTitle}>Inventory Analysis</Text>
           <Text style={styles.navSubtitle}>STOCK ALERTS</Text>
         </TouchableOpacity>
 
@@ -86,6 +89,18 @@ export default function Dashboard() {
           </View>
           <Text style={styles.navTitle}>Booking Trends</Text>
           <Text style={styles.navSubtitle}>ANALYZE VOLUME</Text>
+        </TouchableOpacity>
+
+        {/* Inventory Logs */}
+        <TouchableOpacity
+          style={styles.navCard}
+          onPress={() => router.push("/(protected)/(admin)/(InventoryLog)")}
+        >
+          <View style={styles.navIconWrapperGreen}>
+            <MaterialCommunityIcons name="clipboard-list-outline" size={24} color={colors.PRIMARY} />
+          </View>
+          <Text style={styles.navTitle}>Inventory Logs</Text>
+          <Text style={styles.navSubtitle}>ITEM LOGS</Text>
         </TouchableOpacity>
 
         {/* Customer Reviews */}

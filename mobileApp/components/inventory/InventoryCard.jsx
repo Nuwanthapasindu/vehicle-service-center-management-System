@@ -12,10 +12,10 @@ export function StockStatusBadge({ isLowStock }) {
         isLowStock ? styles.lowStockBadge : styles.inStockBadge,
       ]}
     >
-      <Ionicons 
-        name={isLowStock ? "alert-circle" : "checkmark-circle"} 
-        size={12} 
-        color={isLowStock ? "#F59E0B" : "#16A34A"} 
+      <Ionicons
+        name={isLowStock ? "alert-circle" : "checkmark-circle"}
+        size={12}
+        color={isLowStock ? "#F59E0B" : "#16A34A"}
         style={styles.badgeIcon}
       />
       <Text
@@ -38,10 +38,10 @@ export function QtyBadge({ qty, isLowStock }) {
         isLowStock ? styles.qtyLowBadge : styles.qtyNormalBadge,
       ]}
     >
-      <MaterialCommunityIcons 
-        name="package-variant" 
-        size={12} 
-        color={isLowStock ? colors.LIGHT : colors.DARK} 
+      <MaterialCommunityIcons
+        name="package-variant"
+        size={12}
+        color={isLowStock ? colors.LIGHT : colors.DARK}
         style={styles.qtyIcon}
       />
       <Text
@@ -56,7 +56,7 @@ export function QtyBadge({ qty, isLowStock }) {
   );
 }
 
-export default function InventoryCard({ item, onPress }) {
+const InventoryCard = ({ item, onPress }) => {
   const isLowStock = Number(item.stock) <= Number(item.reorderLevel);
 
   const handlePress = () => {
@@ -65,7 +65,7 @@ export default function InventoryCard({ item, onPress }) {
     } else {
       router.push({
         pathname: "/(protected)/(admin)/(Inventory)/(inventory)/editItem",
-        params: { 
+        params: {
           id: item.id,
           itemData: JSON.stringify(item)
         },
@@ -128,4 +128,6 @@ export default function InventoryCard({ item, onPress }) {
       </View>
     </TouchableOpacity>
   );
-}
+};
+
+export default InventoryCard;

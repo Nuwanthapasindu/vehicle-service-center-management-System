@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "expo-router";
+import { useNavigation, useFocusEffect } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,6 +26,12 @@ export default function CategoryIndex() {
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [search, setSearch] = useState("");
+
+  useFocusEffect(
+    useCallback(() => {
+      handleRefresh();
+    }, [])
+  );
 
   const handleRefresh = () => {
     setRefreshTrigger(prev => prev + 1);
