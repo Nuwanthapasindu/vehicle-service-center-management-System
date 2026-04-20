@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
 import axios from 'axios';
 import CustomerLayout from '../../../components/Customer/Layout/CustomerLayout';
 import { enums } from '../../../constants/enum';
@@ -11,6 +12,8 @@ import './ServiceHistory.css';
 
 const ServiceHistory = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+
     const [historyData, setHistoryData] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -112,6 +115,11 @@ const ServiceHistory = () => {
         };
         fetchVehicles();
     }, []);
+
+    const handleReviewClick = (bookingId) => {
+        navigate(`/customer/reviews/write/${bookingId}`);
+    };
+
 
     return (
         <CustomerLayout title="Service History">
@@ -248,8 +256,12 @@ const ServiceHistory = () => {
                                                 </span>
                                             </td>
                                             <td>
-                                                <button className="review-link-btn">
-                                                    Review <i className="fa-solid fa-star"></i>
+                                                <button
+                                                    className={`review-link-btn ${(item.status !== enums.JOBCARD_STATUS.FINISH || item.hasReview) ? 'disabled' : ''}`}
+                                                    disabled={item.status !== enums.JOBCARD_STATUS.FINISH || item.hasReview}
+                                                    onClick={() => handleReviewClick(item.id)}
+                                                >
+                                                    {item.hasReview ? 'Reviewed' : 'Review'} <i className="fa-solid fa-star"></i>
                                                 </button>
                                             </td>
                                         </tr>

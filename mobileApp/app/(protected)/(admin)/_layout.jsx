@@ -144,6 +144,13 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
+          name="booking/manage/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Drawer.Screen
           name="serviceAndPackage"
           options={{
             drawerLabel: "Catalog & Packages",

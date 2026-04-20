@@ -1,44 +1,53 @@
 /**
  * Formats a date string or object into a human-readable format.
+ * ALWAYS treats the date as a "floating date" by using UTC methods.
  * @param {string|Date} date - The date to format.
  * @returns {string} - The formatted date string (e.g., 1/25/2026).
  */
 export const formatDate = (date) => {
     if (!date) return '';
-    return new Date(date).toLocaleDateString();
+    const d = new Date(date);
+    return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${d.getUTCFullYear()}`;
 };
 
 /**
- * Formats a date into a long format.
+ * Formats a date into a long format using UTC components.
  * @param {string|Date} date - The date to format.
  * @returns {string} - The long formatted date string (e.g., Sunday, January 25, 2026).
  */
 export const formatLongDate = (date) => {
     if (!date) return '';
-    return new Date(date).toLocaleDateString('en-US', {
+    const d = new Date(date);
+    const options = {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
-    });
+        day: 'numeric',
+        timeZone: 'UTC'
+    };
+    return d.toLocaleDateString('en-US', options);
 };
 
 /**
- * Formats a date into a short format with month abbreviations.
+ * Formats a date into a short format with month abbreviations using UTC.
  * @param {string|Date} date - The date to format.
  * @returns {string} - The short formatted date string (e.g., Jan 25, 2026).
  */
 export const formatShortDate = (date) => {
     if (!date) return '';
-    return new Date(date).toLocaleDateString('en-US', {
+    const d = new Date(date);
+    const options = {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
-    });
+        day: 'numeric',
+        timeZone: 'UTC'
+    };
+    return d.toLocaleDateString('en-US', options);
 };
 
 /**
  * Formats a date into a relative time string (e.g., "2 days ago").
+ * Note: For durations, we still use local time comparison.
  * @param {string|Date} date - The date to format.
  * @returns {string} - The relative time string.
  */

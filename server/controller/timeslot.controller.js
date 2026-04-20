@@ -23,13 +23,12 @@ module.exports.getAvailableTimeslots = async (dateStr) => {
     if (!dateStr) throw new AppError("Date is required", 400);
 
     try {
-        const [year, month, day] = dateStr.split("-").map(Number);
-        const checkDate = new Date();
-        checkDate.setFullYear(year, month - 1, day);
-        checkDate.setHours(0, 0, 0, 0);
+        const checkDate = new Date(typeof dateStr === 'string' && !dateStr.includes('T') ? `${dateStr}T00:00:00Z` : dateStr);
+        checkDate.setUTCHours(0, 0, 0, 0);
 
         const nextDay = new Date(checkDate);
-        nextDay.setDate(nextDay.getDate() + 1);
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+
 
         const timeslots = await Timeslot.find({ isActive: true, isDeleted: false }).sort({ startTime: 1 });
         const bookings = await Booking.find({
@@ -60,13 +59,12 @@ module.exports.getDailySchedule = async (dateStr) => {
     if (!dateStr) throw new AppError("Date is required", 400);
 
     try {
-        const [year, month, day] = dateStr.split("-").map(Number);
-        const checkDate = new Date();
-        checkDate.setFullYear(year, month - 1, day);
-        checkDate.setHours(0, 0, 0, 0);
+        const checkDate = new Date(typeof dateStr === 'string' && !dateStr.includes('T') ? `${dateStr}T00:00:00Z` : dateStr);
+        checkDate.setUTCHours(0, 0, 0, 0);
 
         const nextDay = new Date(checkDate);
-        nextDay.setDate(nextDay.getDate() + 1);
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+
 
         const timeslots = await Timeslot.find({ isDeleted: false }).sort({ startTime: 1 });
         const bookings = await Booking.find({
