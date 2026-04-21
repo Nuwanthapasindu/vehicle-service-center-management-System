@@ -80,16 +80,16 @@ router.patch(
     const bookingId = req.params.id;
     const payload = req.body;
 
-  updateBookingByAdmin(bookingId, payload)
-    .then((booking) => {
-      responseBuilder.setStatus(200);
-      responseBuilder.buildResponse({
-        message: "Booking updated successfully",
-        booking,
-      });
-    })
-    .catch((error) => next(error));
-});
+    updateBookingByAdmin(bookingId, payload)
+      .then((message) => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse({
+          message,
+        });
+      })
+      .catch((error) => next(error));
+  },
+);
 
 // Admin Cancel Booking
 router.delete(
@@ -100,12 +100,13 @@ router.delete(
     const responseBuilder = new responseBuild(res);
     const bookingId = req.params.id;
 
-  cancelBookingByAdmin(bookingId)
-    .then((result) => {
-      responseBuilder.setStatus(200);
-      responseBuilder.buildResponse(result);
-    })
-    .catch((error) => next(error));
-});
+    cancelBookingByAdmin(bookingId)
+      .then((result) => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse(result);
+      })
+      .catch((error) => next(error));
+  },
+);
 
 module.exports = router;

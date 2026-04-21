@@ -415,8 +415,8 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
       }
     }
 
-    const updatedBooking = await booking.save();
-    return updatedBooking;
+    await booking.save();
+    return "Booking updated successfully";
   } catch (error) {
     if (error.code === 11000) {
       throw new AppError("This vehicle is already booked for this specific time slot on the selected date.", 409);
