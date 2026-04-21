@@ -1,14 +1,14 @@
 export const CONTACT_INFO = {
     WHATSAPP: {
         label: "WHATSAPP",
-        value: "+1 (555) 012-3456",
-        link: "https://wa.me/15550123456",
+        value: "076 315 3797",
+        link: "https://wa.me/+94763153797",
         icon: "fa-brands fa-whatsapp",
     },
     SUPPORT_LINE: {
         label: "SUPPORT LINE",
-        value: "+1 (555) 012-3457",
-        link: "tel:+15550123457",
+        value: "076 315 3797",
+        link: "tel:+94763153797",
         icon: "fa-solid fa-phone",
     },
     EMAIL: {
@@ -26,9 +26,9 @@ export const CONTACT_INFO = {
 };
 
 export const OPENING_HOURS = [
-    { day: "MONDAY - FRIDAY", time: "8:00 AM - 7:00 PM" },
-    { day: "SATURDAY", time: "9:00 AM - 5:00 PM" },
-    { day: "SUNDAY", time: "CLOSED", isClosed: true },
+    { day: "TUESDAY - SATURDAY", time: "8:00 AM - 7:00 PM" },
+    { day: "SUNDAY", time: "9:00 AM - 5:00 PM" },
+    { day: "MONDAY", time: "CLOSED", isClosed: true },
 ];
 
 export const OFFICE_ADDRESS = {
