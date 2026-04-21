@@ -412,7 +412,7 @@ export default function BookingDetails() {
           </TouchableOpacity>
         )}
         {invoiceDetails && (
-          <TouchableOpacity style={styles.invoiceButton} onPress={() => router.replace(`/(protected)/(admin)/invoice/${invoiceDetails._id}`)}>
+          <TouchableOpacity style={styles.invoiceButton} onPress={() => router.push(`/(protected)/(admin)/invoice/${invoiceDetails._id}`)}>
             <Ionicons name="receipt-outline" size={20} color="#FFF" style={{ marginRight: 6 }} />
             <Text style={styles.invoiceButtonText}>View / Manage Invoice</Text>
           </TouchableOpacity>

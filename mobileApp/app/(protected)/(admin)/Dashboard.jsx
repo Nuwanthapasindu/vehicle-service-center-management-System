@@ -66,7 +66,7 @@ export default function Dashboard() {
         <View style={styles.revenueCard}>
           <View style={styles.revenueHeaderRow}>
             <Text style={styles.revenueCardTitle}>Today's Revenue</Text>
-            <TouchableOpacity onPress={() => router.push("/(protected)/(admin)/invoice/revenue")}>
+            <TouchableOpacity onPress={() => router.push("/(protected)/(admin)/revenue")}>
               <Text style={styles.revenueActionText}>View Report</Text>
             </TouchableOpacity>
           </View>
@@ -102,7 +102,7 @@ export default function Dashboard() {
           {/* Action Tile 2 */}
           <TouchableOpacity 
             style={styles.actionTile}
-            onPress={() => router.push("/(protected)/(admin)/invoice/revenue")}
+            onPress={() => router.push("/(protected)/(admin)/revenue")}
             activeOpacity={0.7}
           >
             <View style={[styles.iconBox, { backgroundColor: '#E8F5E9' }]}>
