@@ -430,6 +430,8 @@ exports.removeInvoiceItem = async (invoiceId, payload) => {
  */
 exports.completeInvoice = async (invoiceId, authUser) => {
   let stockReduced = false;
+  let previousJobCardStatus = null;
+  let jobCardId = null;
   let inventoryItems = [];
   try {
     if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
@@ -440,6 +442,8 @@ exports.completeInvoice = async (invoiceId, authUser) => {
     if (!invoice) {
       throw new AppError("Invoice not found", 404);
     }
+
+    jobCardId = invoice.jobCard;
 
     if (invoice.isCompleted) {
       throw new AppError("Invoice is already completed", 400);
@@ -458,24 +462,45 @@ exports.completeInvoice = async (invoiceId, authUser) => {
       stockReduced = true;
     }
 
-    // 3. Mark as completed
+    // 3. Update associated JobCard status to FINISH (storing previous status for rollback)
+    if (jobCardId) {
+      const jobCard = await JobCard.findById(jobCardId);
+      if (jobCard) {
+        previousJobCardStatus = jobCard.status;
+        jobCard.status = constants.JOBCARD_STATUS.FINISH;
+        await jobCard.save();
+      }
+    }
+
+    // 4. Mark as completed
     invoice.isCompleted = true;
     await invoice.save();
 
     return `${invoice.invoiceId || "Invoice"} completed successfully`;
   } catch (error) {
+    // A. Rollback JobCard status if it was changed
+    if (previousJobCardStatus && jobCardId) {
+      await JobCard.findByIdAndUpdate(jobCardId, {
+        status: previousJobCardStatus,
+      }).catch(console.error);
+    }
+
+    // B. Rollback Inventory Stock
     if (stockReduced) {
-        const rollbackPayload = {
-          items: inventoryItems.map((i) => ({
-            inventoryId: i.inventoryId,
-            quantityReceived: i.quantity,
-          })),
-        };
+      const rollbackPayload = {
+        items: inventoryItems.map((i) => ({
+          inventoryId: i.inventoryId,
+          quantityReceived: i.quantity,
+        })),
+      };
       // Auto-revert silently capturing errors
       await increaseStockByPO(rollbackPayload, authUser).catch(console.error);
     }
 
     if (error instanceof AppError) throw error;
-    throw new AppError("Failed to complete invoice. If stock was deducted it has been safely reverted.", 500);
+    throw new AppError(
+      "Failed to complete invoice. System has attempted to safely revert all changes (Stock & Job Status).",
+      500,
+    );
   }
 };
