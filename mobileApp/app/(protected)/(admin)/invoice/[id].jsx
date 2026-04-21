@@ -7,7 +7,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import colors from '../../../../constants/colors';
 import { pdfGenerator } from '../../../../utils/pdfGenerator';
-import { getInvoiceTemplate } from '../../../../templates/pdf/invoiceTemplate';;
+import { getInvoiceTemplate } from '../../../../templates/pdf/invoiceTemplate';
 import { useLocalSearchParams } from 'expo-router';
 import { invoiceService } from '../../../../services/invoice/invoice.service';
 import enums from '../../../../constants/enums';

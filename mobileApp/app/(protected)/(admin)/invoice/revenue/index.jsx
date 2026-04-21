@@ -60,7 +60,7 @@ export default function RevenueReportScreen() {
       <View style={styles.dataRowRight}>
         <Text style={styles.dataCount}>{item.count} Invoices</Text>
         <Text style={styles.dataIncome}>
-          LKR {item.income.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          LKR {(item.income || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </Text>
       </View>
     </View>
@@ -100,7 +100,7 @@ export default function RevenueReportScreen() {
           <ActivityIndicator size="small" color={colors.PRIMARY} style={{ alignSelf: 'flex-start', marginTop: 10 }} />
         ) : (
           <Text style={styles.overviewAmount}>
-            LKR {report.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            LKR {(report.totalIncome || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </Text>
         )}
       </View>
