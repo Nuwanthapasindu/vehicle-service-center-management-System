@@ -119,6 +119,17 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
           isDeleted: false,
         }).populate("selectedPackage", "name");
 
+        let totalCost = 0;
+        if (jobCard) {
+          const invoice = await Invoice.findOne({
+            jobCard: jobCard._id,
+            isDeleted: false,
+          });
+          if (invoice) {
+            totalCost = invoice.totalPrice;
+          }
+        }
+
         return {
           id: booking._id,
           date: booking.date,
@@ -128,13 +139,13 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
           licensePlate: booking.vehicle?.licensePlate || "N/A",
           service: jobCard?.selectedPackage?.name || "Pending Selection",
           status: jobCard?.status || "PENDING",
+          totalCost: totalCost,
           canViewDetails: !!jobCard,
           hasReview: !!(await Review.findOne({
             booking: booking._id,
             isDeleted: false,
           })),
         };
-
       }),
     );
 
