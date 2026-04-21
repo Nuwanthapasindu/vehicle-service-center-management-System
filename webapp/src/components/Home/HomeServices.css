@@ -30,7 +30,8 @@
 
 .service-img img {
     width: 100%;
-    object-fit: contain;
+    height: 100%;
+    object-fit: cover;
     transition: transform 0.6s ease;
 }
 
@@ -46,14 +47,68 @@
     font-size: 1.5rem;
     font-weight: 950;
     color: #1A1D23;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     letter-spacing: -0.5px;
 }
 
+.info-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
 .service-price {
-    font-size: 1.15rem;
-    font-weight: 950;
+    font-size: 0.75rem;
+    font-weight: 850;
+    color: #64748B;
+    text-transform: uppercase;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.service-price span {
+    display: block;
+    font-size: 1.25rem;
     color: #1A1D23;
+    margin-top: 5px;
+}
+
+.included-services {
+    border-top: 1px solid #F1F5F9;
+    padding-top: 2rem;
+}
+
+.list-title {
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #94A3B8;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 1.25rem;
+}
+
+.service-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.service-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.service-list li i {
+    color: #8EDB00;
+    font-size: 1rem;
 }
 
 @media (max-width: 1024px) {

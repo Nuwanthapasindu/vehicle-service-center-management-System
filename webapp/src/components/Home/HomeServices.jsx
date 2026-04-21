@@ -26,29 +26,45 @@ const HomeServices = ({ services = [], packages = [] }) => {
           </div>
           <div className="m-container">
             <div className="services-grid">
-              {packages.map((pkg) => (
-                <div key={pkg._id} className="service-card shadow-sm">
-                  <div className="service-img">
-                    <img
-                      src={getImageUrl(pkg?.image?.filePath)}
-                      alt={pkg.name}
-                    />
-                  </div>
-                  <div className="service-info">
-                    <h3>{pkg.name}</h3>
-                    <p
-                      className="m-body-text"
-                      style={{ fontSize: "0.95rem", marginBottom: "2rem" }}
-                    >
-                      {pkg.description ||
-                        `Comprehensive care tailored for your ${pkg.applicableVehicalModels.join(", ")}.`}
-                    </p>
-                    <div className="service-price">
-                      Starting from Rs. {getMinPrice(pkg, "package")}
-                    </div>
-                  </div>
-                </div>
-              ))}
+               {packages.map((pkg) => (
+                 <div key={pkg._id} className="service-card package-card shadow-sm">
+                   <div className="service-img">
+                     <img
+                       src={getImageUrl(pkg?.image?.filePath)}
+                       alt={pkg.name}
+                     />
+                   </div>
+                   <div className="service-info">
+                     <div className="info-top">
+                        <h3>{pkg.name}</h3>
+                        <div className="service-price">
+                          Starting from <span>Rs. {getMinPrice(pkg, "package")}</span>
+                        </div>
+                     </div>
+                     <p
+                       className="m-body-text"
+                       style={{ fontSize: "0.95rem", marginBottom: "2rem" }}
+                     >
+                       {pkg.description ||
+                         `Comprehensive care tailored for your ${pkg.applicableVehicalModels.join(", ")}.`}
+                     </p>
+                     
+                     {pkg.servicesIncluded && pkg.servicesIncluded.length > 0 && (
+                       <div className="included-services">
+                         <span className="list-title">INCLUSIONS</span>
+                         <ul className="service-list">
+                           {pkg.servicesIncluded.map((s, idx) => (
+                             <li key={s._id || idx}>
+                               <i className="fa-solid fa-circle-check"></i>
+                               {s.name}
+                             </li>
+                           ))}
+                         </ul>
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               ))}
             </div>
           </div>
         </div>
@@ -73,19 +89,21 @@ const HomeServices = ({ services = [], packages = [] }) => {
                       />
                     </div>
                   ) : null}
-                  <div className="service-info">
-                    <h3>{service.name}</h3>
-                    <p
-                      className="m-body-text"
-                      style={{ fontSize: "0.95rem", marginBottom: "2rem" }}
-                    >
-                      {service.description ||
-                        "Professional automotive service delivered with precision and care."}
-                    </p>
-                    <div className="service-price">
-                      Starting from Rs. {getMinPrice(service, "service")}
-                    </div>
-                  </div>
+                   <div className="service-info">
+                     <div className="info-top">
+                        <h3>{service.name}</h3>
+                        <div className="service-price">
+                          Starting from <span>Rs. {getMinPrice(service, "service")}</span>
+                        </div>
+                     </div>
+                     <p
+                       className="m-body-text"
+                       style={{ fontSize: "0.95rem", marginBottom: "2rem" }}
+                     >
+                       {service.description ||
+                         "Professional automotive service delivered with precision and care."}
+                     </p>
+                   </div>
                 </div>
               ))}
             </div>
