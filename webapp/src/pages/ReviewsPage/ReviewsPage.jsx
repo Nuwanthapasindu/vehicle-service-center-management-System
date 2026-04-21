@@ -185,13 +185,13 @@ function ReviewsPage() {
                                     <span className="service-tag">{rev.service}</span>
                                     <p className="m-body-text" style={{ fontSize: '1rem', color: '#475569', marginBottom: '2.5rem', minHeight: '80px' }}>{rev.comment}</p>
 
-                                    {rev.adminResponse && (
+                                    {rev.adminReply && (
                                         <div className="official-response">
                                             <div className="response-header">
                                                 <i className="fa-solid fa-sparkles"></i>
                                                 <h5>RESPONSE FROM SHINE DEPOT</h5>
                                             </div>
-                                            <p style={{ fontSize: '0.85rem', lineHeight: '1.6', color: '#64748B' }}>{rev.adminResponse}</p>
+                                            <p style={{ fontSize: '0.85rem', lineHeight: '1.6', color: '#64748B' }}>{rev.adminReply}</p>
                                         </div>
                                     )}
                                 </div>
