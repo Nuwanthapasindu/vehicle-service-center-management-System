@@ -174,6 +174,13 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
+          name="revenue"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Drawer.Screen
           name="reviews"
           options={{
             headerShown: false,
