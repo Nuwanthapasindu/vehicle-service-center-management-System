@@ -396,6 +396,12 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
     const booking = await Booking.findOne({ _id: bookingId, isDeleted: false });
     if (!booking) throw new AppError("Booking not found", 404);
 
+    // Restrict rescheduling if service has started or completed
+    const jobCardCheck = await JobCard.findOne({ booking: bookingId, isDeleted: false });
+    if (jobCardCheck && jobCardCheck.status !== JOBCARD_STATUS.PENDING) {
+      throw new AppError(`Cannot reschedule a booking that is currently ${jobCardCheck.status.toLowerCase()}.`, 400);
+    }
+
     if (date) {
       const checkDate = new Date(
         typeof date === "string" && !date.includes("T")
@@ -459,6 +465,10 @@ module.exports.cancelBookingByAdmin = async (bookingId) => {
       booking: bookingId,
       isDeleted: false,
     });
+
+    if (jobCard && jobCard.status === JOBCARD_STATUS.FINISH) {
+      throw new AppError("Cannot cancel a booking that has already been finished.", 400);
+    }
 
     if (jobCard) {
       // Delete associated Invoices if Job Card exists

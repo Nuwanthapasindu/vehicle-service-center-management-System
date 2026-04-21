@@ -167,22 +167,24 @@ export default function Bookings() {
               <Text style={styles.actionBtnText}>Open this booking</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.actionBtn, { borderBottomWidth: 0 }]}
-              onPress={() => {
-                setShowActionModal(false);
-                router.push(
-                  `/(protected)/(admin)/booking/manage/${selectedBooking.id}`
-                );
-              }}
-            >
-              <Ionicons
-                name="settings-outline"
-                size={24}
-                color={colors.SECONDARY}
-              />
-              <Text style={styles.actionBtnText}>Manage this booking</Text>
-            </TouchableOpacity>
+            {selectedBooking?.jobStatus !== "FINISH" && (
+              <TouchableOpacity
+                style={[styles.actionBtn, { borderBottomWidth: 0 }]}
+                onPress={() => {
+                  setShowActionModal(false);
+                  router.push(
+                    `/(protected)/(admin)/booking/manage/${selectedBooking.id}`
+                  );
+                }}
+              >
+                <Ionicons
+                  name="settings-outline"
+                  size={24}
+                  color={colors.SECONDARY}
+                />
+                <Text style={styles.actionBtnText}>Manage this booking</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={styles.cancelBtn}

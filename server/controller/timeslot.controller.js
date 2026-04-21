@@ -69,21 +69,38 @@ module.exports.getDailySchedule = async (dateStr) => {
         const timeslots = await Timeslot.find({ isDeleted: false }).sort({ startTime: 1 });
         const bookings = await Booking.find({
             date: { $gte: checkDate, $lt: nextDay },
-            isDeleted: false
+            isDeleted: false,
         }).populate("vehicle", "licensePlate vehicleType");
 
-        const schedule = timeslots.map(slot => {
-            const bookingsForSlot = bookings.filter(b => b.slot.toString() === slot._id.toString());
+        // Fetch associated Job Cards to determine operational status
+        const bookingIds = bookings.map((b) => b._id);
+        const jobCards = await JobCard.find({
+            booking: { $in: bookingIds },
+            isDeleted: false,
+        });
+
+        const schedule = timeslots.map((slot) => {
+            const bookingsForSlot = bookings.filter(
+                (b) => b.slot.toString() === slot._id.toString()
+            );
             return {
                 id: slot._id,
                 time: slot.startTime,
-                status: `${bookingsForSlot.length}/${slot.maxCapacity} ${bookingsForSlot.length >= slot.maxCapacity ? 'FULL' : 'BOOKED'}`,
+                status: `${bookingsForSlot.length}/${slot.maxCapacity} ${
+                    bookingsForSlot.length >= slot.maxCapacity ? "FULL" : "BOOKED"
+                }`,
                 isFull: bookingsForSlot.length >= slot.maxCapacity,
-                vehicles: bookingsForSlot.map(b => ({
-                    id: b._id,
-                    plate: b.vehicle?.licensePlate || "Unknown",
-                    type: b.vehicle?.vehicleType || "car"
-                }))
+                vehicles: bookingsForSlot.map((b) => {
+                    const jc = jobCards.find(
+                        (j) => j.booking.toString() === b._id.toString()
+                    );
+                    return {
+                        id: b._id,
+                        plate: b.vehicle?.licensePlate || "Unknown",
+                        type: b.vehicle?.vehicleType || "car",
+                        jobStatus: jc ? jc.status : "PENDING",
+                    };
+                }),
             };
         });
 
