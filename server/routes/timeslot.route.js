@@ -9,7 +9,7 @@ const {
     getTimeslotById,
     getDailySchedule
 } = require("../controller/timeslot.controller");
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
 const { USER_ROLES } = require("../util/constants");
 const AppError = require("../error/AppError");

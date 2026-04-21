@@ -6,9 +6,9 @@ Object.keys(mongoose.models).forEach((key) => {
   delete mongoose.models[key];
 });
 
-const Timeslot = require("../model/Timeslot");
-const Booking = require("../model/Booking");
-const JobCard = require("../model/JobCard");
+const Timeslot = require("../../model/Timeslot");
+const Booking = require("../../model/Booking");
+const JobCard = require("../../model/JobCard");
 const { 
   getTimeslotById, 
   getAllTimeslots, 
@@ -17,7 +17,7 @@ const {
   deleteTimeslot,
   getAvailableTimeslots,
   getDailySchedule
-} = require("../controller/timeslot.controller");
+} = require("../../controller/timeslot.controller");
 
 let mongoServer;
 
