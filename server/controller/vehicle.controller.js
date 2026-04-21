@@ -98,7 +98,7 @@ module.exports.deleteVehicle = async (vehicleId, mobile) => {
     await Vehicle.findByIdAndUpdate(vehicleId, {
       isDeleted: true,
       deletedAt: new Date(),
-      licensePlate: `${vehicle.licensePlate}-deleted`,
+      licensePlate: `${vehicle.licensePlate}-deleted-${Date.now()}`,
       image: null,
     });
     return "Vehicle deleted successfully";

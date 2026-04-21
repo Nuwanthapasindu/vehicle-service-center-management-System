@@ -90,7 +90,7 @@ export default function BookingDetails() {
         Toast.show({
           type: "success",
           text1: "Job Started Successfully",
-          text2: "Job Card & Invoice Generated!",
+          text2: invoiceResponse.data?.payload?.message,
         });
 
         setIsGenerated(true);
@@ -118,6 +118,9 @@ export default function BookingDetails() {
     setData(null);
     formik.resetForm();
     setImgError(false);
+    setIsGenerated(false);
+    setInvoiceDetails(null);
+    setStatusZone(enums.JOBCARD_STATUS.PENDING);
 
     try {
       // Fetch Booking Details and Packages in parallel to reconcile them
@@ -141,7 +144,6 @@ export default function BookingDetails() {
             const invoiceRes = await axios.get(`/invoice/jobcard/${details.service.jobCardId}`);
             setInvoiceDetails(invoiceRes.data?.payload?.data || invoiceRes.data?.data);
           } catch (e) {
-            console.warn("Invoice hydration dropped - ensuring detail is null", e.message);
             setInvoiceDetails(null);
           }
         }
@@ -403,7 +405,7 @@ export default function BookingDetails() {
 
       {/* Footer Actions */}
       <View style={styles.footer}>
-        {!invoiceDetails && (
+        {!invoiceDetails && statusZone !== enums.JOBCARD_STATUS.FINISH && (
           <TouchableOpacity style={styles.saveButton} onPress={formik.handleSubmit}>
             <Text style={styles.saveButtonText}>{isGenerated ? "GENERATE INVOICE" : "SAVE & GENERATE"}</Text>
             <Ionicons name="checkmark-circle-outline" size={20} color={colors.DARK} style={{ marginLeft: 6 }} />
