@@ -332,6 +332,7 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
 
       status: statusZ,
       customer: {
+        _id: booking.customer ? booking.customer._id : null,
         name: booking.customer ? booking.customer.name : null,
         phone: booking.customer ? booking.customer.mobile : null,
       },
