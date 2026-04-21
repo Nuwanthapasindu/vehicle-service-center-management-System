@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import reviewService from '../../services/reviewService';
 import { formatTimeAgo } from '../../util/dateFormatter';
 import './ReviewsPage.css';
 import packageService from '../../services/packageService';
+import { useNavigate } from 'react-router-dom';
 
 function ReviewsPage() {
+    const navigate = useNavigate();
     const [reviews, setReviews] = useState([]);
     const [stats, setStats] = useState({
         average: 0,
@@ -47,6 +50,8 @@ function ReviewsPage() {
                 setServices([]);
             }
         } catch (error) {
+            toast.error("Error fetching reviews");
+            navigate('/');
             console.error("Error fetching reviews:", error);
         } finally {
             setLoading(false);
