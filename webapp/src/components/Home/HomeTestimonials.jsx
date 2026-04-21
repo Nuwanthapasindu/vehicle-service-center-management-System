@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import './HomeTestimonials.css';
 import reviewService from '../../services/reviewService';
 
@@ -47,11 +48,14 @@ const HomeTestimonials = () => {
     return (
         <section className="home-testimonials m-section-padding">
             <div className="m-container">
-                <div className="section-header-row">
+                <div className="section-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4rem' }}>
                     <div className="section-title-box">
                         <span className="m-section-tag">CLIENT FEEDBACK</span>
-                        <h2 className="m-section-title" style={{color: '#FFFFFF'}}>Trusted by Enthusiasts</h2>
+                        <h2 className="m-section-title" style={{color: '#FFFFFF', marginBottom: 0}}>Trusted by Enthusiasts</h2>
                     </div>
+                    <Link to="/reviews" className="m-btn-outline" style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.2)' }}>
+                        VIEW ALL FEEDBACKS
+                    </Link>
                 </div>
 
                 <div className="testimonials-grid">
@@ -60,7 +64,9 @@ const HomeTestimonials = () => {
                             <div className="stars">
                                 {renderStars(t.rating)}
                             </div>
-                            <p className="testimonial-text">"{t.comment}"</p>
+                            <p className="testimonial-text">
+                                "{t.comment?.split('\n')[0]}{t.comment?.includes('\n') || t.comment?.length > 150 ? '...' : ''}"
+                            </p>
                             <div className="testimonial-user">
                                 <div className="user-avatar" style={{ 
                                     display: 'flex', 

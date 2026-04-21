@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import reviewService from '../../services/reviewService';
-import serviceService from '../../services/serviceService';
 import { formatTimeAgo } from '../../util/dateFormatter';
 import './ReviewsPage.css';
+import packageService from '../../services/packageService';
 
 function ReviewsPage() {
     const [reviews, setReviews] = useState([]);
@@ -23,16 +23,15 @@ function ReviewsPage() {
     const fetchDetails = async () => {
         setLoading(true);
         try {
-            const [reviewsRes, servicesRes] = await Promise.all([
+            const [reviewsRes, packageRes] = await Promise.all([
                 reviewService.getPublicReviews({
                     page,
                     limit: 12,
                     sort: sortBy,
                     service: filterService === 'All Services' ? undefined : filterService
                 }),
-                serviceService.getServices({ limit: 100 })
+                packageService.getPublicPackages()
             ]);
-
             if (reviewsRes.data?.payload) {
                 setReviews(reviewsRes.data.payload.reviews || []);
                 setStats(reviewsRes.data.payload.stats || {
@@ -40,10 +39,10 @@ function ReviewsPage() {
                 });
             }
 
-            if (servicesRes.data?.payload?.services?.services) {
-                setServices(servicesRes.data.payload.services.services);
-            } else if (Array.isArray(servicesRes.data?.payload?.services)) {
-                setServices(servicesRes.data.payload.services);
+            if (packageRes.data.payload.packages) {
+                setServices(packageRes.data.payload.packages);
+            } else if (Array.isArray(packageRes.data?.payload?.packages)) {
+                setServices(packageRes.data.payload.packages);
             } else {
                 setServices([]);
             }
