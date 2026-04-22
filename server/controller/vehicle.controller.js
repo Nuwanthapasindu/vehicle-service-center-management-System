@@ -1,8 +1,12 @@
 const Vehicle = require("../model/Vehicle");
 const User = require("../model/User");
 const File = require("../model/File");
+const Booking = require("../model/Booking");
+const JobCard = require("../model/JobCard");
 const AppError = require("../error/AppError");
 const { validatedVehicleAdd } = require("../validation/vehicle.validation");
+const { deleteFileById } = require("./file.controller");
+const { JOBCARD_STATUS } = require("../util/constants");
 
 module.exports.addVehicle = async (payload, mobile) => {
   try {
@@ -64,9 +68,38 @@ module.exports.deleteVehicle = async (vehicleId, mobile) => {
     const vehicle = await Vehicle.findOne({ _id: vehicleId, ownerId: owner._id, isDeleted: false });
     if (!vehicle) throw new AppError("Vehicle not found", 404);
 
+    if (vehicle.image) {
+      await deleteFileById(vehicle.image).catch((err) => {
+        throw new AppError("Failed to delete vehicle image", 500);
+      });
+    }
+
+    // Delete all pending/incomplete bookings associated with this vehicle
+    const bookings = await Booking.find({ vehicle: vehicleId, isDeleted: false });
+    for (const booking of bookings) {
+      const jobCard = await JobCard.findOne({ booking: booking._id, isDeleted: false });
+      // If no job card exists or job card is not finished, delete the booking
+      if (!jobCard || jobCard.status !== JOBCARD_STATUS.FINISH) {
+        await Booking.findByIdAndUpdate(booking._id, {
+          isDeleted: true,
+          deletedAt: new Date(),
+        });
+
+        // If a job card exists but is not finished, delete it too
+        if (jobCard) {
+          await JobCard.findByIdAndUpdate(jobCard._id, {
+            isDeleted: true,
+            deletedAt: new Date(),
+          });
+        }
+      }
+    }
+
     await Vehicle.findByIdAndUpdate(vehicleId, {
       isDeleted: true,
-      deletedAt: new Date()
+      deletedAt: new Date(),
+      licensePlate: `${vehicle.licensePlate}-deleted-${Date.now()}`,
+      image: null,
     });
     return "Vehicle deleted successfully";
   } catch (error) {

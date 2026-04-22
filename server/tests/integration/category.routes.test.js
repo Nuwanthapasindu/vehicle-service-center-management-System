@@ -6,9 +6,10 @@ const Category = require('../../model/Category');
 
 jest.mock('../../middleware/auth', () => ({
   authTokenMiddleware: (req, res, next) => {
-    req.user = { mobile: '0771234567' };
+    req.user = { mobile: '0771234567', role: 'ADMIN' };
     next();
-  }
+  },
+  accessControl: () => (req, res, next) => next()
 }));
 
 jest.mock('../../model/Category');

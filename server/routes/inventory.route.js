@@ -16,7 +16,8 @@ const {
   deleteItem,
 } = require("../controller/inventory.controller");
 
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
 
 /**
@@ -29,7 +30,7 @@ const responseBuild = require("../util/responseBuilder");
  *       200:
  *         description: Inventory fetched successfully
  */
-router.get("/", authTokenMiddleware, (req, res, next) => {
+router.get("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { search, names } = req.query;
   const searchedNames = names ? names.split(",") : undefined;
@@ -72,7 +73,7 @@ router.get("/", authTokenMiddleware, (req, res, next) => {
  *       201:
  *         description: Item added to inventory
  */
-router.post("/", authTokenMiddleware, (req, res, next) => {
+router.post("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   addItem(req.body, req.user)
@@ -114,7 +115,7 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
  *       200:
  *         description: Stock adjusted successfully
  */
-router.patch("/adjust/:id", authTokenMiddleware, (req, res, next) => {
+router.patch("/adjust/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   manualAdjustment(req.params.id, req.body, req.user)
@@ -157,7 +158,7 @@ router.patch("/adjust/:id", authTokenMiddleware, (req, res, next) => {
  *       200:
  *         description: Stock reduced successfully
  */
-router.patch("/reduce-stock", authTokenMiddleware, (req, res, next) => {
+router.patch("/reduce-stock", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   reduceStockByInvoice(req.body, req.user)
@@ -200,7 +201,7 @@ router.patch("/reduce-stock", authTokenMiddleware, (req, res, next) => {
  *       200:
  *         description: Stock increased successfully
  */
-router.patch("/increase-stock", authTokenMiddleware, (req, res, next) => {
+router.patch("/increase-stock", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   increaseStockByPO(req.body, req.user)
@@ -231,7 +232,7 @@ router.patch("/increase-stock", authTokenMiddleware, (req, res, next) => {
  *       200:
  *         description: Item updated
  */
-router.patch("/:id", authTokenMiddleware, (req, res, next) => {
+router.patch("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   updateItem(req.params.id, req.body)
@@ -262,7 +263,7 @@ router.patch("/:id", authTokenMiddleware, (req, res, next) => {
  *       200:
  *         description: Item deleted
  */
-router.delete("/:id", authTokenMiddleware, (req, res, next) => {
+router.delete("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   deleteItem(req.params.id)

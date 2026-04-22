@@ -306,18 +306,15 @@ module.exports.getAllPackagesForJobCard = async () => {
       isDeleted: false,
       isPublished: true,
     })
-      .select([
-        "-isDeleted",
-        "-deletedAt",
-        "-__v",
-        "-createdAt",
-        "-updatedAt",
-      ])
       .populate({
         path: "servicesIncluded",
         select: ["name"],
-      });
-
+      })
+      .populate({
+        path: "image",
+        select: ["filePath"],
+      })
+      .select(["-isDeleted", "-deletedAt", "-__v", "-createdAt", "-updatedAt"]);
     return packages;
   } catch (error) {
     throw new AppError(error.message, error.statusCode || 500);

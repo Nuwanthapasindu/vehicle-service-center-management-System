@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import colors from "../../../../constants/colors";
+import colors from "../../../../../constants/colors";
 import { TouchableOpacity } from "react-native"; // Add this
 import { Ionicons } from "@expo/vector-icons"; // Add this
 

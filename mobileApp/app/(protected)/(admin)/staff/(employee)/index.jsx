@@ -11,8 +11,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import axios from "axios";
-import colors from "../../../../constants/colors";
-import EmployeeCard from "../../../../components/EmployeeCard";
+import colors from "../../../../../constants/colors";
+import EmployeeCard from "../../../../../components/EmployeeCard";
 
 export default function EmployeeDirectory() {
   const [employees, setEmployees] = useState([]);
@@ -60,7 +60,6 @@ export default function EmployeeDirectory() {
       const employeesData = response?.data?.payload?.data || [];
       setEmployees(employeesData);
     } catch (error) {
-      console.error("Employee fetch error:", error);
       setEmployees([]);
     } finally {
       setLoading(false);
@@ -135,29 +134,12 @@ export default function EmployeeDirectory() {
       <TouchableOpacity
         style={styles.fab}
         onPress={() =>
-          router.push("/(protected)/(admin)/(employee)/add")
+          router.push("/(protected)/(admin)/staff/(employee)/add")
         }
       >
         <Ionicons name="add" size={32} color={colors.DARK} />
       </TouchableOpacity>
 
-      {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.push("/(protected)/(admin)/(team)")}
-        >
-          <Ionicons name="people-outline" size={24} color={colors.SECONDARY} />
-          <Text style={styles.navText}>Team</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person" size={24} color={colors.PRIMARY} />
-          <Text style={[styles.navText, { color: colors.PRIMARY }]}>
-            Employee
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -183,11 +165,10 @@ const styles = StyleSheet.create({
   activeTabText: { color: colors.DARK },
   list: { 
     padding: 16, 
-    paddingBottom: 100 // Ensures last item is not hidden behind the fixed bottom nav
   },
   fab: {
     position: "absolute",
-    bottom: 90, // Adjusted to sit above the Bottom Nav
+    bottom: 20,
     right: 20,
     backgroundColor: colors.PRIMARY,
     width: 60,
@@ -200,35 +181,4 @@ const styles = StyleSheet.create({
   },
   emptyContainer: { alignItems: 'center', marginTop: 40 },
   emptyText: { color: colors.SECONDARY, fontSize: 16 },
-
-  // --- IMPROVED BOTTOM NAV STYLING ---
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    height: 70,
-    backgroundColor: colors.LIGHT,
-    borderTopWidth: 1,
-    borderTopColor: colors.BORDER_COLOR,
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingBottom: 10, // Extra space for gesture bars on modern phones
-    elevation: 10, // Shadow for Android
-    shadowColor: "#000", // Shadow for iOS
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  navItem: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-  },
-  navText: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 4,
-  }
 });

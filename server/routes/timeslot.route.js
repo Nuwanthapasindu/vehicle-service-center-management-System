@@ -9,7 +9,7 @@ const {
     getTimeslotById,
     getDailySchedule
 } = require("../controller/timeslot.controller");
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
 const responseBuild = require("../util/responseBuilder");
 const { USER_ROLES } = require("../util/constants");
 const AppError = require("../error/AppError");
@@ -28,8 +28,11 @@ router.get("/available", authTokenMiddleware, (req, res, next) => {
 });
 
 // Admin view (get all)
-router.get("/all", authTokenMiddleware, (req, res, next) => {
-    if (req.user.role !== USER_ROLES.ADMIN) return next(new AppError("Unauthorized", 403));
+router.get(
+    "/all",
+    authTokenMiddleware,
+    accessControl([USER_ROLES.ADMIN]),
+    (req, res, next) => {
     const responseBuilder = new responseBuild(res);
 
     getAllTimeslots()
@@ -41,8 +44,11 @@ router.get("/all", authTokenMiddleware, (req, res, next) => {
 });
 
 // Admin schedule (with vehicles)
-router.get("/schedule", authTokenMiddleware, (req, res, next) => {
-    if (req.user.role !== USER_ROLES.ADMIN) return next(new AppError("Unauthorized", 403));
+router.get(
+    "/schedule",
+    authTokenMiddleware,
+    accessControl([USER_ROLES.ADMIN]),
+    (req, res, next) => {
     const responseBuilder = new responseBuild(res);
     const { date } = req.query;
 
@@ -55,8 +61,11 @@ router.get("/schedule", authTokenMiddleware, (req, res, next) => {
 });
 
 // Admin get by id
-router.get("/:id", authTokenMiddleware, (req, res, next) => {
-    if (req.user.role !== USER_ROLES.ADMIN) return next(new AppError("Unauthorized", 403));
+router.get(
+    "/:id",
+    authTokenMiddleware,
+    accessControl([USER_ROLES.ADMIN]),
+    (req, res, next) => {
     const responseBuilder = new responseBuild(res);
 
     getTimeslotById(req.params.id)
@@ -68,8 +77,11 @@ router.get("/:id", authTokenMiddleware, (req, res, next) => {
 });
 
 // Admin create
-router.post("/", authTokenMiddleware, (req, res, next) => {
-    if (req.user.role !== USER_ROLES.ADMIN) return next(new AppError("Unauthorized", 403));
+router.post(
+    "/",
+    authTokenMiddleware,
+    accessControl([USER_ROLES.ADMIN]),
+    (req, res, next) => {
     const responseBuilder = new responseBuild(res);
 
     createTimeslot(req.body)
@@ -81,8 +93,11 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
 });
 
 // Admin update
-router.put("/:id", authTokenMiddleware, (req, res, next) => {
-    if (req.user.role !== USER_ROLES.ADMIN) return next(new AppError("Unauthorized", 403));
+router.put(
+    "/:id",
+    authTokenMiddleware,
+    accessControl([USER_ROLES.ADMIN]),
+    (req, res, next) => {
     const responseBuilder = new responseBuild(res);
 
     updateTimeslot(req.params.id, req.body)
@@ -94,8 +109,11 @@ router.put("/:id", authTokenMiddleware, (req, res, next) => {
 });
 
 // Admin toggle state
-router.patch("/:id/state", authTokenMiddleware, (req, res, next) => {
-    if (req.user.role !== USER_ROLES.ADMIN) return next(new AppError("Unauthorized", 403));
+router.patch(
+    "/:id/state",
+    authTokenMiddleware,
+    accessControl([USER_ROLES.ADMIN]),
+    (req, res, next) => {
     const responseBuilder = new responseBuild(res);
 
     updateTimeslotState(req.params.id, req.body.isActive)
@@ -107,8 +125,11 @@ router.patch("/:id/state", authTokenMiddleware, (req, res, next) => {
 });
 
 // Admin delete
-router.delete("/:id", authTokenMiddleware, (req, res, next) => {
-    if (req.user.role !== USER_ROLES.ADMIN) return next(new AppError("Unauthorized", 403));
+router.delete(
+    "/:id",
+    authTokenMiddleware,
+    accessControl([USER_ROLES.ADMIN]),
+    (req, res, next) => {
     const responseBuilder = new responseBuild(res);
 
     deleteTimeslot(req.params.id)

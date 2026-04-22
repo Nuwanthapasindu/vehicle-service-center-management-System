@@ -10,7 +10,6 @@ const Team = require("../model/Team");
 const Review = require("../model/Review");
 const { JOBCARD_STATUS } = require("../util/constants");
 
-
 const { validatedCreateBooking } = require("../validation/booking.validation");
 
 module.exports.createBooking = async (payload, mobile) => {
@@ -23,13 +22,15 @@ module.exports.createBooking = async (payload, mobile) => {
     const owner = await User.findOne({ mobile, isDeleted: false });
     if (!owner) throw new AppError("Customer not found", 404);
 
-    const checkDate = new Date(typeof date === 'string' && !date.includes('T') ? `${date}T00:00:00Z` : date);
+    const checkDate = new Date(
+      typeof date === "string" && !date.includes("T")
+        ? `${date}T00:00:00Z`
+        : date,
+    );
     checkDate.setUTCHours(0, 0, 0, 0);
-
 
     const nextDay = new Date(checkDate);
     nextDay.setUTCDate(nextDay.getUTCDate() + 1);
-
 
     const slotDoc = await Timeslot.findOne({ _id: slot, isDeleted: false });
     if (!slotDoc) throw new AppError("Timeslot not found", 404);
@@ -119,6 +120,17 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
           isDeleted: false,
         }).populate("selectedPackage", "name");
 
+        let totalCost = 0;
+        if (jobCard) {
+          const invoice = await Invoice.findOne({
+            jobCard: jobCard._id,
+            isDeleted: false,
+          });
+          if (invoice) {
+            totalCost = invoice.totalPrice;
+          }
+        }
+
         return {
           id: booking._id,
           date: booking.date,
@@ -128,13 +140,13 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
           licensePlate: booking.vehicle?.licensePlate || "N/A",
           service: jobCard?.selectedPackage?.name || "Pending Selection",
           status: jobCard?.status || "PENDING",
+          totalCost: totalCost,
           canViewDetails: !!jobCard,
           hasReview: !!(await Review.findOne({
             booking: booking._id,
             isDeleted: false,
           })),
         };
-
       }),
     );
 
@@ -251,17 +263,17 @@ module.exports.getDashboardData = async (mobile) => {
       },
       upcomingBooking: upcomingBooking
         ? {
-          id: upcomingBooking._id,
-          service: "Service Scheduled", // We don't have package assigned on booking yet
-          vehicle: upcomingBooking.vehicle
-            ? `${upcomingBooking.vehicle.make} ${upcomingBooking.vehicle.model}`
-            : "Unknown",
-          date: upcomingBooking.date,
-          time: upcomingBooking.slot
-            ? `${upcomingBooking.slot.startTime} - ${upcomingBooking.slot.endTime}`
-            : "TBD",
-          status: "CONFIRMED",
-        }
+            id: upcomingBooking._id,
+            service: "Service Scheduled", // We don't have package assigned on booking yet
+            vehicle: upcomingBooking.vehicle
+              ? `${upcomingBooking.vehicle.make} ${upcomingBooking.vehicle.model}`
+              : "Unknown",
+            date: upcomingBooking.date,
+            time: upcomingBooking.slot
+              ? `${upcomingBooking.slot.startTime} - ${upcomingBooking.slot.endTime}`
+              : "TBD",
+            status: "CONFIRMED",
+          }
         : null,
       recentVehicles,
       recentHistory,
@@ -329,9 +341,9 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
       date: booking.date.toISOString().split("T")[0],
       time: booking.slot ? booking.slot.startTime : null,
 
-
       status: statusZ,
       customer: {
+        _id: booking.customer ? booking.customer._id : null,
         name: booking.customer ? booking.customer.name : null,
         phone: booking.customer ? booking.customer.mobile : null,
       },
@@ -347,7 +359,7 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
         pricingTier: tier,
         statusZone: statusZ,
         jobCardId: jobCard ? jobCard._id : null,
-        milageCount: jobCard ? jobCard.milageCount : null
+        milageCount: jobCard ? jobCard.milageCount : null,
       },
       assignedTeam: assignedT,
       teams: formattedTeams,
@@ -362,7 +374,11 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
     throw new AppError("Valid Booking ID is required", 400);
   }
 
-  if (!payload || typeof payload !== "object" || Object.keys(payload).length === 0) {
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    Object.keys(payload).length === 0
+  ) {
     throw new AppError("Payload is required and cannot be empty", 400);
   }
 
@@ -380,11 +396,20 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
     const booking = await Booking.findOne({ _id: bookingId, isDeleted: false });
     if (!booking) throw new AppError("Booking not found", 404);
 
+    // Restrict rescheduling if service has started or completed
+    const jobCardCheck = await JobCard.findOne({ booking: bookingId, isDeleted: false });
+    if (jobCardCheck && jobCardCheck.status !== JOBCARD_STATUS.PENDING) {
+      throw new AppError(`Cannot reschedule a booking that is currently ${jobCardCheck.status.toLowerCase()}.`, 400);
+    }
+
     if (date) {
-      const checkDate = new Date(typeof date === 'string' && !date.includes('T') ? `${date}T00:00:00Z` : date);
+      const checkDate = new Date(
+        typeof date === "string" && !date.includes("T")
+          ? `${date}T00:00:00Z`
+          : date,
+      );
       checkDate.setUTCHours(0, 0, 0, 0);
       booking.date = checkDate;
-
     }
 
     if (slot) {
@@ -400,7 +425,6 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
       const nextDay = new Date(checkDate);
       nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
-
       const existingBookings = await Booking.find({
         _id: { $ne: bookingId },
         slot: booking.slot,
@@ -411,15 +435,21 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
       const slotDoc = await Timeslot.findById(booking.slot);
 
       if (existingBookings.length >= slotDoc.maxCapacity) {
-        throw new AppError("This timeslot is fully booked for the selected date", 400);
+        throw new AppError(
+          "This timeslot is fully booked for the selected date",
+          400,
+        );
       }
     }
 
-    const updatedBooking = await booking.save();
-    return updatedBooking;
+    await booking.save();
+    return "Booking updated successfully";
   } catch (error) {
     if (error.code === 11000) {
-      throw new AppError("This vehicle is already booked for this specific time slot on the selected date.", 409);
+      throw new AppError(
+        "This vehicle is already booked for this specific time slot on the selected date.",
+        409,
+      );
     }
     throw new AppError(error.message, error.statusCode || 500);
   }
@@ -430,6 +460,32 @@ module.exports.cancelBookingByAdmin = async (bookingId) => {
     const booking = await Booking.findOne({ _id: bookingId, isDeleted: false });
     if (!booking) throw new AppError("Booking not found", 404);
 
+    // Find associated Job Card
+    const jobCard = await JobCard.findOne({
+      booking: bookingId,
+      isDeleted: false,
+    });
+
+    if (jobCard && jobCard.status === JOBCARD_STATUS.FINISH) {
+      throw new AppError("Cannot cancel a booking that has already been finished.", 400);
+    }
+
+    if (jobCard) {
+      // Delete associated Invoices if Job Card exists
+      await Invoice.findOneAndUpdate(
+        { jobCard: jobCard._id, isDeleted: false },
+        {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      );
+
+      // Delete Job Card
+      jobCard.isDeleted = true;
+      jobCard.deletedAt = new Date();
+      await jobCard.save();
+    }
+
     booking.isDeleted = true;
     booking.deletedAt = new Date();
     await booking.save();
@@ -439,4 +495,3 @@ module.exports.cancelBookingByAdmin = async (bookingId) => {
     throw new AppError(error.message, error.statusCode || 500);
   }
 };
-

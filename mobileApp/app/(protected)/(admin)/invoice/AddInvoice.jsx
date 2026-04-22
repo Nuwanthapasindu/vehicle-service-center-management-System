@@ -189,7 +189,7 @@ export default function AddInvoice() {
   };
 
   const formatPrice = (price) => {
-    return price.toLocaleString("en-IN");
+    return (price || 0).toLocaleString("en-IN");
   };
 
   // Core Submission API Integration

@@ -11,7 +11,8 @@ const {
   getLogsByItem,
 } = require("../controller/inventoryLogs.controller");
 
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
 
 /**
@@ -42,7 +43,7 @@ const responseBuild = require("../util/responseBuilder");
  *       200:
  *         description: Inventory logs fetched successfully
  */
-router.get("/", authTokenMiddleware, (req, res, next) => {
+router.get("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   getLogs(req.query)
@@ -87,7 +88,7 @@ router.get("/", authTokenMiddleware, (req, res, next) => {
  *       200:
  *         description: Inventory logs for item fetched successfully
  */
-router.get("/:inventoryId", authTokenMiddleware, (req, res, next) => {
+router.get("/:inventoryId", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   getLogsByItem(req.params.inventoryId, req.query)

@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
-import colors from "../../../../constants/colors";
+import colors from "../../../../../constants/colors";
 import axios from "axios";
 
 export default function TeamDirectory() {
@@ -62,7 +62,6 @@ export default function TeamDirectory() {
         setTeams([]);
       }
     } catch (error) {
-      console.error("Fetch teams error:", error);
       setTeams([]);
     } finally {
       setLoading(false);
@@ -84,7 +83,7 @@ export default function TeamDirectory() {
     return (
       <TouchableOpacity 
         style={styles.card}
-        onPress={() => router.push(`/(protected)/(admin)/(team)/${item._id}`)}
+        onPress={() => router.push(`/(protected)/(admin)/staff/(team)/${item._id}`)}
       >
         <View style={[styles.iconContainer, { backgroundColor: colors.PRIMARY + "15" }]}>
           <Ionicons name={getTeamIcon(item.name)} size={24} color={colors.PRIMARY} />
@@ -182,26 +181,11 @@ export default function TeamDirectory() {
       {/* Floating Action Button */}
       <TouchableOpacity 
         style={styles.fab}
-        onPress={() => router.push("/(protected)/(admin)/(team)/add")}
+        onPress={() => router.push("/(protected)/(admin)/staff/(team)/add")}
       >
         <Ionicons name="add" size={32} color={colors.DARK} />
       </TouchableOpacity>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="people" size={24} color={colors.PRIMARY} />
-          <Text style={[styles.navText, { color: colors.PRIMARY }]}>Team</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-            style={styles.navItem} 
-            onPress={() => router.push("/(protected)/(admin)/(employee)")}
-        >
-          <Ionicons name="person-outline" size={24} color={colors.SECONDARY} />
-          <Text style={styles.navText}>Employee</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -248,7 +232,7 @@ const styles = StyleSheet.create({
   activeChipBreak: { borderColor: "#64748B", backgroundColor: "#F1F5F9" },
   activeChipTextBreak: { color: "#64748B" },
 
-  list: { padding: 16, paddingBottom: 110 },
+  list: { padding: 16 },
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -280,7 +264,7 @@ const styles = StyleSheet.create({
 
   fab: {
     position: "absolute",
-    bottom: 90, 
+    bottom: 20, 
     right: 20,
     backgroundColor: colors.PRIMARY,
     width: 60,

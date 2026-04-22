@@ -11,16 +11,18 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import colors from "../../../../constants/colors";
-import enums from "../../../../constants/enums";
+import colors from "../../../../../constants/colors";
+import enums from "../../../../../constants/enums";
 import { Formik } from "formik";
 import Toast from "react-native-toast-message";
-import AddEmployeeSchema from "../../../../schema/AddEmployeeSchema";
+import AddEmployeeSchema from "../../../../../schema/AddEmployeeSchema";
 import axios from "axios";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function AddEmployee() {
   const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
 
 
@@ -47,7 +49,7 @@ export default function AddEmployee() {
           text2: "Employee registered successfully",
         });
 
-        router.replace("/(protected)/(admin)/(employee)");
+        router.replace("/(protected)/(admin)/staff/(employee)");
       }
     } catch (error) {
       const message =
@@ -142,12 +144,30 @@ export default function AddEmployee() {
             {errors.dob && touched.dob && (
               <Text style={{ color: "red" }}>{errors.dob}</Text>
             )}
-            <TextInput
+            <TouchableOpacity
               style={styles.input}
-              placeholder="Date of Birth (YYYY-MM-DD)"
-              value={values.dob}
-              onChangeText={handleChange("dob")}
-            />
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={{ color: values.dob ? colors.DARK : colors.SECONDARY, paddingTop: 3 }}>
+                {values.dob || "Date of Birth (YYYY-MM-DD)"}
+              </Text>
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={values.dob ? new Date(values.dob) : new Date()}
+                mode="date"
+                display="default"
+                maximumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (event.type === "set" && selectedDate) {
+                    const formattedDate = selectedDate.toISOString().split("T")[0];
+                    setFieldValue("dob", formattedDate);
+                  }
+                }}
+              />
+            )}
 
             {errors.gender && touched.gender && (
               <Text style={{ color: "red" }}>{errors.gender}</Text>

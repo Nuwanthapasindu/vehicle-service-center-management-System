@@ -219,16 +219,19 @@ module.exports.deleteService = async (id) => {
   if (!id) throw new AppError("Service id is required", 400);
 
   try {
-    const deletedService = await Service.updateOne(
-      { _id: id, isDeleted: false },
-      { isDeleted: true, deletedAt: Date.now() },
-    );
-    if (!deletedService.modifiedCount) {
+    const service = await Service.findOne({ _id: id, isDeleted: false });
+    if (!service) {
       throw new AppError("Service not found", 404);
     }
-    if (deletedService.image) {
-      await deleteFileById(deletedService.image);
+
+    service.isDeleted = true;
+    service.deletedAt = Date.now();
+    await service.save();
+
+    if (service.image) {
+      await deleteFileById(service.image);
     }
+
     return "Service deleted successfully.";
   } catch (error) {
     throw new AppError(error.message, error.statusCode || 500);

@@ -12,8 +12,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import colors from "../../../../constants/colors";
-import EmployeeCard from "../../../../components/EmployeeCard";
+import colors from "../../../../../constants/colors";
+import EmployeeCard from "../../../../../components/EmployeeCard";
 import axios from "axios";
 
 export default function EditTeam() {
@@ -72,7 +72,6 @@ export default function EditTeam() {
         setSelectedEmployees(existingEmployeeIds);
       }
     } catch (error) {
-      console.error("Fetch error:", error);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -111,13 +110,14 @@ export default function EditTeam() {
         text2: "Team updated successfully",
       });
 
-      router.replace("/(protected)/(admin)/(team)");
+      router.replace("/(protected)/(admin)/staff/(team)");
     } catch (error) {
+      const message = error.response?.data?.payload?.message || "Update failed";
       //error toast
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "Update failed",
+        text2: message,
       });
     } finally {
       setSubmitting(false);
@@ -142,7 +142,7 @@ export default function EditTeam() {
               text2: "Team deleted successfully",
             });
 
-            router.replace("/(protected)/(admin)/(team)");
+            router.replace("/(protected)/(admin)/staff/(team)");
           } catch (error) {
             //error toast
             Toast.show({

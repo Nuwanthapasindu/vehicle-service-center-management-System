@@ -97,7 +97,7 @@ export default function ManageBooking() {
     try {
       setIsUpdating(true);
       const dateStr = values.selectedDate.toISOString().split("T")[0];
-      await axios.patch(`/booking/admin/${id}`, {
+    const response =  await axios.patch(`/booking/admin/${id}`, {
         date: dateStr,
         slot: values.selectedSlotId,
       });
@@ -105,7 +105,7 @@ export default function ManageBooking() {
       Toast.show({
         type: "success",
         text1: "Success",
-        text2: "Booking rescheduled successfully",
+        text2: response.data.payload.message,
       });
       router.replace("/(protected)/(admin)/booking");
     } catch (error) {
@@ -231,7 +231,7 @@ export default function ManageBooking() {
                 <Text style={styles.label}>Select Date</Text>
                 <TouchableOpacity
                   style={styles.datePickerBtn}
-                  onPress={() => setShowDatePicker(true)}
+                  onPress={() => setShowDatePicker( prev=> !prev)}
                 >
                   <View style={styles.datePickerContent}>
                     <Ionicons name="calendar" size={20} color={colors.PRIMARY} />
@@ -240,7 +240,7 @@ export default function ManageBooking() {
                     </Text>
                   </View>
                   <Ionicons
-                    name="chevron-forward"
+                    name={showDatePicker ? "chevron-up" : "chevron-down"}
                     size={20}
                     color={colors.SECONDARY}
                   />
@@ -252,9 +252,9 @@ export default function ManageBooking() {
                     mode="date"
                     display="default"
                     minimumDate={new Date()}
-                    onValueChange={(event, date) => {
+                    onChange={(event, date) => {
                       setShowDatePicker(false);
-                      if (date) {
+                      if (event.type === "set" && date) {
                         setFieldValue("selectedDate", date);
                         setFieldValue("selectedSlotId", null);
                         fetchSlotsOnly(date);

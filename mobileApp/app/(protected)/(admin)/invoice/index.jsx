@@ -54,7 +54,15 @@ export default function AllInvoice() {
     const plateno = item.jobCard?.booking?.vehicle?.licensePlate || 'N/A';
 
     return (
-      <TouchableOpacity style={styles.card} onPress={() => router.push(`/(protected)/(admin)/invoice/${item._id}`)} activeOpacity={0.7}>
+      <TouchableOpacity 
+        style={styles.card} 
+        onPress={() => {
+          if (item._id) {
+            router.push(`/(protected)/(admin)/invoice/${item._id}`);
+          }
+        }} 
+        activeOpacity={0.7}
+      >
         <View style={styles.cardHeader}>
           <Text style={styles.invoiceId}>{item.invoiceId}</Text>
           <View style={[styles.badge, isPaid ? styles.badgePaid : styles.badgeUnpaid]}>
@@ -116,7 +124,7 @@ export default function AllInvoice() {
       ) : (
         <FlatList 
           data={filteredInvoices}
-          keyExtractor={item => item._id || item.invoiceId}
+          keyExtractor={(item, index) => item._id || item.invoiceId || index.toString()}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}

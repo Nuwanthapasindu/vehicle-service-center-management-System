@@ -34,10 +34,6 @@ export default function InvoiceLayout() {
           headerBackTitle: "Invoices",
         }}
         />
-        <Stack.Screen name="revenue" options={{
-          headerShown: false,
-        }}
-        />
     </Stack>
   )
 }

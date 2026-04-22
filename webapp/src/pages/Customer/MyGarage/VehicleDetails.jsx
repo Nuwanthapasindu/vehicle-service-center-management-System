@@ -35,6 +35,7 @@ const VehicleDetails = () => {
             const response = await axios.get('/booking/my-history', {
                 params: { vehicle: id }
             });
+            console.log(response.data.payload.history);
             setServiceHistory(response.data.payload.history || []);
         } catch (error) {
             console.error("Failed to fetch service history:", error);
@@ -97,8 +98,7 @@ const VehicleDetails = () => {
             const response = await axios.get(`/vehicle/${id}`);
             setVehicle(response.data.payload.vehicle);
         } catch (error) {
-            toast.error("Failed to load vehicle details.");
-            console.error(error);
+            toast.error(error.response?.data?.payload?.message || "Failed to load vehicle details.");
             navigate(-1);
         } finally {
             setLoading(false);

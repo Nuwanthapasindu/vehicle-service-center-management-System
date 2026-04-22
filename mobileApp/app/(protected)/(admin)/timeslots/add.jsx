@@ -20,7 +20,10 @@ import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
-import { formatSyncTime, formatDisplayTime } from "../../../../utils/timeFormatter";
+import {
+  formatSyncTime,
+  formatDisplayTime,
+} from "../../../../utils/timeFormatter";
 
 export default function AddTimeslot() {
   const router = useRouter();
@@ -48,14 +51,16 @@ export default function AddTimeslot() {
         Toast.show({
           type: "success",
           text1: "Success",
-          text2: response.data.payload.message || "Time slot added successfully",
+          text2:
+            response.data.payload.message || "Time slot added successfully",
         });
         router.back();
       } catch (error) {
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: error.response?.data?.payload?.message || "Failed to add time slot",
+          text2:
+            error.response?.data?.payload?.message || "Failed to add time slot",
         });
       } finally {
         setLoading(false);
@@ -80,10 +85,6 @@ export default function AddTimeslot() {
     }
   };
 
-
-
-
-
   return (
     <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
       <KeyboardAvoidingView
@@ -97,22 +98,44 @@ export default function AddTimeslot() {
               <Text style={styles.inputLabel}>Start Time</Text>
               <TouchableOpacity
                 style={styles.timePickerButton}
-                onPress={() => setShowStartPicker(true)}
+                onPress={() => {
+                  setShowEndPicker(false);
+                  setShowStartPicker(!showStartPicker);
+                }}
               >
-                <Text style={styles.timeValue}>{formatDisplayTime(formik.values.startTime)}</Text>
-                <Ionicons name="time-outline" size={24} color={colors.SECONDARY} />
+                <Text style={styles.timeValue}>
+                  {formatDisplayTime(formik.values.startTime)}
+                </Text>
+                <Ionicons
+                  name="time-outline"
+                  size={24}
+                  color={colors.SECONDARY}
+                />
               </TouchableOpacity>
 
-              <Text style={[styles.inputLabel, { marginTop: 20 }]}>End Time</Text>
+              <Text style={[styles.inputLabel, { marginTop: 20 }]}>
+                End Time
+              </Text>
               <TouchableOpacity
                 style={styles.timePickerButton}
-                onPress={() => setShowEndPicker(true)}
+                onPress={() => {
+                  setShowStartPicker(false);
+                  setShowEndPicker(!showEndPicker);
+                }}
               >
-                <Text style={styles.timeValue}>{formatDisplayTime(formik.values.endTime)}</Text>
-                <Ionicons name="time-outline" size={24} color={colors.SECONDARY} />
+                <Text style={styles.timeValue}>
+                  {formatDisplayTime(formik.values.endTime)}
+                </Text>
+                <Ionicons
+                  name="time-outline"
+                  size={24}
+                  color={colors.SECONDARY}
+                />
               </TouchableOpacity>
               {formik.touched.endTime && formik.errors.endTime && (
-                <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{formik.errors.endTime}</Text>
+                <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                  {formik.errors.endTime}
+                </Text>
               )}
             </View>
           </View>
@@ -129,17 +152,27 @@ export default function AddTimeslot() {
                 error={formik.errors.maxCapacity}
                 touched={formik.touched.maxCapacity}
                 keyboardType="numeric"
-                icon={<Ionicons name="people-outline" size={20} color={colors.SECONDARY} />}
+                icon={
+                  <Ionicons
+                    name="people-outline"
+                    size={20}
+                    color={colors.SECONDARY}
+                  />
+                }
               />
 
               <View style={styles.switchContainer}>
                 <View>
                   <Text style={styles.switchLabel}>Is Active?</Text>
-                  <Text style={styles.switchSubtitle}>Enable this slot for bookings</Text>
+                  <Text style={styles.switchSubtitle}>
+                    Enable this slot for bookings
+                  </Text>
                 </View>
                 <Switch
                   value={formik.values.isActive}
-                  onValueChange={(value) => formik.setFieldValue("isActive", value)}
+                  onValueChange={(value) =>
+                    formik.setFieldValue("isActive", value)
+                  }
                   trackColor={{ false: "#E2E8F0", true: colors.PRIMARY }}
                   thumbColor="#FFFFFF"
                 />
@@ -154,31 +187,57 @@ export default function AddTimeslot() {
             onPress={formik.handleSubmit}
             style={styles.saveButton}
             textStyle={styles.saveButtonText}
-            icon={!loading && <Ionicons name="checkmark-circle-outline" size={24} color={colors.DARK} />}
+            icon={
+              !loading && (
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={24}
+                  color={colors.DARK}
+                />
+              )
+            }
             disabled={loading}
           />
         </View>
 
         {showStartPicker && (
-          <DateTimePicker
-            value={formik.values.startTime}
-            mode="time"
-            is24Hour={false}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onValueChange={onStartTimeChange}
-
-          />
+          <View style={Platform.OS === "ios" && styles.pickerContainer}>
+            {Platform.OS === "ios" && (
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setShowStartPicker(false)}
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            )}
+            <DateTimePicker
+              value={formik.values.startTime}
+              mode="time"
+              is24Hour={false}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onStartTimeChange}
+            />
+          </View>
         )}
 
         {showEndPicker && (
-          <DateTimePicker
-            value={formik.values.endTime}
-            mode="time"
-            is24Hour={false}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onValueChange={onEndTimeChange}
-
-          />
+          <View style={Platform.OS === "ios" && styles.pickerContainer}>
+            {Platform.OS === "ios" && (
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setShowEndPicker(false)}
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            )}
+            <DateTimePicker
+              value={formik.values.endTime}
+              mode="time"
+              is24Hour={false}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onEndTimeChange}
+            />
+          </View>
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -272,5 +331,22 @@ const styles = StyleSheet.create({
     color: colors.DARK,
     fontSize: 18,
     fontWeight: "900",
+  },
+  pickerContainer: {
+    backgroundColor: colors.LIGHT,
+    borderTopWidth: 1,
+    borderTopColor: colors.BORDER_COLOR,
+  },
+  doneButton: {
+    alignItems: "flex-end",
+    padding: 12,
+    backgroundColor: colors.BACKGROUND_COLOR,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.BORDER_COLOR,
+  },
+  doneButtonText: {
+    color: colors.PRIMARY,
+    fontWeight: "700",
+    fontSize: 16,
   },
 });

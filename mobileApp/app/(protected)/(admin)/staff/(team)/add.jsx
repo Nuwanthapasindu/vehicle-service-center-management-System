@@ -9,11 +9,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import colors from "../../../../constants/colors";
+import colors from "../../../../../constants/colors";
 import { Formik } from "formik";
 import Toast from "react-native-toast-message";
-import CreateTeamSchema from "../../../../schema/CreateTeamSchema";
-import EmployeeCard from "../../../../components/EmployeeCard";
+import CreateTeamSchema from "../../../../../schema/CreateTeamSchema";
+import EmployeeCard from "../../../../../components/EmployeeCard";
 import axios from "axios";
 
 export default function CreateTeam() {
@@ -105,11 +105,11 @@ export default function CreateTeam() {
         });
 
         // navigate after toast
-        router.replace("/(protected)/(admin)/(team)");
+        router.replace("/(protected)/(admin)/staff/(team)");
       }
     } catch (error) {
       const message =
-        error.response?.data?.message || "Failed to create team";
+        error.response?.data?.payload?.message || "Failed to create team";
         Toast.show({
           type: "error",
           text1: "Error",

@@ -63,7 +63,8 @@ const {
   deletePackage,
   getAllPackagesForJobCard: getAllPublicPackages,
 } = require("../controller/package.controller");
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
 
 /**
@@ -119,7 +120,7 @@ const responseBuild = require("../util/responseBuilder");
  *       401:
  *         description: Unauthorized
  */
-router.post("/", authTokenMiddleware, (req, res, next) => {
+router.post("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
 
@@ -340,7 +341,7 @@ router.get("/:id", (req, res, next) => {
  *       404:
  *         description: Package not found
  */
-router.put("/:id", authTokenMiddleware, (req, res, next) => {
+router.put("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
   const { id } = req.params;
@@ -376,7 +377,7 @@ router.put("/:id", authTokenMiddleware, (req, res, next) => {
  *       404:
  *         description: Package not found
  */
-router.delete("/:id", authTokenMiddleware, (req, res, next) => {
+router.delete("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { id } = req.params;
 

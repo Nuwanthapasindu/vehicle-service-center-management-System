@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import reviewService from '../../services/reviewService';
-import serviceService from '../../services/serviceService';
 import { formatTimeAgo } from '../../util/dateFormatter';
 import './ReviewsPage.css';
+import packageService from '../../services/packageService';
+import { useNavigate } from 'react-router-dom';
 
 function ReviewsPage() {
+    const navigate = useNavigate();
     const [reviews, setReviews] = useState([]);
     const [stats, setStats] = useState({
         average: 0,
@@ -23,16 +26,15 @@ function ReviewsPage() {
     const fetchDetails = async () => {
         setLoading(true);
         try {
-            const [reviewsRes, servicesRes] = await Promise.all([
+            const [reviewsRes, packageRes] = await Promise.all([
                 reviewService.getPublicReviews({
                     page,
                     limit: 12,
                     sort: sortBy,
                     service: filterService === 'All Services' ? undefined : filterService
                 }),
-                serviceService.getServices({ limit: 100 })
+                packageService.getPublicPackages()
             ]);
-
             if (reviewsRes.data?.payload) {
                 setReviews(reviewsRes.data.payload.reviews || []);
                 setStats(reviewsRes.data.payload.stats || {
@@ -40,14 +42,16 @@ function ReviewsPage() {
                 });
             }
 
-            if (servicesRes.data?.payload?.services?.services) {
-                setServices(servicesRes.data.payload.services.services);
-            } else if (Array.isArray(servicesRes.data?.payload?.services)) {
-                setServices(servicesRes.data.payload.services);
+            if (packageRes.data.payload.packages) {
+                setServices(packageRes.data.payload.packages);
+            } else if (Array.isArray(packageRes.data?.payload?.packages)) {
+                setServices(packageRes.data.payload.packages);
             } else {
                 setServices([]);
             }
         } catch (error) {
+            toast.error("Error fetching reviews");
+            navigate('/');
             console.error("Error fetching reviews:", error);
         } finally {
             setLoading(false);
@@ -181,13 +185,13 @@ function ReviewsPage() {
                                     <span className="service-tag">{rev.service}</span>
                                     <p className="m-body-text" style={{ fontSize: '1rem', color: '#475569', marginBottom: '2.5rem', minHeight: '80px' }}>{rev.comment}</p>
 
-                                    {rev.adminResponse && (
+                                    {rev.adminReply && (
                                         <div className="official-response">
                                             <div className="response-header">
                                                 <i className="fa-solid fa-sparkles"></i>
                                                 <h5>RESPONSE FROM SHINE DEPOT</h5>
                                             </div>
-                                            <p style={{ fontSize: '0.85rem', lineHeight: '1.6', color: '#64748B' }}>{rev.adminResponse}</p>
+                                            <p style={{ fontSize: '0.85rem', lineHeight: '1.6', color: '#64748B' }}>{rev.adminReply}</p>
                                         </div>
                                     )}
                                 </div>

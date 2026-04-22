@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { exportHistoryToPDF } from '../../../util/historyExporter';
+import currencyFormatter from '../../../util/currencyFormatter';
 
 const ServiceHistoryTimeline = ({ loading, history, id, vehicle }) => {
     const navigate = useNavigate();
@@ -50,7 +51,7 @@ const ServiceHistoryTimeline = ({ loading, history, id, vehicle }) => {
                                             </p>
                                         </div>
                                         <div className="entry-price-tag">
-                                            LKR {item.price || "Unknown"}
+                                            LKR {currencyFormatter(item.totalCost) || "Unknown"}
                                         </div>
                                     </div>
 

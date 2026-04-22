@@ -7,7 +7,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import colors from '../../../../constants/colors';
 import { pdfGenerator } from '../../../../utils/pdfGenerator';
-import { getInvoiceTemplate } from '../../../../templates/pdf/invoiceTemplate';;
+import { getInvoiceTemplate } from '../../../../templates/pdf/invoiceTemplate';
 import { useLocalSearchParams } from 'expo-router';
 import { invoiceService } from '../../../../services/invoice/invoice.service';
 import enums from '../../../../constants/enums';
@@ -94,7 +94,7 @@ export default function ViewInvoice() {
        Toast.show({
         type: 'error',
         text1: 'Failed to add',
-        text2: error?.response?.data?.message || "Operation failed",
+        text2: error?.response?.data?.payload?.message || "Operation failed",
       });
     } finally {
       setIsProcessingAdd(false);
@@ -118,7 +118,7 @@ export default function ViewInvoice() {
        Toast.show({
         type: 'error',
         text1: 'Update Failed',
-        text2: error?.response?.data?.message || "Failed to update item",
+        text2: error?.response?.data?.payload?.message || "Failed to update item",
       });
     } finally {
       setLoading(false);

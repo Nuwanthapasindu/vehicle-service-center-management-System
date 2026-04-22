@@ -127,23 +127,25 @@ const MyReviews = () => {
                                             {review.comment || "No comments provided."}
                                         </p>
 
-                                        <div className="review-actions">
-                                            <button
-                                                className="action-btn edit-btn"
-                                                onClick={() => handleEditReview(review._id)}
-                                            >
+                                        {!review.isApproved && (
+                                            <div className="review-actions">
+                                                <button
+                                                    className="action-btn edit-btn"
+                                                    onClick={() => handleEditReview(review._id)}
+                                                >
 
-                                                <i className="fa-regular fa-pen-to-square"></i>
-                                                Edit Review
-                                            </button>
-                                            <button
-                                                className="action-btn delete-btn"
-                                                onClick={() => handleDeleteReview(review._id)}
-                                            >
-                                                <i className="fa-regular fa-trash-can"></i>
-                                                Delete
-                                            </button>
-                                        </div>
+                                                    <i className="fa-regular fa-pen-to-square"></i>
+                                                    Edit Review
+                                                </button>
+                                                <button
+                                                    className="action-btn delete-btn"
+                                                    onClick={() => handleDeleteReview(review._id)}
+                                                >
+                                                    <i className="fa-regular fa-trash-can"></i>
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
 

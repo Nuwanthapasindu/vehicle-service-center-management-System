@@ -13,7 +13,8 @@ const {
   deleteCategory,
 } = require("../controller/category.controller");
 
-const { authTokenMiddleware } = require("../middleware/auth");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
 
 /**
@@ -26,7 +27,7 @@ const responseBuild = require("../util/responseBuilder");
  *       200:
  *         description: Categories fetched successfully
  */
-router.get("/", authTokenMiddleware, (req, res, next) => {
+router.get("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   getAllCategories()
@@ -65,7 +66,7 @@ router.get("/", authTokenMiddleware, (req, res, next) => {
  *       400:
  *         description: Validation error
  */
-router.post("/", authTokenMiddleware, (req, res, next) => {
+router.post("/", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
 
@@ -109,7 +110,7 @@ router.post("/", authTokenMiddleware, (req, res, next) => {
  *       404:
  *         description: Category not found
  */
-router.patch("/:id", authTokenMiddleware, (req, res, next) => {
+router.patch("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   updateCategory(req.params.id, req.body)
@@ -142,7 +143,7 @@ router.patch("/:id", authTokenMiddleware, (req, res, next) => {
  *       404:
  *         description: Category not found
  */
-router.delete("/:id", authTokenMiddleware, (req, res, next) => {
+router.delete("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
   const responseBuilder = new responseBuild(res);
 
   deleteCategory(req.params.id)
