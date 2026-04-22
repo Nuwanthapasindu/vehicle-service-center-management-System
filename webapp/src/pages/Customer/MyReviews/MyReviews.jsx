@@ -118,7 +118,7 @@ const MyReviews = () => {
                                             <div>
                                                 <StarRating rating={review.rating} />
                                                 <h2 className="review-service-title">
-                                                    {review.booking?.vehicle?.make} {review.booking?.vehicle?.model} - {review.packageDetails}
+                                                    {review.booking?.vehicle?.make} {review.booking?.vehicle?.model} {review.booking?.vehicle ? '-' : ''} {review.packageDetails === 'N/A' ? 'No comment' : review.packageDetails}
                                                 </h2>
                                                 <p className="review-service-date">
                                                     Service Date: {formatLongDate(review.serviceDate)}
