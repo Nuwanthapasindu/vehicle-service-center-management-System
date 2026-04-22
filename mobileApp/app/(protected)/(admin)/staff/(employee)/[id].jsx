@@ -11,12 +11,12 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import colors from "../../../../constants/colors";
+import colors from "../../../../../constants/colors";
 import { Formik } from "formik";
 import Toast from "react-native-toast-message";
-import UpdateEmployeeSchema from "../../../../schema/UpdateEmployeeSchema";
+import UpdateEmployeeSchema from "../../../../../schema/UpdateEmployeeSchema";
 import axios from "axios";
-import enums from "../../../../constants/enums";
+import enums from "../../../../../constants/enums";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function EditEmployee() {
@@ -154,7 +154,7 @@ export default function EditEmployee() {
                   text2: "Employee deleted successfully",
                 });
 
-                router.replace("/(protected)/(admin)/(employee)");
+                router.replace("/(protected)/(admin)/staff/(employee)");
               }
             } catch (error) {
               //Alert.alert("Error", "Delete failed");

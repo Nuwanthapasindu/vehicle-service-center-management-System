@@ -11,7 +11,7 @@ export default function EmployeeCard({ item, onPress, selectable = false, select
     if (onPress) {
       onPress(item); // For selections, pass back the item instead of directly routing
     } else {
-      router.push(`/(protected)/(admin)/(employee)/${item._id}`);
+      router.push(`/(protected)/(admin)/staff/(employee)/${item._id}`);
     }
   };
 

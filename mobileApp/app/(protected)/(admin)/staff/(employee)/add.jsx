@@ -11,11 +11,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import colors from "../../../../constants/colors";
-import enums from "../../../../constants/enums";
+import colors from "../../../../../constants/colors";
+import enums from "../../../../../constants/enums";
 import { Formik } from "formik";
 import Toast from "react-native-toast-message";
-import AddEmployeeSchema from "../../../../schema/AddEmployeeSchema";
+import AddEmployeeSchema from "../../../../../schema/AddEmployeeSchema";
 import axios from "axios";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
@@ -49,7 +49,7 @@ export default function AddEmployee() {
           text2: "Employee registered successfully",
         });
 
-        router.replace("/(protected)/(admin)/(employee)");
+        router.replace("/(protected)/(admin)/staff/(employee)");
       }
     } catch (error) {
       const message =
