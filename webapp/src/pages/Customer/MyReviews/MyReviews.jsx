@@ -55,23 +55,27 @@ const MyReviews = () => {
 
     return (
         <CustomerLayout title="My Reviews">
-            <div className="my-reviews-page">
-                <nav className="breadcrumbs" style={{ display: 'flex', gap: '8px', fontSize: '14px', color: 'var(--secondary)', marginBottom: '24px' }}>
-                    <Link to="/customer/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>Home</Link>
-                    <span>&gt;</span>
-                    <span className="active" style={{ color: 'var(--dark)', fontWeight: '500' }}>My Review</span>
-                </nav>
+            <nav className="breadcrumbs">
+                <Link to="/customer/dashboard">
+                    <i className="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </Link>
+                <i className="fa-solid fa-chevron-right"></i>
+                <span className="active">My Reviews</span>
+            </nav>
 
-                <div className="my-reviews-header">
-                    <h1>My Reviews</h1>
-                    <div className="reviews-top-row">
-                        <p>Manage and track all the feedback you've shared about our professional detailing services</p>
-                        <Link to="/customer/service-history" className="add-review-btn">
-                            <i className="fa-solid fa-plus"></i>
-                            <span>ADD NEW REVIEW</span>
-                        </Link>
-                    </div>
+            <section className="page-title-section">
+                <div className="title-text-box">
+                    <h1 className="page-title">My Reviews</h1>
+                    <p className="page-subtitle">
+                        Manage and track all the feedback you've shared about our professional detailing services.
+                    </p>
                 </div>
+                <Link to="/customer/service-history" className="add-review-btn">
+                    <i className="fa-solid fa-circle-plus"></i>
+                    <span>ADD NEW REVIEW</span>
+                </Link>
+            </section>
 
                 <div className="reviews-tabs">
                     <button
@@ -161,7 +165,6 @@ const MyReviews = () => {
                         )}
                     </>
                 )}
-            </div>
         </CustomerLayout>
     );
 };
