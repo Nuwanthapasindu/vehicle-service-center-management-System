@@ -22,7 +22,7 @@ export default function AddCategory({ visible, onClose, onSuccess }) {
       onSuccess?.();
       onClose?.();
     } catch (error) {
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to add category' });
+      Toast.show({ type: 'error', text1: 'Error', text2: error.response?.data?.payload?.message || 'Failed to add category' });
     } finally {
       setLoading(false);
     }
