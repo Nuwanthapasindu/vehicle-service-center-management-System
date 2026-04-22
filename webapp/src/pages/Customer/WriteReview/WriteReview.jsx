@@ -10,6 +10,7 @@ import StarRating from '../../../components/Customer/StarRating/StarRating';
 import { formatShortDate } from '../../../util/dateFormatter';
 import { enums } from '../../../constants/enum';
 import './WriteReview.css';
+import defaultCarImg from '../../../assets/imgs/default-car.png';
 
 
 const WriteReview = () => {
@@ -130,8 +131,12 @@ const WriteReview = () => {
                 <div className="service-summary-card">
                     <div className="service-image-container">
                         <img
-                            src={getImageUrl(vehicleImage) || 'https://via.placeholder.com/200x140?text=Vehicle'}
+                            src={getImageUrl(vehicleImage) || defaultCarImg}
                             alt={vehicleName}
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = defaultCarImg;
+                            }}
                         />
                     </div>
                     <div className="service-info">
