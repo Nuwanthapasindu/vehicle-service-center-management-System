@@ -17,6 +17,7 @@ import Toast from "react-native-toast-message";
 import UpdateEmployeeSchema from "../../../../schema/UpdateEmployeeSchema";
 import axios from "axios";
 import enums from "../../../../constants/enums";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function EditEmployee() {
   const { id } = useLocalSearchParams();
@@ -24,6 +25,7 @@ export default function EditEmployee() {
 
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -258,12 +260,30 @@ export default function EditEmployee() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.fieldLabel}>DATE OF BIRTH</Text>
-                <TextInput
+                <TouchableOpacity
                   style={styles.input}
-                  placeholder="YYYY-MM-DD"
-                  value={values.dob}
-                  onChangeText={handleChange("dob")}
-                />
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Text style={{ color: values.dob ? colors.DARK : colors.SECONDARY, paddingTop: 3 }}>
+                    {values.dob || "YYYY-MM-DD"}
+                  </Text>
+                </TouchableOpacity>
+
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={values.dob ? new Date(values.dob) : new Date()}
+                    mode="date"
+                    display="default"
+                    maximumDate={new Date()}
+                    onChange={(event, selectedDate) => {
+                      setShowDatePicker(false);
+                      if (event.type === "set" && selectedDate) {
+                        const formattedDate = selectedDate.toISOString().split("T")[0];
+                        setFieldValue("dob", formattedDate);
+                      }
+                    }}
+                  />
+                )}
                 {touched.dob && errors.dob && (
                   <Text style={styles.errorText}>{errors.dob}</Text>
                 )}
