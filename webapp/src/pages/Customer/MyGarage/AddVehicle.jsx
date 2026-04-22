@@ -148,30 +148,35 @@ const AddVehicle = () => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label htmlFor="make">Make</label>
-                                    <div className="select-wrapper">
-                                        <select
+                                    <div className="input-with-icon">
+                                        <input
+                                            type="text"
                                             id="make"
                                             name="make"
+                                            list="make-options"
+                                            placeholder="Select or type make (Eg: Toyota)"
                                             value={formik.values.make}
                                             onChange={formik.handleChange}
                                             onBlur={formik.handleBlur}
                                             className={formik.touched.make && formik.errors.make ? 'error' : ''}
-                                        >
-                                            <option value="" disabled>Select make</option>
-                                            <option value="Toyota">Toyota</option>
-                                            <option value="Honda">Honda</option>
-                                            <option value="Nissan">Nissan</option>
-                                            <option value="BMW">BMW</option>
-                                            <option value="Mercedes-Benz">Mercedes-Benz</option>
-                                            <option value="Audi">Audi</option>
-                                            <option value="Ford">Ford</option>
-                                            <option value="Kia">Kia</option>
-                                            <option value="Hyundai">Hyundai</option>
-                                            <option value="Suzuki">Suzuki</option>
-                                            <option value="Porsche">Porsche</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                        <i className="fa-solid fa-chevron-down select-icon"></i>
+                                        />
+                                        <i className="fa-solid fa-industry input-right-icon"></i>
+                                        <datalist id="make-options">
+                                            <option value="Toyota" />
+                                            <option value="Honda" />
+                                            <option value="Nissan" />
+                                            <option value="BMW" />
+                                            <option value="Mercedes-Benz" />
+                                            <option value="Audi" />
+                                            <option value="Ford" />
+                                            <option value="Kia" />
+                                            <option value="Hyundai" />
+                                            <option value="Suzuki" />
+                                            <option value="Porsche" />
+                                            <option value="Lexus" />
+                                            <option value="Mazda" />
+                                            <option value="Volkswagen" />
+                                        </datalist>
                                     </div>
                                     {formik.touched.make && formik.errors.make && (
                                         <span className="error-text" style={{ color: 'red', fontSize: '11px', fontWeight: 'bold' }}>{formik.errors.make}</span>
@@ -189,16 +194,6 @@ const AddVehicle = () => {
                                             onChange={formik.handleChange}
                                             onBlur={formik.handleBlur}
                                             className={formik.touched.model && formik.errors.model ? 'error' : ''}
-                                            style={{
-                                                width: '100%',
-                                                padding: '1rem 1.25rem',
-                                                border: '1px solid var(--border-color, #E2E8F0)',
-                                                borderRadius: '12px',
-                                                backgroundColor: 'var(--light, #FFFFFF)',
-                                                fontSize: '0.95rem',
-                                                fontWeight: '600',
-                                                color: 'var(--dark, #1A1D23)'
-                                            }}
                                         />
                                         <i className="fa-solid fa-car input-right-icon"></i>
                                     </div>
@@ -220,16 +215,6 @@ const AddVehicle = () => {
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
                                         className={formik.touched.year && formik.errors.year ? 'error' : ''}
-                                        style={{
-                                            width: '100%',
-                                            padding: '1rem 1.25rem',
-                                            border: '1px solid var(--border-color, #E2E8F0)',
-                                            borderRadius: '12px',
-                                            backgroundColor: 'var(--light, #FFFFFF)',
-                                            fontSize: '0.95rem',
-                                            fontWeight: '600',
-                                            color: 'var(--dark, #1A1D23)'
-                                        }}
                                     />
                                     <i className="fa-solid fa-calendar-days input-right-icon"></i>
                                 </div>
