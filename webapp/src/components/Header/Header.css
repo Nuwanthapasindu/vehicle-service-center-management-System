@@ -1,0 +1,139 @@
+.header {
+    background-color: var(--light, #FFFFFF);
+    border-bottom: 1px solid var(--border-color, #E2E8F0);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--dark, #1A1D23);
+}
+
+.brand-logo {
+    background-color: var(--dark, #1A1D23);
+    color: var(--primary-color, #8EDB00);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 1.25rem;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.header-nav {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: var(--dark, #1A1D23);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color, #8EDB00);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.login-btn {
+    text-decoration: none;
+    color: var(--dark, #1A1D23);
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.login-btn:hover {
+    color: var(--primary-color, #8EDB00);
+}
+
+.book-btn {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.book-btn:hover {
+    opacity: 0.9;
+}
+
+.book-btn:active {
+    transform: scale(0.98);
+}
+
+.mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--dark, #1A1D23);
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--light, #FFFFFF);
+        flex-direction: column;
+        padding: 1.5rem 2rem;
+        gap: 1.5rem;
+        border-bottom: 1px solid var(--border-color, #E2E8F0);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-nav.active {
+        display: flex;
+    }
+
+    .mobile-toggle {
+        display: block;
+    }
+
+    .login-btn,
+    .book-btn {
+        display: none;
+    }
+}

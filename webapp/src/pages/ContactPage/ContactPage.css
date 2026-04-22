@@ -1,0 +1,226 @@
+.contact-page-wrapper {
+    background-color: #F8FAFC;
+    min-height: 100vh;
+}
+
+.contact-hero {
+    background-color: #FFFFFF;
+}
+
+.contact-hero-flex {
+    display: flex;
+    align-items: center;
+    gap: 8rem;
+}
+
+.contact-hero-left {
+    flex: 1;
+}
+
+.contact-method-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.contact-method-card {
+    background-color: #FFFFFF;
+    padding: 2.5rem;
+    border-radius: 20px;
+    border: 1px solid #F1F5F9;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.contact-method-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+    border-color: #E2E8F0;
+}
+
+.method-icon {
+    width: 48px;
+    height: 48px;
+    background-color: #1A1D23;
+    color: #8EDB00;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.method-info span {
+    font-size: 0.7rem;
+    font-weight: 850;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.method-info h4 {
+    font-size: 0.95rem;
+    font-weight: 850;
+    color: #1A1D23;
+}
+
+.contact-hero-right {
+    flex: 1;
+}
+
+.map-container {
+    width: 100%;
+    height: 550px;
+    background-color: #E2E8F0;
+    border-radius: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.map-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    pointer-events: none;
+}
+
+.location-pin {
+    position: relative;
+    color: #1A1D23;
+    font-size: 2.5rem;
+    z-index: 10;
+}
+
+.pin-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background-color: rgba(142, 219, 0, 0.4);
+    border-radius: 50%;
+    animation: pin-pulse 2s infinite;
+    z-index: -1;
+}
+
+@keyframes pin-pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+.location-card {
+    position: absolute;
+    bottom: 3rem;
+    left: 3rem;
+    background-color: #FFFFFF;
+    padding: 2rem;
+    border-radius: 20px;
+    max-width: 280px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    pointer-events: auto;
+}
+
+.location-card h5 {
+    font-size: 0.85rem;
+    font-weight: 950;
+    color: #1A1D23;
+    margin-bottom: 0.75rem;
+}
+
+.location-card p {
+    font-size: 0.8rem;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+    font-weight: 500;
+}
+
+.dir-link {
+    font-size: 0.75rem;
+    font-weight: 950;
+    color: #8EDB00;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: gap 0.2s;
+}
+
+.dir-link:hover {
+    gap: 0.75rem;
+}
+
+.opening-hours-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4rem;
+    margin-top: 4rem;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hour-item span {
+    font-size: 0.7rem;
+    font-weight: 850;
+    color: #94A3B8;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.hour-item h4 {
+    font-size: 1.25rem;
+    font-weight: 950;
+    color: #1A1D23;
+}
+
+.hour-divider {
+    width: 1px;
+    height: 50px;
+    background-color: #E2E8F0;
+}
+
+@media (max-width: 1200px) {
+    .contact-hero-flex {
+        flex-direction: column;
+        gap: 6rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .contact-method-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .opening-hours-grid {
+        flex-direction: column;
+        gap: 2.5rem;
+    }
+
+    .hour-divider {
+        display: none;
+    }
+
+    .location-card {
+        bottom: 2rem;
+        left: 2rem;
+        right: 2rem;
+        max-width: none;
+    }
+}

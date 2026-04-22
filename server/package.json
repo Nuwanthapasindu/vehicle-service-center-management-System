@@ -4,26 +4,35 @@
   "description": "Node js Backend for Vehicle Service Center Management System",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:unit": "jest tests/unit --runInBand",
+    "test:integration": "jest tests/integration --runInBand",
+    "test:all": "jest tests/unit tests/integration --runInBand",
     "dev": "nodemon server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^17.2.4",
-    "express": "^5.2.1",
+    "axios": "^1.13.5",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
     "handlebars": "^4.7.8",
     "helmet": "^7.1.0",
     "joi": "^17.12.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.3",
+    "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^6.9.13",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "jest": "^30.3.0",
+    "mongodb-memory-server": "^11.0.1",
     "nodemon": "^3.1.4",
+    "supertest": "^7.2.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   }

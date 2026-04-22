@@ -1,0 +1,301 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Global Breadcrumbs */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: #64748B;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+}
+
+.breadcrumbs a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+}
+
+.breadcrumbs a:hover {
+    opacity: 1;
+    color: var(--dark, #1A1D23);
+}
+
+.breadcrumbs i {
+    font-size: 0.7rem;
+    opacity: 0.4;
+}
+
+.breadcrumbs .fa-house,
+.breadcrumbs a i {
+    font-size: 0.85rem;
+    opacity: 1;
+}
+
+.breadcrumbs .active {
+    color: var(--dark, #1A1D23);
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.breadcrumbs .active i {
+    font-size: 0.85rem;
+    opacity: 1;
+}
+
+.page-title-section {
+    margin-bottom: 2.5rem;
+}
+
+h1.page-title,
+.page-title {
+    font-size: 2.5rem !important;
+    font-weight: 950 !important;
+    color: #1A1D23 !important;
+    margin: 0 0 0.5rem 0 !important;
+    letter-spacing: -1.5px !important;
+    line-height: 1.2 !important;
+}
+
+.page-subtitle {
+    color: #64748B !important;
+    font-size: 1.05rem !important;
+    font-weight: 500 !important;
+    max-width: 650px !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+}
+
+h2.section-title,
+.section-title {
+    font-size: 1.15rem !important;
+    font-weight: 850 !important;
+    color: #1A1D23 !important;
+    margin-bottom: 1.5rem !important;
+    letter-spacing: -0.2px !important;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-transform: uppercase;
+}
+
+h3.card-title,
+.card-title {
+    font-size: 1.35rem !important;
+    font-weight: 850 !important;
+    color: #1A1D23 !important;
+    margin: 0 0 0.5rem 0 !important;
+}
+
+.card-subtitle {
+    color: #64748B !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
+}
+
+.empty-state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #FFFFFF;
+    border: 1px solid #F1F5F9;
+    border-radius: 24px;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.empty-state-icon {
+    width: 64px;
+    height: 64px;
+    background-color: #F8FAFC;
+    color: #CBD5E1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-text {
+    font-size: 1.1rem;
+    color: #475569;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-btn {
+    padding: 0.85rem 1.75rem;
+    background-color: #8EDB00;
+    color: #1A1D23;
+    border-radius: 12px;
+    font-weight: 850;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.empty-state-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(142, 219, 0, 0.3);
+}
+
+.loading-state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 2rem;
+    width: 100%;
+}
+
+.loading-state-container i {
+    color: #8EDB00;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.loading-state-container p {
+    font-weight: 800;
+    color: #94A3B8;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MARKETING DESIGN SYSTEM (Public Pages)
+   ────────────────────────────────────────────────────────────────────────── */
+
+:root {
+    --m-primary: #8EDB00;
+    --m-dark: #1A1D23;
+    --m-slate: #64748B;
+    --m-border: #F1F5F9;
+}
+
+.m-hero-title {
+    font-size: clamp(3.5rem, 8vw, 6rem);
+    font-weight: 950;
+    line-height: 1;
+    color: var(--m-dark);
+    letter-spacing: -3px;
+    margin-bottom: 2rem;
+}
+
+.m-hero-title span {
+    color: var(--m-primary);
+}
+
+.m-section-title {
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    font-weight: 950;
+    color: var(--m-dark);
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 2rem;
+}
+
+.m-section-tag {
+    display: inline-block;
+    color: var(--m-primary);
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.m-body-text {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--m-slate);
+    font-weight: 500;
+}
+
+.m-section-padding {
+    padding: 10rem 2rem;
+}
+
+.m-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.m-btn-lime {
+    background-color: var(--m-primary);
+    color: var(--m-dark);
+    padding: 1.25rem 2.5rem;
+    border-radius: 12px;
+    font-weight: 850;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.m-btn-lime:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(142, 219, 0, 0.4);
+}
+
+.m-btn-outline {
+    background-color: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--m-dark);
+    padding: 1.25rem 2.5rem;
+    border-radius: 12px;
+    font-weight: 850;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.m-btn-outline:hover {
+    border-color: var(--m-dark);
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.m-centered {
+    text-align: center;
+}
+
+.m-flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

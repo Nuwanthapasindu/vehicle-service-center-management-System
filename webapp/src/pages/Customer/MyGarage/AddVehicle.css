@@ -1,0 +1,237 @@
+.add-vehicle-main-content {
+    padding: 0 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+
+
+/* Page Header */
+.page-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+
+
+.page-title .highlight {
+    color: var(--primary-color, #8EDB00);
+}
+
+
+
+/* Add Vehicle Card */
+.add-vehicle-card {
+    background-color: var(--light, #FFFFFF);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.card-header-text .card-title {
+    margin: 0;
+}
+
+
+
+/* Form Styling */
+.add-vehicle-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.add-vehicle-main-content .form-group label {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--dark, #1A1D23);
+}
+
+.input-with-icon,
+.select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.add-vehicle-main-content .input-with-icon input,
+.add-vehicle-main-content .select-wrapper select {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border-color, #E2E8F0);
+    border-radius: 12px;
+    background-color: var(--light, #FFFFFF);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--dark, #1A1D23);
+    outline: none;
+    transition: all 0.2s ease;
+    appearance: none;
+}
+
+.add-vehicle-main-content .input-with-icon input:focus,
+.add-vehicle-main-content .select-wrapper select:focus {
+    border-color: var(--primary-color, #8EDB00);
+    box-shadow: 0 0 0 4px rgba(142, 219, 0, 0.1);
+}
+
+.input-right-icon,
+.select-icon {
+    position: absolute;
+    right: 1.25rem;
+    color: #CBD5E1;
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
+/* Upload Area */
+.upload-dropzone {
+    border: 2px dashed #E2E8F0;
+    border-radius: 16px;
+    padding: 3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #F8FAFC;
+}
+
+.upload-dropzone:hover {
+    border-color: var(--primary-color, #8EDB00);
+    background-color: #F8F9FA;
+}
+
+.dropzone-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    width: 100%;
+}
+
+.upload-icon {
+    font-size: 2.5rem;
+    color: #CBD5E1;
+    margin-bottom: 0.5rem;
+}
+
+.upload-text {
+    font-size: 1rem;
+    font-weight: 750;
+    color: var(--dark, #1A1D23);
+    margin: 0;
+}
+
+.upload-hint {
+    font-size: 0.85rem;
+    color: var(--secondary, #64748B);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Actions */
+.form-actions-row {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.form-actions-row button {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 850;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-actions-row .add-btn {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    box-shadow: 0 4px 12px rgba(142, 219, 0, 0.2);
+}
+
+.form-actions-row .cancel-btn {
+    background-color: var(--dark, #1A1D23);
+    color: var(--light, #FFFFFF);
+}
+
+.form-actions-row button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+/* Note Section */
+.info-note-section {
+    background-color: #F1F5F9;
+    /* Very light blue/grey as per image */
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    border: 1px solid #E2E8F0;
+}
+
+.info-icon {
+    color: var(--primary-color, #8EDB00);
+    font-size: 1.25rem;
+    margin-top: 0.2rem;
+}
+
+.info-text {
+    font-size: 0.95rem;
+    color: var(--dark, #1A1D23);
+    margin: 0;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+.info-text strong {
+    font-weight: 750;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .add-vehicle-main-content {
+        padding: 0 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions-row {
+        flex-direction: column;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+}

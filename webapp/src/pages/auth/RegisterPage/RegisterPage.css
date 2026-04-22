@@ -1,0 +1,294 @@
+.register-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--background-color, #F8F9FA);
+}
+
+.register-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1rem;
+}
+
+.register-card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--light, #FFFFFF);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+}
+
+.register-card-header {
+    background-color: var(--dark, #1A1D23);
+    /* Fallback dark linear gradient to simulate the car image */
+    background-image:
+        linear-gradient(to bottom, rgba(26, 29, 35, 0.3), rgba(26, 29, 35, 1)),
+        url('https://images.unsplash.com/photo-1544883626-9f303f262145?auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center 25%;
+    color: var(--light, #FFFFFF);
+    padding: 3rem 2.5rem 2rem;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.register-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.register-subtitle {
+    font-size: 0.95rem;
+    opacity: 0.8;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.register-card-body {
+    padding: 2.5rem;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--dark, #1A1D23);
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: var(--light, #FFFFFF);
+    border: 1px solid var(--border-color, #E2E8F0);
+    border-radius: 8px;
+    padding: 0 1.25rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--primary-color, #8EDB00);
+    box-shadow: 0 0 0 3px rgba(142, 219, 0, 0.15);
+}
+
+.input-icon {
+    color: #A0AEC0;
+    font-size: 1.1rem;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.input-wrapper input {
+    flex: 1;
+    border: none;
+    padding: 0.875rem 0;
+    font-size: 0.95rem;
+    color: var(--dark, #1A1D23);
+    font-weight: 500;
+    outline: none;
+    background: transparent;
+}
+
+.input-wrapper input::placeholder {
+    color: #CBD5E1;
+    font-weight: 400;
+}
+
+.toggle-password {
+    background: none;
+    border: none;
+    color: #A0AEC0;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+    margin-left: 1rem;
+}
+
+.toggle-password:hover {
+    color: var(--dark, #1A1D23);
+}
+
+/* Security Strength Indicator Styles */
+.security-strength-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.security-strength-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.strength-label {
+    color: #A0AEC0;
+}
+
+.strength-value {
+    font-weight: 800;
+}
+
+.strength-value.strong {
+    color: var(--primary-color, #8EDB00);
+}
+
+.security-strength-bars {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.strength-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.strength-bar.filled {
+    background-color: var(--primary-color, #8EDB00);
+}
+
+.strength-bar.empty {
+    background-color: var(--border-color, #E2E8F0);
+}
+
+.register-submit-btn {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    border: none;
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 8px 16px rgba(142, 219, 0, 0.2);
+}
+
+.register-submit-btn:hover {
+    opacity: 0.9;
+}
+
+.register-submit-btn:active {
+    transform: scale(0.98);
+}
+
+.register-card-footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--secondary, #64748B);
+    border-top: 1px solid var(--border-color, #E2E8F0);
+    padding-top: 1.5rem;
+}
+
+.signin-link {
+    color: var(--primary-color, #8EDB00);
+    text-decoration: none;
+    font-weight: 700;
+    margin-left: 0.25rem;
+    transition: opacity 0.2s ease;
+}
+
+.signin-link:hover {
+    opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .register-card {
+        border-radius: 8px;
+    }
+
+    .register-card-body {
+        padding: 2rem 1.5rem;
+    }
+
+    .register-card-header {
+        padding: 2.5rem 1.5rem 1.5rem;
+    }
+}
+
+/* ── Validation: error border ─────────────────────────────────── */
+.input-wrapper.input-error {
+    border-color: #EF4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* ── Inline field error message ───────────────────────────────── */
+.field-error {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #EF4444;
+    margin-top: -0.2rem;
+}
+
+.field-error i {
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* ── Strength bar color variants ──────────────────────────────── */
+.strength-bar.weak   { background-color: #EF4444; }
+.strength-bar.fair   { background-color: #F97316; }
+.strength-bar.good   { background-color: #EAB308; }
+.strength-bar.strong { background-color: var(--primary-color, #8EDB00); }
+
+/* ── Strength value label colors ──────────────────────────────── */
+.strength-value.weak   { color: #EF4444; }
+.strength-value.fair   { color: #F97316; }
+.strength-value.good   { color: #EAB308; }
+/* .strength-value.strong is already defined above */
+
+/* ── Submit button: disabled state ───────────────────────────── */
+.register-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ── Spinner animation ────────────────────────────────────────── */
+@keyframes fa-spin {
+    0%   { transform: rotate(0deg);   }
+    100% { transform: rotate(360deg); }
+}
+.fa-spin {
+    animation: fa-spin 0.75s linear infinite;
+}

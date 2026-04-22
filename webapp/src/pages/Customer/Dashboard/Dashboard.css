@@ -1,0 +1,550 @@
+.welcome-greeting {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+}
+
+.greeting-text .greeting {
+    margin: 0;
+}
+
+.greeting-msg {
+    color: var(--secondary, #64748B);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.greeting-msg .highlight {
+    color: var(--dark, #1A1D23);
+    font-weight: 700;
+}
+
+.global-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.book-btn,
+.add-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.book-btn {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+}
+
+.add-btn {
+    background-color: var(--dark, #1A1D23);
+    color: var(--light, #FFFFFF);
+}
+
+.book-btn:hover,
+.add-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background-color: var(--light, #FFFFFF);
+    padding: 1.5rem;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #94A3B8;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 850;
+    color: var(--dark, #1A1D23);
+    margin: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.stat-value .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    background-color: #F1F5F9;
+    color: var(--secondary, #64748B);
+    border-radius: 6px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-description {
+    font-size: 0.8rem;
+    color: #94A3B8;
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+.stat-icon-bg {
+    font-size: 2.5rem;
+    color: #F1F5F9;
+    position: absolute;
+    right: 1.5rem;
+    bottom: -0.5rem;
+    opacity: 0.8;
+}
+
+.total-spent-card {
+    background-color: #1A1D23;
+    color: var(--light, #FFFFFF);
+    /* Pattern overlay similar to the image */
+    background-image: radial-gradient(circle at top right, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
+}
+
+.total-spent-card .stat-label {
+    color: var(--primary-color, #8EDB00);
+}
+
+.total-spent-card .stat-value {
+    color: var(--light, #FFFFFF);
+}
+
+/* Secondary Grid */
+.secondary-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+.dashboard-section {
+    background-color: var(--light, #FFFFFF);
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--dark, #1A1D23);
+    margin: 0;
+}
+
+.view-all-btn,
+.view-link {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--dark, #1A1D23);
+    background-color: #F1F5F9;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none !important;
+}
+
+/* Vehicle List */
+.vehicle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.vehicle-item-card {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem;
+    background-color: #FFFFFF;
+    border: 1px solid #F1F5F9;
+    border-radius: 16px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.vehicle-item-card:hover {
+    border-color: var(--primary-color, #8EDB00);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.vehicle-image img {
+    width: 100%;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.vehicle-name {
+    font-size: 1rem;
+    font-weight: 750;
+    color: var(--dark, #1A1D23);
+    margin: 0;
+}
+
+.vehicle-year {
+    font-size: 0.8rem;
+    color: #94A3B8;
+    font-weight: 600;
+}
+
+.service-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--secondary, #64748B);
+    font-weight: 600;
+}
+
+.service-status .dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--primary-color, #8EDB00);
+    border-radius: 50%;
+}
+
+/* Upcoming Section Card */
+.upcoming-booking-card {
+    border: 2px solid #8EDB00;
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.upcoming-booking-card .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+}
+
+.service-icon-box {
+    width: 45px;
+    height: 45px;
+    background-color: #1A1D23;
+    color: var(--primary-color, #8EDB00);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+}
+
+.service-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--dark, #1A1D23);
+    margin: 0;
+}
+
+.service-vehicle {
+    font-size: 0.75rem;
+    color: #94A3B8;
+    font-weight: 700;
+}
+
+.upcoming-booking-card .status-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.booking-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 600;
+}
+
+.booking-info-item i {
+    color: #94A3B8;
+    width: 16px;
+}
+
+.manage-btn {
+    width: 100%;
+    background-color: #1A1D23;
+    color: white;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* Table Section */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.75rem;
+    font-weight: 850;
+    color: #94A3B8;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #F8F9FA;
+}
+
+.history-table td {
+    padding: 1.25rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 1px solid #F8F9FA;
+}
+
+.date-cell {
+    color: var(--secondary, #64748B);
+}
+
+.vehicle-cell {
+    color: var(--dark, #1A1D23);
+    font-weight: 800;
+}
+
+.cost-cell {
+    font-weight: 800;
+    color: var(--dark, #1A1D23);
+}
+
+.status-pill {
+    font-size: 0.7rem;
+    font-weight: 850;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+}
+
+.status-pill.completed {
+    background-color: #F0FDF4;
+    color: #16A34A;
+    border: 1px solid #DCFCE7;
+}
+
+.status-pill.progress {
+    background-color: #EFF6FF;
+    color: #2563EB;
+    border: 1px solid #DBEAFE;
+}
+
+.status-pill.pending {
+    background-color: #FFFBEB;
+    color: #D97706;
+    border: 1px solid #FEF3C7;
+}
+
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: #94A3B8;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background-color: #F8FAFC;
+    border-radius: 12px;
+    border: 1px dashed #E2E8F0;
+}
+
+.upcoming-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem 1.5rem;
+}
+
+.upcoming-empty i {
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+
+.book-inline-btn {
+    background-color: var(--primary-color, #8EDB00);
+    color: var(--dark, #1A1D23);
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 850;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-top: 0.5rem;
+    transition: all 0.2s;
+}
+
+.book-inline-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 1150px) {
+    .secondary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1024px) {
+    .customer-content-area {
+        margin-left: 80px;
+    }
+
+    .dashboard-main-content {
+        padding: 0 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .customer-content-area {
+        margin-left: 0;
+    }
+
+    .dashboard-main-content {
+        padding: 0 1.25rem;
+        gap: 1.5rem;
+    }
+
+    .welcome-greeting {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.25rem;
+        padding: 1rem 0;
+    }
+
+    .greeting-text .greeting {
+        font-size: 1.75rem;
+    }
+
+    .global-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .book-btn,
+    .add-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+        min-height: 100px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-icon-bg {
+        font-size: 2rem;
+        right: 1rem;
+    }
+
+    .dashboard-section {
+        padding: 1.25rem;
+    }
+
+    .vehicle-item-card {
+        grid-template-columns: 60px 1fr;
+        padding: 0.75rem;
+    }
+
+    .service-status {
+        grid-column: 2;
+        margin-top: 0.25rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -1.25rem;
+        padding: 0 1.25rem;
+    }
+
+    .history-table {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 480px) {
+    .customer-content-area {
+        margin-left: 0;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        min-height: auto;
+    }
+
+    .greeting-text .greeting {
+        font-size: 1.5rem;
+    }
+}

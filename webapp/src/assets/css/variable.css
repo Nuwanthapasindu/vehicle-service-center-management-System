@@ -1,0 +1,10 @@
+/* TODO: ALL CSS VARIABLES GOES HERE */
+:root {
+    --primary-color: #8EDB00;
+    --background-color: #F8F9FA;
+    --light: #FFFFFF;
+    --dark: #1A1D23;
+    --secondary: #64748B;
+    --border-color: #E2E8F0;
+    --danger-color: #EF4444;
+}

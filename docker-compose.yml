@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - back-network
+    # Security: Do not expose to host, keep it internal to the network
+    # Security: Run with auth enabled (handled by official image when root user is set)
+    restart: always
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server/storage:/usr/src/app/storage
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=production
+      - CLIENT_URL=http://localhost
+      - MONGO_DB_URL=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DATABASE}?authSource=admin
+    depends_on:
+      - mongodb
+    networks:
+      - back-network
+    restart: always
+
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+      args:
+        - VITE_SERVER_URL=http://localhost:4000/api/v1
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - back-network
+    restart: always
+
+networks:
+  back-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
