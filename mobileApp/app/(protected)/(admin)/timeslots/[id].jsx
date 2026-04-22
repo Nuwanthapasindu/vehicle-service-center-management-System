@@ -177,7 +177,10 @@ export default function UpdateTimeslot() {
               <Text style={styles.inputLabel}>Start Time</Text>
               <TouchableOpacity
                 style={styles.timePickerButton}
-                onPress={() => setShowStartPicker(true)}
+                onPress={() => {
+                  setShowEndPicker(false);
+                  setShowStartPicker(!showStartPicker);
+                }}
               >
                 <Text style={styles.timeValue}>{formatDisplayTime(formik.values.startTime)}</Text>
                 <Ionicons name="time-outline" size={24} color={colors.SECONDARY} />
@@ -186,7 +189,10 @@ export default function UpdateTimeslot() {
               <Text style={[styles.inputLabel, { marginTop: 20 }]}>End Time</Text>
               <TouchableOpacity
                 style={styles.timePickerButton}
-                onPress={() => setShowEndPicker(true)}
+                onPress={() => {
+                  setShowStartPicker(false);
+                  setShowEndPicker(!showEndPicker);
+                }}
               >
                 <Text style={styles.timeValue}>{formatDisplayTime(formik.values.endTime)}</Text>
                 <Ionicons name="time-outline" size={24} color={colors.SECONDARY} />
@@ -248,25 +254,43 @@ export default function UpdateTimeslot() {
         </View>
 
         {showStartPicker && (
-          <DateTimePicker
-            value={formik.values.startTime}
-            mode="time"
-            is24Hour={false}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onValueChange={onStartTimeChange}
-
-          />
+          <View style={Platform.OS === "ios" && styles.pickerContainer}>
+            {Platform.OS === "ios" && (
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setShowStartPicker(false)}
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            )}
+            <DateTimePicker
+              value={formik.values.startTime}
+              mode="time"
+              is24Hour={false}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onStartTimeChange}
+            />
+          </View>
         )}
 
         {showEndPicker && (
-          <DateTimePicker
-            value={formik.values.endTime}
-            mode="time"
-            is24Hour={false}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onValueChange={onEndTimeChange}
-
-          />
+          <View style={Platform.OS === "ios" && styles.pickerContainer}>
+             {Platform.OS === "ios" && (
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setShowEndPicker(false)}
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            )}
+            <DateTimePicker
+              value={formik.values.endTime}
+              mode="time"
+              is24Hour={false}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onEndTimeChange}
+            />
+          </View>
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -379,5 +403,22 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     fontSize: 16,
     fontWeight: "700",
+  },
+  pickerContainer: {
+    backgroundColor: colors.LIGHT,
+    borderTopWidth: 1,
+    borderTopColor: colors.BORDER_COLOR,
+  },
+  doneButton: {
+    alignItems: "flex-end",
+    padding: 12,
+    backgroundColor: colors.BACKGROUND_COLOR,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.BORDER_COLOR,
+  },
+  doneButtonText: {
+    color: colors.PRIMARY,
+    fontWeight: "700",
+    fontSize: 16,
   },
 });
