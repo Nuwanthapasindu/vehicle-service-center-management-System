@@ -147,6 +147,14 @@ const ServiceHistory = () => {
                 </Link>
             </section>
 
+            {/* Cancellation Notice Alert */}
+            <div style={{ backgroundColor: '#FFFBEB', border: '1px solid #FDE68A', padding: '16px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <i className="fa-solid fa-phone" style={{ color: '#D97706', fontSize: '20px' }}></i>
+                <p style={{ margin: 0, color: '#92400E', fontSize: '14px', lineHeight: '1.5' }}>
+                    <strong>Need to cancel or change a booking?</strong> Online modifications are not supported. Please call our service center directly at <strong>+94 77 123 4567</strong> for assistance.
+                </p>
+            </div>
+
             {/* Filter Section */}
             <div className="filter-card">
                 <div className="search-box">
