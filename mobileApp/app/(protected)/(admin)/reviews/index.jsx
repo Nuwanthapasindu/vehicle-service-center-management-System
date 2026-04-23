@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import colors from "../../../../constants/colors";
 import ReviewItem from "../../../../components/ReviewItem";
@@ -58,9 +59,11 @@ export default function ReviewsModeration() {
     }
   };
 
-  useEffect(() => {
-    fetchReviews(1, true);
-  }, [activeTab]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchReviews(1, true);
+    }, [activeTab])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
