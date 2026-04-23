@@ -52,7 +52,7 @@ describe('Vehicle Routes Integration Tests', () => {
         populate: jest.fn().mockReturnThis(),
         sort: jest.fn().mockResolvedValue([{ _id: 'v1', licensePlate: 'ABC-1234' }])
       });
-      
+
       const res = await request(app).get('/vehicles/my-vehicles');
       expect(res.statusCode).toBe(200);
       expect(res.body.payload).toBeDefined();
@@ -66,7 +66,7 @@ describe('Vehicle Routes Integration Tests', () => {
       Vehicle.findOne.mockResolvedValue({ _id: mockId, licensePlate: 'WP-CAB-1234' });
       Vehicle.findByIdAndUpdate.mockResolvedValue({ _id: mockId });
       require('../../model/Booking').find.mockResolvedValue([]);
-      
+
       const res = await request(app).delete(`/vehicles/${mockId}`);
       expect(res.statusCode).toBe(200);
       expect(res.body.payload.message).toContain('deleted successfully');
