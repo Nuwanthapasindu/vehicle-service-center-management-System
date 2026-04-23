@@ -467,9 +467,16 @@
     }
 }
 
+@media (max-width: 1024px) {
+    .booking-main-content {
+        padding: 0 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .booking-main-content {
-        padding: 0 1.5rem;
+        padding: 0 1.25rem;
+        gap: 1.5rem;
     }
 
     .vehicle-display-name {

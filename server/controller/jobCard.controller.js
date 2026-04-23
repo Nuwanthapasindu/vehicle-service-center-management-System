@@ -61,10 +61,10 @@ exports.assignTeam = async (payload) => {
 
     const jobCard = await JobCard.findByIdAndUpdate(
         value.jobCardId,
-        { 
-            team: value.teamId, 
-            status: "IN_PROGRESS", 
-            startTime: new Date() 
+        {
+            team: value.teamId,
+            status: JOBCARD_STATUS.START,
+            startTime: new Date()
         },
         { new: true }
     ).populate('team');
@@ -90,14 +90,14 @@ exports.getMyTasks = async (user) => {
     return await JobCard.find({
         team: { $in: teamIds },
         isDeleted: false,
-        status: { $in: ["PENDING", "IN_PROGRESS"] }
+        status: { $in: [JOBCARD_STATUS.PENDING, JOBCARD_STATUS.START] }
     })
-    .populate({
-        path: 'booking',
-        populate: [{ path: 'vehicle' }, { path: 'customer', select: 'name mobile' }]
-    })
-    .populate('selectedPackage')
-    .sort({ createdAt: -1 });
+        .populate({
+            path: 'booking',
+            populate: [{ path: 'vehicle' }, { path: 'customer', select: 'name mobile' }]
+        })
+        .populate('selectedPackage')
+        .sort({ createdAt: -1 });
 };
 
 // ADMIN: Get All Bookings (Available for JobCards)
