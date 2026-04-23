@@ -140,7 +140,8 @@ exports.getInvoiceByJobCard = async (jobCardId) => {
     const invoice = await Invoice.findOne({ jobCard: jobCardId, isDeleted: false })
       .populate("customer", "name mobile")
       .populate("additionalItems.item", "name sku")
-      .populate("additionalServices.service", "name category");
+      .populate("additionalServices.service", "name category")
+      .sort({ createdAt: -1 });
 
     if (!invoice) throw new AppError("No Invoice organically found for the provided JobCard", 404);
 
@@ -204,7 +205,7 @@ exports.getAllInvoices = async (queryOptions = {}) => {
         "-additionalItems.item",
         "-additionalServices.service",
       ])
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: -1 });
 
     return invoices;
   } catch (error) {

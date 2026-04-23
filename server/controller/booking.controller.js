@@ -140,6 +140,7 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
           licensePlate: booking.vehicle?.licensePlate || "N/A",
           service: jobCard?.selectedPackage?.name || "Pending Selection",
           status: jobCard?.status || "PENDING",
+          milageCount: jobCard?.milageCount || 0,
           totalCost: totalCost,
           canViewDetails: !!jobCard,
           hasReview: !!(await Review.findOne({

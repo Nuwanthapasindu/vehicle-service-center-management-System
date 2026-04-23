@@ -67,7 +67,7 @@ const ServiceHistory = () => {
                 setHistoryData(response.data.payload.history || []);
                 setCurrentPage(1); // Reset to first page on new search/filter
             } catch (error) {
-                toast.error("Failed to fetch service history");
+                toast.error(error.response?.data?.payload?.message || "Failed to fetch service history");
             } finally {
                 setLoading(false);
             }
@@ -146,6 +146,14 @@ const ServiceHistory = () => {
                     <span>BOOK NEW SERVICE</span>
                 </Link>
             </section>
+
+            {/* Cancellation Notice Alert */}
+            <div style={{ backgroundColor: '#FFFBEB', border: '1px solid #FDE68A', padding: '16px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <i className="fa-solid fa-phone" style={{ color: '#D97706', fontSize: '20px' }}></i>
+                <p style={{ margin: 0, color: '#92400E', fontSize: '14px', lineHeight: '1.5' }}>
+                    <strong>Need to cancel or change a booking?</strong> Online modifications are not supported. Please call our service center directly at <strong>+94 77 123 4567</strong> for assistance.
+                </p>
+            </div>
 
             {/* Filter Section */}
             <div className="filter-card">
@@ -235,6 +243,7 @@ const ServiceHistory = () => {
                                         <th>DATE</th>
                                         <th>VEHICLE</th>
                                         <th>SERVICE</th>
+                                        <th>MILEAGE</th>
                                         <th>STATUS</th>
                                         <th>Action</th>
                                     </tr>
@@ -250,6 +259,9 @@ const ServiceHistory = () => {
                                                 <small style={{ color: '#94A3B8', fontSize: '0.75rem' }}>{item.licensePlate}</small>
                                             </td>
                                             <td className="service-cell">{item.service}</td>
+                                            <td className="mileage-cell">
+                                                {item.milageCount ? `${item.milageCount.toLocaleString()} km` : 'N/A'}
+                                            </td>
                                             <td>
                                                 <span className={`status-pill ${getStatusClass(item.status)}`}>
                                                     {getStatusText(item.status)}

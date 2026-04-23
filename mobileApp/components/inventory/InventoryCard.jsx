@@ -88,9 +88,6 @@ const InventoryCard = ({ item, onPress }) => {
             source={getImageSource()}
             style={styles.productImage}
             defaultSource={require('../../assets/logo.png')}
-            onError={(e) => {
-              console.log('Image load error:', e.nativeEvent.error);
-            }}
           />
         </View>
 

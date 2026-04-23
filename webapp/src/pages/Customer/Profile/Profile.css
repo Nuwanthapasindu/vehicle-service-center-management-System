@@ -2,30 +2,12 @@
     padding: 0 2.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 
 
-/* Page Title Section */
-.page-title-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
 
-.page-title {
-    font-size: 2.2rem;
-    font-weight: 850;
-    color: var(--dark, #1A1D23);
-    margin: 0;
-}
-
-.page-subtitle {
-    color: var(--secondary, #64748B);
-    font-size: 1rem;
-    font-weight: 500;
-}
 
 /* Profile Settings Card */
 .profile-settings-card {
@@ -248,9 +230,16 @@
     }
 }
 
+@media (max-width: 1024px) {
+    .profile-main-content {
+        padding: 0 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .profile-main-content {
-        padding: 0 1.5rem;
+        padding: 0 1.25rem;
+        gap: 1.5rem;
     }
 
     .profile-settings-card {
