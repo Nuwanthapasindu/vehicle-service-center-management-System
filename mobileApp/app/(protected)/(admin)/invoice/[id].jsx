@@ -62,7 +62,6 @@ export default function ViewInvoice() {
     try {
       const data = await invoiceService.fetchInvoiceById(id);
       setInvoice(data);
-      console.log("Invoice Details:",data);
     } catch (error) {
       Toast.show({
         type: 'error',
