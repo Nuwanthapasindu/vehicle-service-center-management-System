@@ -37,7 +37,7 @@ export default function Bookings() {
 
 
   // Generate next viewing days
-  const DAYS_COUNT = 30;
+  const DAYS_COUNT = 31;
   const dates = useMemo(() => generateNextDays(DAYS_COUNT), []);
 
 
