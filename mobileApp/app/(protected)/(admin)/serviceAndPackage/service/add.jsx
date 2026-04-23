@@ -63,11 +63,10 @@ export default function AddService() {
       setUploadedImageId(null);
       router.back();
     } catch (error) {
-      console.log(error.response?.data);
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: error.response?.data?.message || "Something went wrong",
+        text2: error.response?.data?.payload?.message || "Something went wrong",
       });
     } finally {
       setLoading(false);

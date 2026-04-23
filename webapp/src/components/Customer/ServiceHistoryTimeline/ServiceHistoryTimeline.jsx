@@ -61,6 +61,12 @@ const ServiceHistoryTimeline = ({ loading, history, id, vehicle }) => {
                                                 <i className="fa-regular fa-calendar"></i>
                                                 {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                             </span>
+                                            {item.milageCount > 0 && (
+                                                <span className="meta-data" style={{ marginLeft: '12px' }}>
+                                                    <i className="fa-solid fa-gauge-high"></i>
+                                                    {item.milageCount.toLocaleString()} km
+                                                </span>
+                                            )}
                                         </div>
                                         <span className={`service-status-badge ${item.status?.toLowerCase() || 'completed'}`}>
                                             {item.status || 'COMPLETED'}
