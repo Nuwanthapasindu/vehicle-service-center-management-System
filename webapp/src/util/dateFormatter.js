@@ -1,13 +1,18 @@
 /**
- * Formats a date string or object into a human-readable format.
- * ALWAYS treats the date as a "floating date" by using UTC methods.
+ * Formats a date string or object into a human-readable format using Sri Lankan timezone.
  * @param {string|Date} date - The date to format.
  * @returns {string} - The formatted date string (e.g., 1/25/2026).
  */
 export const formatDate = (date) => {
     if (!date) return '';
     const d = new Date(date);
-    return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${d.getUTCFullYear()}`;
+    const options = {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        timeZone: 'Asia/Colombo'
+    };
+    return d.toLocaleDateString('en-US', options);
 };
 
 /**
