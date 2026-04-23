@@ -118,16 +118,6 @@ export default function AdminDrawerLayout() {
         }}
       >
         <Drawer.Screen
-          name="Dashboard"
-          options={{
-            drawerLabel: "Dashboard",
-            title: "Dashboard",
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="grid" size={size} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
           name="booking/index"
           options={{
             drawerLabel: "Bookings",
@@ -135,18 +125,6 @@ export default function AdminDrawerLayout() {
             drawerIcon: ({ color, size }) => (
               <Ionicons name="build-outline" size={size} color={color} />
             ),
-          }}
-        />
-        <Drawer.Screen
-          name="booking/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Drawer.Screen
-          name="booking/manage/[id]"
-          options={{
-            headerShown: false,
           }}
         />
 
@@ -161,6 +139,30 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
+
+        <Drawer.Screen
+          name="Dashboard"
+          options={{
+            drawerLabel: "Dashboard",
+            title: "Dashboard",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="grid" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="(Inventory)"
+          options={{
+            headerShown: false,
+            drawerLabel: "Inventory",
+            title: "Inventory",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="archive-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
         <Drawer.Screen
           name="invoice"
           options={{
@@ -170,13 +172,6 @@ export default function AdminDrawerLayout() {
             drawerIcon: ({ color, size }) => (
               <Ionicons name="newspaper-outline" size={size} color={color} />
             ),
-          }}
-        />
-
-        <Drawer.Screen
-          name="revenue"
-          options={{
-            headerShown: false,
           }}
         />
 
@@ -204,12 +199,10 @@ export default function AdminDrawerLayout() {
           }}
         />
 
-
-
         <Drawer.Screen
           name="supplychain/index"
           options={{
-            headerShown: false, // Prevents duplicate headers
+            headerShown: false,
             drawerLabel: "Supply Chain",
             title: "Supply Chain",
             drawerIcon: ({ color, size }) => (
@@ -230,18 +223,25 @@ export default function AdminDrawerLayout() {
           }}
         />
 
+        {/* Hidden Screens */}
         <Drawer.Screen
-          name="(Inventory)"
+          name="booking/[id]"
           options={{
             headerShown: false,
-            drawerLabel: "Inventory",
-            title: "Inventory",
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="archive-outline" size={size} color={color} />
-            ),
           }}
         />
-
+        <Drawer.Screen
+          name="booking/manage/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Drawer.Screen
+          name="revenue"
+          options={{
+            headerShown: false,
+          }}
+        />
         <Drawer.Screen
           name="(InventoryLog)"
           options={{
@@ -252,7 +252,6 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
-
         <Drawer.Screen
           name="(InventoryAnalysis)"
           options={{
