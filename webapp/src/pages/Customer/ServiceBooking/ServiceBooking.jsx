@@ -301,7 +301,7 @@ const ServiceBooking = () => {
                                         <span className="label">Date</span>
                                         <span className="value">
                                             {selectedDate
-                                                ? formatLongDate(selectedDate)
+                                                ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
                                                 : 'Not selected'}
                                         </span>
                                     </div>
