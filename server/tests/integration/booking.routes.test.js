@@ -35,6 +35,9 @@ jest.mock('../../model/JobCard', () => ({
 jest.mock('../../model/Review', () => ({
   findOne: jest.fn(),
 }));
+jest.mock('../../model/Invoice', () => ({
+  findOneAndUpdate: jest.fn(),
+}));
 
 const app = express();
 app.use(express.json());
@@ -63,7 +66,7 @@ describe('Booking Routes Integration Tests', () => {
         populate: jest.fn().mockResolvedValue(null)
       });
       require('../../model/Review').findOne.mockResolvedValue(null);
-      
+
       const res = await request(app).get('/bookings/my-history');
       expect(res.statusCode).toBe(200);
       expect(res.body.payload).toBeDefined();
@@ -74,7 +77,9 @@ describe('Booking Routes Integration Tests', () => {
     it('should delete a booking', async () => {
       const mockId = '601c2d9d1b0a40d58852e1f0';
       Booking.findOne.mockResolvedValue({ _id: mockId, save: jest.fn().mockResolvedValue({ isDeleted: true }) });
-      
+      const JobCard = require('../../model/JobCard');
+      JobCard.findOne.mockResolvedValue(null);
+
       const res = await request(app).delete(`/bookings/admin/${mockId}`);
       expect(res.statusCode).toBe(200);
       expect(res.body.payload.message).toContain('cancelled successfully');

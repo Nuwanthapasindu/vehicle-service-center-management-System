@@ -365,25 +365,7 @@
     font-size: 1rem;
 }
 
-.service-status-badge {
-    font-size: 0.75rem;
-    font-weight: 900;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
 
-.service-status-badge.completed {
-    background-color: #E6F9EC;
-    color: #16A34A;
-    border: 1px solid #B7EB8F;
-}
-
-.service-status-badge.pending {
-    background-color: #FFFBEB;
-    color: #D97706;
-}
 
 .history-footer {
     display: flex;

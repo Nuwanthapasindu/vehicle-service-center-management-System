@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import useAuthentication from '../../../hooks/auth';
 import './CustomerSidebar.css';
 
-const Sidebar = ({ isOpen, onToggle }) => {
+const Sidebar = () => {
     const { logout } = useAuthentication();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const onToggle = () => setIsOpen(!isOpen);
 
     return (
         <aside className={`customer-sidebar ${isOpen ? 'open' : ''}`}>

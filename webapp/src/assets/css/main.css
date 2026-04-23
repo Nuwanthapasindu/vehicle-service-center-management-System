@@ -184,9 +184,37 @@ h3.card-title,
     text-transform: uppercase;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   MARKETING DESIGN SYSTEM (Public Pages)
-   ────────────────────────────────────────────────────────────────────────── */
+/* Global Status Pills */
+.status-pill {
+    font-size: 0.65rem;
+    font-weight: 850;
+    padding: 0.45rem 1rem;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+.status-pill.pending {
+    background-color: #FFF9E6;
+    color: #E68A00;
+    border: 1.5px solid #FFEBB3;
+}
+
+.status-pill.progress {
+    background-color: #F0F7FF;
+    color: #2563EB;
+    border: 1.5px solid #D1E9FF;
+}
+
+.status-pill.completed {
+    background-color: #F3FDF5;
+    color: #16A34A;
+    border: 1.5px solid #D1F7D9;
+}
 
 :root {
     --m-primary: #8EDB00;
