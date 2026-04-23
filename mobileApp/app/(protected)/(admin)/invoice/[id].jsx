@@ -62,8 +62,14 @@ export default function ViewInvoice() {
     try {
       const data = await invoiceService.fetchInvoiceById(id);
       setInvoice(data);
+      console.log("Invoice Details:",data);
     } catch (error) {
-      console.error("Partial refresh failed", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Fetch Failed',
+        text2: error?.response?.data?.payload?.message || 'Could not load invoice details.'
+      });
+      router.replace("/")
     }
   };
 
