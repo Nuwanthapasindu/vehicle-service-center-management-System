@@ -23,7 +23,7 @@ export const formatLongDate = (date) => {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        timeZone: 'UTC'
+        timeZone: 'Asia/Colombo'
     };
     return d.toLocaleDateString('en-US', options);
 };
@@ -40,7 +40,7 @@ export const formatShortDate = (date) => {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-        timeZone: 'UTC'
+        timeZone: 'Asia/Colombo'
     };
     return d.toLocaleDateString('en-US', options);
 };
