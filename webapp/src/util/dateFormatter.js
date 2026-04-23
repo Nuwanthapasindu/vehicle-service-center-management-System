@@ -16,7 +16,7 @@ export const formatDate = (date) => {
 };
 
 /**
- * Formats a date into a long format using UTC components.
+ * Formats a date into a long format using Sri Lankan timezone.
  * @param {string|Date} date - The date to format.
  * @returns {string} - The long formatted date string (e.g., Sunday, January 25, 2026).
  */

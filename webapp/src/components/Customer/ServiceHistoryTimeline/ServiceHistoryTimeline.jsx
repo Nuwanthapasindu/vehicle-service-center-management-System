@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { exportHistoryToPDF } from '../../../util/historyExporter';
 import currencyFormatter from '../../../util/currencyFormatter';
+import { getStatusClass, getStatusText } from '../../../util/statusFormatter';
+import { formatShortDate } from '../../../util/dateFormatter';
 
 const ServiceHistoryTimeline = ({ loading, history, id, vehicle }) => {
     const navigate = useNavigate();
@@ -59,11 +61,11 @@ const ServiceHistoryTimeline = ({ loading, history, id, vehicle }) => {
                                         <div className="meta-left">
                                             <span className="meta-data">
                                                 <i className="fa-regular fa-calendar"></i>
-                                                {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                {formatShortDate(item.date)}
                                             </span>
                                         </div>
-                                        <span className={`service-status-badge ${item.status?.toLowerCase() || 'completed'}`}>
-                                            {item.status || 'COMPLETED'}
+                                        <span className={`status-pill ${getStatusClass(item.status)}`}>
+                                            {getStatusText(item.status)}
                                         </span>
                                     </div>
                                 </div>
