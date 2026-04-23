@@ -23,13 +23,16 @@ const BookingCalendar = ({ selectedDate, onDateSelect }) => {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
+    const nextDayStart = new Date(todayStart);
+    nextDayStart.setDate(todayStart.getDate() + 1);
+
     const maxDate = new Date(todayStart);
     maxDate.setDate(todayStart.getDate() + 30);
 
     const isDateUnavailable = (day) => {
         if (!day) return true;
         const dateObj = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), day);
-        if (dateObj < todayStart) return true;
+        if (dateObj < nextDayStart) return true; // Disable today and past days
         if (dateObj > maxDate) return true; // Disabled days beyond 30 days
         if (dateObj.getDay() === 1) return true; // Disabled Mondays
         return false;

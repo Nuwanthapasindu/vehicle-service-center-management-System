@@ -31,6 +31,11 @@ module.exports.createBooking = async (payload, mobile) => {
 
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
+
+    if (checkDate <= today) {
+      throw new AppError("Bookings must be made at least one day in advance.", 400);
+    }
+
     const maxDate = new Date(today);
     maxDate.setUTCDate(today.getUTCDate() + 30);
 
