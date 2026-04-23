@@ -29,6 +29,20 @@ module.exports.createBooking = async (payload, mobile) => {
     );
     checkDate.setUTCHours(0, 0, 0, 0);
 
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    if (checkDate <= today) {
+      throw new AppError("Bookings must be made at least one day in advance.", 400);
+    }
+
+    const maxDate = new Date(today);
+    maxDate.setUTCDate(today.getUTCDate() + 30);
+
+    if (checkDate > maxDate) {
+      throw new AppError("Booking date cannot exceed 30 days from today.", 400);
+    }
+
     const nextDay = new Date(checkDate);
     nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
@@ -264,17 +278,17 @@ module.exports.getDashboardData = async (mobile) => {
       },
       upcomingBooking: upcomingBooking
         ? {
-            id: upcomingBooking._id,
-            service: "Service Scheduled", // We don't have package assigned on booking yet
-            vehicle: upcomingBooking.vehicle
-              ? `${upcomingBooking.vehicle.make} ${upcomingBooking.vehicle.model}`
-              : "Unknown",
-            date: upcomingBooking.date,
-            time: upcomingBooking.slot
-              ? `${upcomingBooking.slot.startTime} - ${upcomingBooking.slot.endTime}`
-              : "TBD",
-            status: "CONFIRMED",
-          }
+          id: upcomingBooking._id,
+          service: "Service Scheduled", // We don't have package assigned on booking yet
+          vehicle: upcomingBooking.vehicle
+            ? `${upcomingBooking.vehicle.make} ${upcomingBooking.vehicle.model}`
+            : "Unknown",
+          date: upcomingBooking.date,
+          time: upcomingBooking.slot
+            ? `${upcomingBooking.slot.startTime} - ${upcomingBooking.slot.endTime}`
+            : "TBD",
+          status: "CONFIRMED",
+        }
         : null,
       recentVehicles,
       recentHistory,
