@@ -1,5 +1,6 @@
 const Service = require("../model/Service");
 const File = require("../model/File");
+const Package = require("../model/Package");
 const AppError = require("../error/AppError");
 const {
   validatedCreateService,
@@ -227,6 +228,12 @@ module.exports.deleteService = async (id) => {
     service.isDeleted = true;
     service.deletedAt = Date.now();
     await service.save();
+
+    // Cascading update: Remove this service from all packages
+    await Package.updateMany(
+      { servicesIncluded: id },
+      { $pull: { servicesIncluded: id } }
+    );
 
     if (service.image) {
       await deleteFileById(service.image);
