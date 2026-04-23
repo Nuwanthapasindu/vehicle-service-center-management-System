@@ -21,8 +21,8 @@ const ServiceHistoryTimeline = ({ loading, history, id, vehicle }) => {
                     <i className="fa-solid fa-clock-rotate-left"></i>
                     Service History
                 </h3>
-                <button 
-                    className="download-pdf-btn" 
+                <button
+                    className="download-pdf-btn"
                     onClick={handleDownloadPDF}
                     disabled={loading || history.length === 0}
                     style={{ opacity: (loading || history.length === 0) ? 0.6 : 1 }}
