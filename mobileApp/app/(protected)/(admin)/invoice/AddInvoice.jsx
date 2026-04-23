@@ -63,7 +63,11 @@ export default function AddInvoice() {
         JSON.stringify(newHistory),
       );
     } catch (e) {
-      console.error("Failed to save search history", e);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to save search history",
+      })
     }
   };
 

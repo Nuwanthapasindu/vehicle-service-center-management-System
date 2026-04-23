@@ -67,12 +67,13 @@ export const exportHistoryToPDF = (historyData, vehicle = null, filters = null) 
         }
 
         // 3. DATA TABLE
-        const tableHeaders = [["DATE", "VEHICLE", "LICENSE PLATE", "SERVICE PACKAGE", "STATUS"]];
+        const tableHeaders = [["DATE", "VEHICLE", "LICENSE PLATE", "SERVICE PACKAGE", "MILEAGE", "STATUS"]];
         const tableRows = historyData.map(item => [
             formatShortDate(item.date),
             item.vehicle || "N/A",
             item.licensePlate || "N/A",
             item.service || "Pending Selection",
+            item.milageCount ? `${item.milageCount.toLocaleString()} km` : "N/A",
             item.status || "COMPLETED"
         ]);
 
@@ -84,9 +85,10 @@ export const exportHistoryToPDF = (historyData, vehicle = null, filters = null) 
             headStyles: { fillColor: [142, 219, 0], textColor: [255, 255, 255] },
             alternateRowStyles: { fillColor: [248, 250, 252] },
             columnStyles: {
-                0: { cellWidth: 30 },
-                2: { cellWidth: 35 },
-                4: { cellWidth: 30, halign: 'center' }
+                0: { cellWidth: 25 },
+                2: { cellWidth: 30 },
+                4: { cellWidth: 25, halign: 'center' },
+                5: { cellWidth: 25, halign: 'center' }
             }
         });
 
