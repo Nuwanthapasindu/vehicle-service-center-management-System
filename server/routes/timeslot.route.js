@@ -14,6 +14,26 @@ const responseBuild = require("../util/responseBuilder");
 const { USER_ROLES } = require("../util/constants");
 const AppError = require("../error/AppError");
 
+/**
+ * @swagger
+ * /api/v1/timeslot/available:
+ *   get:
+ *     summary: Get available timeslots
+ *     tags: [Timeslot]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *         description: Date to check for available timeslots
+ *     responses:
+ *       200:
+ *         description: Available timeslots retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
 // Customer view
 router.get("/available", authTokenMiddleware, (req, res, next) => {
     const responseBuilder = new responseBuild(res);
@@ -27,6 +47,22 @@ router.get("/available", authTokenMiddleware, (req, res, next) => {
         .catch((error) => next(error));
 });
 
+/**
+ * @swagger
+ * /api/v1/timeslot/all:
+ *   get:
+ *     summary: Get all timeslots
+ *     tags: [Timeslot]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All timeslots retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 // Admin view (get all)
 router.get(
     "/all",
@@ -43,6 +79,28 @@ router.get(
         .catch((error) => next(error));
 });
 
+/**
+ * @swagger
+ * /api/v1/timeslot/schedule:
+ *   get:
+ *     summary: Get daily schedule
+ *     tags: [Timeslot]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *         description: Date for the schedule
+ *     responses:
+ *       200:
+ *         description: Schedule retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 // Admin schedule (with vehicles)
 router.get(
     "/schedule",
@@ -60,6 +118,29 @@ router.get(
         .catch((error) => next(error));
 });
 
+/**
+ * @swagger
+ * /api/v1/timeslot/{id}:
+ *   get:
+ *     summary: Get timeslot by ID
+ *     tags: [Timeslot]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Timeslot ID
+ *     responses:
+ *       200:
+ *         description: Timeslot retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 // Admin get by id
 router.get(
     "/:id",
@@ -76,6 +157,37 @@ router.get(
         .catch((error) => next(error));
 });
 
+/**
+ * @swagger
+ * /api/v1/timeslot:
+ *   post:
+ *     summary: Create a timeslot
+ *     tags: [Timeslot]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startTime:
+ *                 type: string
+ *               endTime:
+ *                 type: string
+ *               capacity:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Timeslot created successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 // Admin create
 router.post(
     "/",
@@ -92,6 +204,44 @@ router.post(
         .catch((error) => next(error));
 });
 
+/**
+ * @swagger
+ * /api/v1/timeslot/{id}:
+ *   put:
+ *     summary: Update a timeslot
+ *     tags: [Timeslot]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Timeslot ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startTime:
+ *                 type: string
+ *               endTime:
+ *                 type: string
+ *               capacity:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Timeslot updated successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 // Admin update
 router.put(
     "/:id",
@@ -108,6 +258,40 @@ router.put(
         .catch((error) => next(error));
 });
 
+/**
+ * @swagger
+ * /api/v1/timeslot/{id}/state:
+ *   patch:
+ *     summary: Toggle timeslot state
+ *     tags: [Timeslot]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Timeslot ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               isActive:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Timeslot status updated successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 // Admin toggle state
 router.patch(
     "/:id/state",
@@ -124,6 +308,29 @@ router.patch(
         .catch((error) => next(error));
 });
 
+/**
+ * @swagger
+ * /api/v1/timeslot/{id}:
+ *   delete:
+ *     summary: Delete a timeslot
+ *     tags: [Timeslot]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Timeslot ID
+ *     responses:
+ *       200:
+ *         description: Timeslot deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 // Admin delete
 router.delete(
     "/:id",
