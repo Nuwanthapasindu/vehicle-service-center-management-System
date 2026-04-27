@@ -86,9 +86,8 @@ module.exports.getDailySchedule = async (dateStr) => {
             return {
                 id: slot._id,
                 time: slot.startTime,
-                status: `${bookingsForSlot.length}/${slot.maxCapacity} ${
-                    bookingsForSlot.length >= slot.maxCapacity ? "FULL" : "BOOKED"
-                }`,
+                status: `${bookingsForSlot.length}/${slot.maxCapacity} ${bookingsForSlot.length >= slot.maxCapacity ? "FULL" : "BOOKED"
+                    }`,
                 isFull: bookingsForSlot.length >= slot.maxCapacity,
                 vehicles: bookingsForSlot.map((b) => {
                     const jc = jobCards.find(
@@ -156,6 +155,33 @@ module.exports.updateTimeslot = async (id, payload) => {
             isDeleted: false
         });
         if (existingSlot) throw new AppError("A timeslot with the same start and end time already exists", 400);
+
+        // Check for active or future bookings with package/jobcard status
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const bookings = await Booking.find({
+            slot: id,
+            isDeleted: false
+        });
+
+        for (const booking of bookings) {
+            // Check if it's a future booking
+            if (booking.date >= today) {
+                throw new AppError("Cannot update timeslot with future bookings scheduled.", 400);
+            }
+
+            // Check if there's an ongoing job card (package assigned)
+            const jobCard = await JobCard.findOne({
+                booking: booking._id,
+                isDeleted: false,
+                status: { $ne: JOBCARD_STATUS.PENDING }
+            });
+
+            if (jobCard) {
+                throw new AppError("Cannot update timeslot with active/ongoing service jobs.", 400);
+            }
+        }
 
         Object.assign(slot, value);
 

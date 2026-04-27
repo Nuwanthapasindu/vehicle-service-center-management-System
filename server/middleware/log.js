@@ -30,9 +30,9 @@ module.exports = async function (req, res, next) {
     const logDate = `${today.getFullYear()}-${
       today.getMonth() + 1
     }-${today.getDate()} ${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
-    const clientIp = req.ip;
+    
     const browser = req.headers["user-agent"];
-     logText = `${logDate}  IP: ${clientIp} USER: ${user} PATH: ${req.path} (${req.method}) DEVICE: ${browser} RESPONSE: ${data} \n`;
+     logText = `${logDate}  USER: ${user} PATH: ${req.path} (${req.method}) DEVICE: ${browser} RESPONSE: ${data} \n`;
     fs.appendFileSync(logFilePath, logText);
   }
  
