@@ -14,7 +14,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Formik } from "formik";
-import axios from "axios";
+import { packageService } from "../../../../../services/package/package.service";
+import { serviceService } from "../../../../../services/service/service.service";
 import Toast from "react-native-toast-message";
 
 import CustomImagePicker from "../../../../../components/CustomImagePicker";
@@ -46,9 +47,7 @@ export default function AddPackage() {
   const fetchServices = async () => {
     setFetchingServices(true);
     try {
-      const response = await axios.get("/service", {
-        params: { limit: 100 },
-      });
+      const response = await serviceService.fetchServicesAdmin({ limit: 100 });
       const data = response.data.payload.services?.services || [];
       setApiServices(data);
     } catch (error) {
@@ -88,7 +87,7 @@ export default function AddPackage() {
         ...(uploadedImageId && { image: uploadedImageId }),
       };
 
-      const response = await axios.post("/package", payload);
+      const response = await packageService.createPackage(payload);
 
       Toast.show({
         type: "success",

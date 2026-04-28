@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
-import axios from "axios";
+import { packageService } from "../../../../../services/package/package.service";
 import colors from "../../../../../constants/colors";
 import  getImageFullUrl  from "../../../../../utils/getImageFullUrl";
 
@@ -67,7 +67,7 @@ export default function PackageCatalog() {
       if (activeFilter === "published") params.isPublished = true;
       if (activeFilter === "unpublished") params.isPublished = false;
 
-      const response = await axios.get("/package", { params });
+      const response = await packageService.fetchPackagesAdmin(params);
 
       const targetPayload = response.data.payload || {};
       const newPackages = targetPayload.packages || [];
