@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
+import { serviceService } from "../../../../../services/service/service.service";
 import Toast from "react-native-toast-message";
 
 import DropdownInput from "../../../../../components/DropdownInput";
@@ -50,7 +50,7 @@ export default function AddService() {
         ...(uploadedImageId && { image: uploadedImageId }),
       };
 
-      const response = await axios.post("/service", payload);
+      const response = await serviceService.createService(payload);
 
       Toast.show({
         type: "success",

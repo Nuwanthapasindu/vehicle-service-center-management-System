@@ -15,7 +15,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
-import axios from "axios";
+import { packageService } from "../../../../../services/package/package.service";
+import { serviceService } from "../../../../../services/service/service.service";
 import Toast from "react-native-toast-message";
 
 import CustomImagePicker from "../../../../../components/CustomImagePicker";
@@ -54,9 +55,7 @@ export default function EditPackage() {
   const fetchServices = async () => {
     setFetchingServices(true);
     try {
-      const response = await axios.get("/service", {
-        params: { limit: 100 },
-      });
+      const response = await serviceService.fetchServicesAdmin({ limit: 100 });
       const data = response.data.payload.services?.services || [];
       setApiServices(data);
     } catch (error) {
@@ -73,8 +72,7 @@ export default function EditPackage() {
 
   const fetchPackageDetails = async () => {
     try {
-      const response = await axios.get(`/package/${id}`);
-      const pkg = response.data.payload.package;
+      const pkg = await packageService.fetchPackageById(id);
 
       setInitialData({
         name: pkg.name || "",
@@ -123,7 +121,7 @@ export default function EditPackage() {
         payload.image = uploadedImageId;
       }
 
-      const response = await axios.put(`/package/${id}`, payload);
+      const response = await packageService.updatePackage(id, payload);
 
       Toast.show({
         type: "success",
@@ -155,7 +153,7 @@ export default function EditPackage() {
           onPress: async () => {
             setUpdating(true);
             try {
-              const response = await axios.delete(`/package/${id}`);
+              const response = await packageService.deletePackage(id);
               Toast.show({
                 type: "success",
                 text1: "Deleted",
