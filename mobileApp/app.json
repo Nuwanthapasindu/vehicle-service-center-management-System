@@ -2,7 +2,7 @@
   "expo": {
     "name": "Shine Depot",
     "slug": "shine-depot",
-    "scheme": "shineDepotMobileApp",
+    "scheme": "shinedepot",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -50,7 +50,8 @@
           "enableFileSharing": true
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-font"
     ],
     "extra": {
       "router": {},
