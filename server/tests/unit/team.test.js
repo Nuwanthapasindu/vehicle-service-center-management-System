@@ -7,7 +7,7 @@ const {
   getAllTeams,
   getTeamById,
   updateTeam,
-  deleteTeam
+  deleteTeam,
 } = require("../../controller/team.controller");
 
 // Manual mocks — must be set up before any tests run
@@ -20,7 +20,6 @@ Team.findByIdAndUpdate = jest.fn();
 Employee.find = jest.fn();
 
 describe("Team Service Unit Tests (Manual Mocks)", () => {
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -29,7 +28,7 @@ describe("Team Service Unit Tests (Manual Mocks)", () => {
 
   const validPayload = {
     name: "Dev Team",
-    employees: [validId]
+    employees: [validId],
   };
 
   // createTeam
@@ -48,7 +47,9 @@ describe("Team Service Unit Tests (Manual Mocks)", () => {
     it("should throw error if team name already exists", async () => {
       Team.exists.mockResolvedValue({ _id: "existingTeam" });
 
-      await expect(createTeam(validPayload)).rejects.toThrow("Team name already exist");
+      await expect(createTeam(validPayload)).rejects.toThrow(
+        "Team name already exist",
+      );
     });
 
     it("should throw error if validation fails", async () => {
@@ -61,15 +62,12 @@ describe("Team Service Unit Tests (Manual Mocks)", () => {
   // getAllTeams
   describe("getAllTeams", () => {
     it("should return all teams", async () => {
-      const mockTeams = [
-        { name: "Team A" },
-        { name: "Team B" }
-      ];
+      const mockTeams = [{ name: "Team A" }, { name: "Team B" }];
 
       Team.find.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        sort: jest.fn().mockResolvedValue(mockTeams)
+        sort: jest.fn().mockResolvedValue(mockTeams),
       });
 
       const result = await getAllTeams();
@@ -85,12 +83,12 @@ describe("Team Service Unit Tests (Manual Mocks)", () => {
       const mockTeam = {
         _id: validId,
         name: "Team A",
-        isDeleted: false
+        isDeleted: false,
       };
 
       Team.findById.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue(mockTeam)
+        lean: jest.fn().mockResolvedValue(mockTeam),
       });
 
       const result = await getTeamById(validId);
@@ -101,7 +99,7 @@ describe("Team Service Unit Tests (Manual Mocks)", () => {
     it("should throw error if team not found", async () => {
       Team.findById.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue(null)
+        lean: jest.fn().mockResolvedValue(null),
       });
 
       await expect(getTeamById(validId)).rejects.toThrow("Team not found");
@@ -110,7 +108,7 @@ describe("Team Service Unit Tests (Manual Mocks)", () => {
     it("should throw error if team is deleted", async () => {
       Team.findById.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue({ isDeleted: true })
+        lean: jest.fn().mockResolvedValue({ isDeleted: true }),
       });
 
       await expect(getTeamById(validId)).rejects.toThrow("Team not found");
@@ -124,13 +122,18 @@ describe("Team Service Unit Tests (Manual Mocks)", () => {
       Employee.find.mockResolvedValue([{ _id: validId }]); // employees exist
       Team.findByIdAndUpdate.mockResolvedValue({});
 
-      const result = await updateTeam(validId, { name: "Updated Team", employees: [validId] });
+      const result = await updateTeam(validId, {
+        name: "Updated Team",
+        employees: [validId],
+      });
 
       expect(result).toBe("Team updated successfully");
     });
 
     it("should throw error for invalid ID", async () => {
-      await expect(updateTeam("invalid-id", {})).rejects.toThrow("Invalid Team ID");
+      await expect(updateTeam("invalid-id", {})).rejects.toThrow(
+        "Invalid Team ID",
+      );
     });
 
     it("should throw validation error", async () => {
@@ -155,5 +158,4 @@ describe("Team Service Unit Tests (Manual Mocks)", () => {
       await expect(deleteTeam(validId)).rejects.toThrow("Team not found");
     });
   });
-
 });

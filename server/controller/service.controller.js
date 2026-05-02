@@ -232,7 +232,7 @@ module.exports.deleteService = async (id) => {
     // Cascading update: Remove this service from all packages
     await Package.updateMany(
       { servicesIncluded: id },
-      { $pull: { servicesIncluded: id } }
+      { $pull: { servicesIncluded: id } },
     );
 
     if (service.image) {
@@ -251,16 +251,12 @@ module.exports.deleteService = async (id) => {
  */
 module.exports.getAllServicesForJobCard = async () => {
   try {
-    const services = await Service.find({ isDeleted: false }).select([
-      "-isDeleted",
-      "-deletedAt",
-      "-__v",
-      "-createdAt",
-      "-updatedAt",
-    ]).populate({
-      path: "image",
-      select: ["-_id", "filePath", "fileType"],
-    });
+    const services = await Service.find({ isDeleted: false })
+      .select(["-isDeleted", "-deletedAt", "-__v", "-createdAt", "-updatedAt"])
+      .populate({
+        path: "image",
+        select: ["-_id", "filePath", "fileType"],
+      });
 
     return services;
   } catch (error) {

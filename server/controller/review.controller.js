@@ -85,7 +85,9 @@ module.exports.getBookingDetailsForReview = async (bookingId, mobile) => {
       status: jobCard.status,
       vehicleImage:
         booking.vehicle && booking.vehicle.image
-          ? booking.vehicle.image.filePath || booking.vehicle.image.url || booking.vehicle.image
+          ? booking.vehicle.image.filePath ||
+            booking.vehicle.image.url ||
+            booking.vehicle.image
           : null,
       vehicleName: booking.vehicle
         ? `${booking.vehicle.make} ${booking.vehicle.model}`
@@ -271,14 +273,14 @@ module.exports.getAllPublicReviews = async (query) => {
       statsResult.length > 0
         ? statsResult[0]
         : {
-          averageRating: 0,
-          totalReviews: 0,
-          star5: 0,
-          star4: 0,
-          star3: 0,
-          star2: 0,
-          star1: 0,
-        };
+            averageRating: 0,
+            totalReviews: 0,
+            star5: 0,
+            star4: 0,
+            star3: 0,
+            star2: 0,
+            star1: 0,
+          };
 
     // 2. Build Query for List
     let matchQuery = { isApproved: true, isDeleted: false };
