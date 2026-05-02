@@ -1,13 +1,14 @@
 {
   "expo": {
-    "name": "Shine Depot Mobile App",
-    "slug": "shine-depot-mobile-app",
+    "name": "Shine Depot",
+    "slug": "shine-depot",
     "scheme": "shineDepotMobileApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "owner": "nuwanthapasindhu",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -21,8 +22,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.shine.depot",
       "edgeToEdgeEnabled": true,
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.INTERNET"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,6 +51,12 @@
         }
       ],
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b7baf0c2-0642-42f4-9278-fb7be373219a"
+      }
+    }
   }
 }
