@@ -1,7 +1,9 @@
 const Inventory = require("../model/Inventory");
 const InventoryLog = require("../model/InventoryLog");
 const AppError = require("../error/AppError");
-const { analysisFilterSchema } = require("../validation/inventoryAnalysis.validation");
+const {
+  analysisFilterSchema,
+} = require("../validation/inventoryAnalysis.validation");
 
 // GET SUMMARY STATS
 module.exports.getInventoryStats = async () => {
@@ -49,7 +51,7 @@ module.exports.getInventoryStats = async () => {
     };
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError( error.message || "Failed to fetch inventory stats", 500 );
+    throw new AppError(error.message || "Failed to fetch inventory stats", 500);
   }
 };
 
@@ -83,7 +85,10 @@ module.exports.getCategoryBreakdown = async () => {
     return breakdown;
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError( error.message || "Failed to fetch category breakdown", 500 );
+    throw new AppError(
+      error.message || "Failed to fetch category breakdown",
+      500,
+    );
   }
 };
 
@@ -141,6 +146,6 @@ module.exports.getStockMovement = async (filters = {}) => {
     return movement;
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError( error.message || "Failed to fetch stock movement", 500 );
+    throw new AppError(error.message || "Failed to fetch stock movement", 500);
   }
 };

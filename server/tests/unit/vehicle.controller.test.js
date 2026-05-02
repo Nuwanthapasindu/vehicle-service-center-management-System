@@ -9,7 +9,13 @@ Object.keys(mongoose.models).forEach((key) => {
 const User = require("../../model/User");
 const Vehicle = require("../../model/Vehicle");
 const File = require("../../model/File");
-const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle } = require("../../controller/vehicle.controller");
+const {
+  addVehicle,
+  getMyVehicles,
+  deleteVehicle,
+  getVehicleById,
+  updateVehicle,
+} = require("../../controller/vehicle.controller");
 const AppError = require("../../error/AppError");
 
 let mongoServer;
@@ -58,13 +64,15 @@ describe("Vehicle Controller Tests", () => {
       const result = await addVehicle(payload, mockMobile);
       expect(result).toBe("Vehicle added successfully");
 
-      const savedVehicle = await Vehicle.findOne({ licensePlate: "WP-CAB-1234" });
+      const savedVehicle = await Vehicle.findOne({
+        licensePlate: "WP-CAB-1234",
+      });
       expect(savedVehicle).not.toBeNull();
       expect(savedVehicle.make).toBe("Toyota");
       expect(savedVehicle.year).toBe(2022);
       expect(savedVehicle.ownerId.toString()).toBe(mockUser._id.toString());
     });
-  
+
     test("should add a vehicle with an image successfully", async () => {
       const mockFile = await new File({
         originalName: "test.png",
@@ -73,7 +81,7 @@ describe("Vehicle Controller Tests", () => {
         fileType: "image/png",
         fileSize: 1024,
       }).save();
-  
+
       const payload = {
         licensePlate: "WP-CAB-4321",
         type: "CAR",
@@ -82,11 +90,13 @@ describe("Vehicle Controller Tests", () => {
         year: 2021,
         image: mockFile._id.toString(),
       };
-  
+
       const result = await addVehicle(payload, mockMobile);
       expect(result).toBe("Vehicle added successfully");
-  
-      const savedVehicle = await Vehicle.findOne({ licensePlate: "WP-CAB-4321" });
+
+      const savedVehicle = await Vehicle.findOne({
+        licensePlate: "WP-CAB-4321",
+      });
       expect(savedVehicle.image.toString()).toBe(mockFile._id.toString());
     });
 
@@ -109,7 +119,9 @@ describe("Vehicle Controller Tests", () => {
         year: 2022,
       };
 
-      await expect(addVehicle(payload, "0000000000")).rejects.toThrow("Owner not found");
+      await expect(addVehicle(payload, "0000000000")).rejects.toThrow(
+        "Owner not found",
+      );
     });
 
     test("should fail if license plate already exists", async () => {
@@ -130,7 +142,9 @@ describe("Vehicle Controller Tests", () => {
         year: 2022,
       };
 
-      await expect(addVehicle(payload, mockMobile)).rejects.toThrow("License plate already registered");
+      await expect(addVehicle(payload, mockMobile)).rejects.toThrow(
+        "License plate already registered",
+      );
     });
   });
 
@@ -152,7 +166,7 @@ describe("Vehicle Controller Tests", () => {
         make: "Toyota",
         model: "Hiace",
         year: 2018,
-        isDeleted: true
+        isDeleted: true,
       }).save();
 
       const vehicles = await getMyVehicles(mockMobile);
@@ -197,7 +211,9 @@ describe("Vehicle Controller Tests", () => {
         year: 2019,
       }).save();
 
-      await expect(deleteVehicle(vehicle._id, mockMobile)).rejects.toThrow("Vehicle not found");
+      await expect(deleteVehicle(vehicle._id, mockMobile)).rejects.toThrow(
+        "Vehicle not found",
+      );
     });
   });
 
@@ -230,7 +246,7 @@ describe("Vehicle Controller Tests", () => {
 
       const payload = {
         model: "Camry",
-        year: 2023
+        year: 2023,
       };
 
       const result = await updateVehicle(vehicle._id, mockMobile, payload);
@@ -261,10 +277,12 @@ describe("Vehicle Controller Tests", () => {
       }).save();
 
       const payload = {
-        licensePlate: "WP-CAB-2222"
+        licensePlate: "WP-CAB-2222",
       };
 
-      await expect(updateVehicle(vehicle1._id, mockMobile, payload)).rejects.toThrow("A vehicle with this license plate already exists");
+      await expect(
+        updateVehicle(vehicle1._id, mockMobile, payload),
+      ).rejects.toThrow("A vehicle with this license plate already exists");
     });
   });
 });

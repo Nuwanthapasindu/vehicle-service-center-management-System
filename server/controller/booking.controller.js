@@ -33,7 +33,10 @@ module.exports.createBooking = async (payload, mobile) => {
     today.setUTCHours(0, 0, 0, 0);
 
     if (checkDate <= today) {
-      throw new AppError("Bookings must be made at least one day in advance.", 400);
+      throw new AppError(
+        "Bookings must be made at least one day in advance.",
+        400,
+      );
     }
 
     const maxDate = new Date(today);
@@ -278,17 +281,17 @@ module.exports.getDashboardData = async (mobile) => {
       },
       upcomingBooking: upcomingBooking
         ? {
-          id: upcomingBooking._id,
-          service: "Service Scheduled", // We don't have package assigned on booking yet
-          vehicle: upcomingBooking.vehicle
-            ? `${upcomingBooking.vehicle.make} ${upcomingBooking.vehicle.model}`
-            : "Unknown",
-          date: upcomingBooking.date,
-          time: upcomingBooking.slot
-            ? `${upcomingBooking.slot.startTime} - ${upcomingBooking.slot.endTime}`
-            : "TBD",
-          status: "CONFIRMED",
-        }
+            id: upcomingBooking._id,
+            service: "Service Scheduled", // We don't have package assigned on booking yet
+            vehicle: upcomingBooking.vehicle
+              ? `${upcomingBooking.vehicle.make} ${upcomingBooking.vehicle.model}`
+              : "Unknown",
+            date: upcomingBooking.date,
+            time: upcomingBooking.slot
+              ? `${upcomingBooking.slot.startTime} - ${upcomingBooking.slot.endTime}`
+              : "TBD",
+            status: "CONFIRMED",
+          }
         : null,
       recentVehicles,
       recentHistory,
@@ -412,9 +415,15 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
     if (!booking) throw new AppError("Booking not found", 404);
 
     // Restrict rescheduling if service has started or completed
-    const jobCardCheck = await JobCard.findOne({ booking: bookingId, isDeleted: false });
+    const jobCardCheck = await JobCard.findOne({
+      booking: bookingId,
+      isDeleted: false,
+    });
     if (jobCardCheck && jobCardCheck.status !== JOBCARD_STATUS.PENDING) {
-      throw new AppError(`Cannot reschedule a booking that is currently ${jobCardCheck.status.toLowerCase()}.`, 400);
+      throw new AppError(
+        `Cannot reschedule a booking that is currently ${jobCardCheck.status.toLowerCase()}.`,
+        400,
+      );
     }
 
     if (date) {
@@ -482,7 +491,10 @@ module.exports.cancelBookingByAdmin = async (bookingId) => {
     });
 
     if (jobCard && jobCard.status === JOBCARD_STATUS.FINISH) {
-      throw new AppError("Cannot cancel a booking that has already been finished.", 400);
+      throw new AppError(
+        "Cannot cancel a booking that has already been finished.",
+        400,
+      );
     }
 
     if (jobCard) {
