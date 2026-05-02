@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vehicle-service-center-ms-server:V1
+    container_name: vehicle_service_center_server
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      mongo_db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - app_network
+
+  mongo_db:
+    image: mongo:latest
+    container_name: vehicle_service_center_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      # These pull from your .env file
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+volumes:
+  mongo_data:
+
+networks:
+  app_network:
+    driver: bridge
