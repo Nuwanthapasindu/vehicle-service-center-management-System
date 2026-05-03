@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import colors from "../../../../../constants/colors";
-import axios from "axios";
+import { serviceService } from "../../../../../services/service/service.service";
 
 export default function Service() {
   const router = useRouter();
@@ -55,12 +55,10 @@ export default function Service() {
 
     setLoading(true);
     try {
-      const response = await axios.get("/service", {
-        params: {
-          page: pageNumber,
-          limit: 10,
-          name: search || undefined,
-        },
+      const response = await serviceService.fetchServicesAdmin({
+        page: pageNumber,
+        limit: 10,
+        name: search || undefined,
       });
 
       const targetPayload = response.data.payload.services || {};

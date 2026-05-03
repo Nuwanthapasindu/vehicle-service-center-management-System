@@ -3,13 +3,19 @@ const Employee = require("../../model/Employee");
 const User = require("../../model/User");
 const Auth = require("../../model/Auth");
 const Team = require("../../model/Team");
-const { createEmployee, getEmployees, updateEmployee, toggleAvailability, deleteEmployee } = require("../../controller/employee.controller");
+const {
+  createEmployee,
+  getEmployees,
+  updateEmployee,
+  toggleAvailability,
+  deleteEmployee,
+} = require("../../controller/employee.controller");
 const AppError = require("../../error/AppError");
 const { hashPassword } = require("../../util/password");
 
 // Mock hashPassword function
 jest.mock("../../util/password", () => ({
-  hashPassword: jest.fn((password) => `hashed-${password}`)
+  hashPassword: jest.fn((password) => `hashed-${password}`),
 }));
 
 // Manual mocks for Mongoose methods
@@ -75,24 +81,29 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
 
     it("should throw error if mobile exists", async () => {
       User.findOne.mockResolvedValue({ _id: "existingUser" });
-      await expect(createEmployee(validPayload)).rejects.toThrow("Mobile number already exist");
+      await expect(createEmployee(validPayload)).rejects.toThrow(
+        "Mobile number already exist",
+      );
     });
 
     it("should throw error if NIC exists", async () => {
       User.findOne.mockResolvedValue(null);
       Employee.findOne.mockResolvedValue({ _id: "existingEmp" });
-      await expect(createEmployee(validPayload)).rejects.toThrow("NIC already exist");
+      await expect(createEmployee(validPayload)).rejects.toThrow(
+        "NIC already exist",
+      );
     });
 
     it("should throw error if username exists", async () => {
       User.findOne.mockResolvedValue(null);
       Employee.findOne.mockResolvedValue(null);
       Auth.findOne.mockResolvedValue({ _id: "existingAuth" });
-      await expect(createEmployee(validPayload)).rejects.toThrow("Username already exist");
+      await expect(createEmployee(validPayload)).rejects.toThrow(
+        "Username already exist",
+      );
     });
   });
 
-  
   // getEmployees
   describe("getEmployees", () => {
     it("should return employees with isAvailable filter", async () => {
@@ -101,8 +112,8 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
           select: jest.fn().mockResolvedValue([
             { _id: "emp1", isAvailable: true, user: { name: "John" } },
             { _id: "emp2", isAvailable: true, user: { name: "Jane" } },
-          ])
-        })
+          ]),
+        }),
       });
 
       const employees = await getEmployees({ isAvailable: "true" });
@@ -113,10 +124,12 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
     it("should return all employees if no filter", async () => {
       Employee.find.mockReturnValue({
         populate: jest.fn().mockReturnValue({
-          select: jest.fn().mockResolvedValue([
-            { _id: "emp1", isAvailable: true, user: { name: "John" } }
-          ])
-        })
+          select: jest
+            .fn()
+            .mockResolvedValue([
+              { _id: "emp1", isAvailable: true, user: { name: "John" } },
+            ]),
+        }),
       });
 
       const employees = await getEmployees({});
@@ -124,7 +137,6 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
     });
   });
 
-  
   // updateEmployee
   describe("updateEmployee", () => {
     it("should update employee successfully", async () => {
@@ -145,11 +157,12 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
 
     it("should throw error if employee not found", async () => {
       Employee.findById.mockResolvedValue(null);
-      await expect(updateEmployee(validId, {})).rejects.toThrow("Employee not found");
+      await expect(updateEmployee(validId, {})).rejects.toThrow(
+        "Employee not found",
+      );
     });
   });
 
-  
   // toggleAvailability
   describe("toggleAvailability", () => {
     it("should toggle availability successfully", async () => {
@@ -168,7 +181,6 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
     });
   });
 
-  
   // deleteEmployee
   describe("deleteEmployee", () => {
     it("should soft delete employee and user", async () => {
@@ -184,7 +196,9 @@ describe("Employee Controller Unit Tests (Manual Mocks Fixed)", () => {
 
     it("should throw error if employee not found", async () => {
       Employee.findById.mockResolvedValue(null);
-      await expect(deleteEmployee(validId)).rejects.toThrow("Employee not found");
+      await expect(deleteEmployee(validId)).rejects.toThrow(
+        "Employee not found",
+      );
     });
   });
 });

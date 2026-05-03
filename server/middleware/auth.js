@@ -21,7 +21,8 @@ const authTokenMiddleware = async (request, response, next) => {
     const authUser = await User.findById(decodedToken.id)
       .select(["-__v"])
       .lean();
-    if (!authUser || !authUser.isActive || authUser.isDeleted) throw new AppError("unauthorized", 401);
+    if (!authUser || !authUser.isActive || authUser.isDeleted)
+      throw new AppError("unauthorized", 401);
     const { _id, ...restUser } = authUser;
     let user = { ...restUser };
     if (
@@ -47,11 +48,11 @@ const authTokenMiddleware = async (request, response, next) => {
 
 /**
  * Access control middleware
- * 
+ *
  * @param {string[]} roles - list of allowed roles
- * 
+ *
  * @returns {(req: Request, res: Response, next: NextFunction) => void} - middleware function
- * 
+ *
  * @throws {AppError} - if roles is not an array or if roles is empty
  * @throws {AppError} - if user role is not in roles
  */
@@ -69,8 +70,6 @@ const accessControl = (roles) => {
       next(new AppError("Invalid role(s) specified", 400));
     }
   };
-}
-
+};
 
 module.exports = { authTokenMiddleware, accessControl };
-

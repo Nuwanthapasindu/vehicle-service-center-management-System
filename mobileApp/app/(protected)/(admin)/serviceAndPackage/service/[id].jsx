@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import axios from "axios";
+import { serviceService } from "../../../../../services/service/service.service";
 import Toast from "react-native-toast-message";
 
 import DropdownInput from "../../../../../components/DropdownInput";
@@ -50,8 +50,7 @@ export default function EditService() {
   const fetchService = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`/service/${id}`);
-      const data = res.data.payload.service;
+      const data = await serviceService.fetchServiceById(id);
       setServiceName(data.name);
       setDescription(data.description || "");
 
@@ -136,7 +135,7 @@ export default function EditService() {
         payload.image = uploadedImageId;
       }
 
-      await axios.put(`/service/${id}`, payload);
+      await serviceService.updateService(id, payload);
 
       Toast.show({
         type: "success",
@@ -183,7 +182,7 @@ export default function EditService() {
           onPress: async () => {
             try {
               setUpdating(true);
-              await axios.delete(`/service/${id}`);
+              await serviceService.deleteService(id);
               Toast.show({
                 type: "success",
                 text1: "Deleted",

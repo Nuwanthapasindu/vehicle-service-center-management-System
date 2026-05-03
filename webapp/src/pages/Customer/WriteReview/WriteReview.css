@@ -1,8 +1,5 @@
 .write-review-page {
-    padding: 2.5rem;
-    background-color: var(--background-color);
-    min-height: calc(100vh - 80px); /* Adjust based on header height */
-    font-family: 'Poppins', sans-serif;
+    /* Layout styles now handled correctly by CustomerLayout parent */
 }
 
 .breadcrumbs {

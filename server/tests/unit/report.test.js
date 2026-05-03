@@ -28,15 +28,20 @@ describe("Report Controller Unit Tests", () => {
     it("should handle custom range correctly", async () => {
       Invoice.aggregate.mockResolvedValue([]);
 
-      const result = await getIncomeReport(REPORT_RANGES.CUSTOM, "2023-01-01", "2023-12-31");
+      const result = await getIncomeReport(
+        REPORT_RANGES.CUSTOM,
+        "2023-01-01",
+        "2023-12-31",
+      );
 
       expect(Invoice.aggregate).toHaveBeenCalled();
       expect(result.totalIncome).toBe(0);
     });
 
     it("should throw AppError if custom range lacks start/end dates", async () => {
-      await expect(getIncomeReport(REPORT_RANGES.CUSTOM, null, null))
-        .rejects.toThrow("startDate and endDate are required");
+      await expect(
+        getIncomeReport(REPORT_RANGES.CUSTOM, null, null),
+      ).rejects.toThrow("startDate and endDate are required");
     });
   });
 });

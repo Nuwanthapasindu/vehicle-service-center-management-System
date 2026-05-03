@@ -1,7 +1,8 @@
 node_modules
 npm-debug.log
-.env
+Dockerfile
+.dockerignore
 .git
-.DS_Store
-storage
-tests
+.gitignore
+README.md
+.env.copy

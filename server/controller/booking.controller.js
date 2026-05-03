@@ -29,6 +29,23 @@ module.exports.createBooking = async (payload, mobile) => {
     );
     checkDate.setUTCHours(0, 0, 0, 0);
 
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    if (checkDate <= today) {
+      throw new AppError(
+        "Bookings must be made at least one day in advance.",
+        400,
+      );
+    }
+
+    const maxDate = new Date(today);
+    maxDate.setUTCDate(today.getUTCDate() + 30);
+
+    if (checkDate > maxDate) {
+      throw new AppError("Booking date cannot exceed 30 days from today.", 400);
+    }
+
     const nextDay = new Date(checkDate);
     nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
@@ -140,6 +157,7 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
           licensePlate: booking.vehicle?.licensePlate || "N/A",
           service: jobCard?.selectedPackage?.name || "Pending Selection",
           status: jobCard?.status || "PENDING",
+          milageCount: jobCard?.milageCount || 0,
           totalCost: totalCost,
           canViewDetails: !!jobCard,
           hasReview: !!(await Review.findOne({
@@ -397,9 +415,15 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
     if (!booking) throw new AppError("Booking not found", 404);
 
     // Restrict rescheduling if service has started or completed
-    const jobCardCheck = await JobCard.findOne({ booking: bookingId, isDeleted: false });
+    const jobCardCheck = await JobCard.findOne({
+      booking: bookingId,
+      isDeleted: false,
+    });
     if (jobCardCheck && jobCardCheck.status !== JOBCARD_STATUS.PENDING) {
-      throw new AppError(`Cannot reschedule a booking that is currently ${jobCardCheck.status.toLowerCase()}.`, 400);
+      throw new AppError(
+        `Cannot reschedule a booking that is currently ${jobCardCheck.status.toLowerCase()}.`,
+        400,
+      );
     }
 
     if (date) {
@@ -467,7 +491,10 @@ module.exports.cancelBookingByAdmin = async (bookingId) => {
     });
 
     if (jobCard && jobCard.status === JOBCARD_STATUS.FINISH) {
-      throw new AppError("Cannot cancel a booking that has already been finished.", 400);
+      throw new AppError(
+        "Cannot cancel a booking that has already been finished.",
+        400,
+      );
     }
 
     if (jobCard) {

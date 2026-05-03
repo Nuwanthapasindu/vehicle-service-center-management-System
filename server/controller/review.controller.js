@@ -85,7 +85,9 @@ module.exports.getBookingDetailsForReview = async (bookingId, mobile) => {
       status: jobCard.status,
       vehicleImage:
         booking.vehicle && booking.vehicle.image
-          ? booking.vehicle.image.url
+          ? booking.vehicle.image.filePath ||
+            booking.vehicle.image.url ||
+            booking.vehicle.image
           : null,
       vehicleName: booking.vehicle
         ? `${booking.vehicle.make} ${booking.vehicle.model}`

@@ -1,5 +1,6 @@
 const Service = require("../model/Service");
 const File = require("../model/File");
+const Package = require("../model/Package");
 const AppError = require("../error/AppError");
 const {
   validatedCreateService,
@@ -228,6 +229,12 @@ module.exports.deleteService = async (id) => {
     service.deletedAt = Date.now();
     await service.save();
 
+    // Cascading update: Remove this service from all packages
+    await Package.updateMany(
+      { servicesIncluded: id },
+      { $pull: { servicesIncluded: id } },
+    );
+
     if (service.image) {
       await deleteFileById(service.image);
     }
@@ -244,16 +251,12 @@ module.exports.deleteService = async (id) => {
  */
 module.exports.getAllServicesForJobCard = async () => {
   try {
-    const services = await Service.find({ isDeleted: false }).select([
-      "-isDeleted",
-      "-deletedAt",
-      "-__v",
-      "-createdAt",
-      "-updatedAt",
-    ]).populate({
-      path: "image",
-      select: ["-_id", "filePath", "fileType"],
-    });
+    const services = await Service.find({ isDeleted: false })
+      .select(["-isDeleted", "-deletedAt", "-__v", "-createdAt", "-updatedAt"])
+      .populate({
+        path: "image",
+        select: ["-_id", "filePath", "fileType"],
+      });
 
     return services;
   } catch (error) {

@@ -127,67 +127,14 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
+
         <Drawer.Screen
           name="booking/index"
           options={{
             drawerLabel: "Bookings",
             title: "Bookings",
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="build-outline" size={size} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="booking/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Drawer.Screen
-          name="booking/manage/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Drawer.Screen
-          name="serviceAndPackage"
-          options={{
-            drawerLabel: "Catalog & Packages",
-            title: "Catalog & Packages",
-            headerShown: false,
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="cube-outline" size={size} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="invoice"
-          options={{
-            drawerLabel: "Invoice",
-            title: "All Invoice",
-            headerShown: false,
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="newspaper-outline" size={size} color={color} />
-            ),
-          }}
-        />
-
-        <Drawer.Screen
-          name="revenue"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Drawer.Screen
-          name="reviews"
-          options={{
-            headerShown: false,
-            drawerLabel: "Reviews",
-            title: "Review Moderation",
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="star-outline" size={size} color={color} />
+              <Ionicons name="calendar-outline" size={size} color={color} />
             ),
           }}
         />
@@ -200,32 +147,6 @@ export default function AdminDrawerLayout() {
             title: "STAFF MANAGEMENT",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="people-outline" size={size} color={color} />
-            ),
-          }}
-        />
-
-
-
-        <Drawer.Screen
-          name="supplychain/index"
-          options={{
-            headerShown: false, // Prevents duplicate headers
-            drawerLabel: "Supply Chain",
-            title: "Supply Chain",
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="cube-outline" size={size} color={color} />
-            ),
-          }}
-        />
-
-        <Drawer.Screen
-          name="timeslots"
-          options={{
-            headerShown: false,
-            drawerLabel: "Time Slots",
-            title: "Time Slot Configuration",
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="time-outline" size={size} color={color} />
             ),
           }}
         />
@@ -243,6 +164,85 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
+          name="supplychain/index"
+          options={{
+            headerShown: false,
+            drawerLabel: "Supply Chain",
+            title: "Supply Chain",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="bus-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="serviceAndPackage"
+          options={{
+            drawerLabel: "Catalog & Packages",
+            title: "Catalog & Packages",
+            headerShown: false,
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="layers-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="invoice"
+          options={{
+            drawerLabel: "Invoice",
+            title: "All Invoice",
+            headerShown: false,
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="newspaper-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="reviews"
+          options={{
+            headerShown: false,
+            drawerLabel: "Reviews",
+            title: "Review Moderation",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="star-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="timeslots"
+          options={{
+            headerShown: false,
+            drawerLabel: "Time Slots",
+            title: "Time Slot Configuration",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="time-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        {/* Hidden Screens */}
+        <Drawer.Screen
+          name="booking/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Drawer.Screen
+          name="booking/manage/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Drawer.Screen
+          name="revenue"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Drawer.Screen
           name="(InventoryLog)"
           options={{
             headerShown: false,
@@ -252,7 +252,6 @@ export default function AdminDrawerLayout() {
             ),
           }}
         />
-
         <Drawer.Screen
           name="(InventoryAnalysis)"
           options={{

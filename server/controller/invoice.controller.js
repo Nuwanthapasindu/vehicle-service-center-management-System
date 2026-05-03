@@ -6,7 +6,10 @@ const Inventory = require("../model/Inventory");
 const Service = require("../model/Service");
 const AppError = require("../error/AppError");
 const constants = require("../util/constants");
-const { reduceStockByInvoice, increaseStockByPO } = require("./inventory.controller");
+const {
+  reduceStockByInvoice,
+  increaseStockByPO,
+} = require("./inventory.controller");
 const {
   validatedCreateInvoice,
   validatedAddInvoiceItem,
@@ -47,7 +50,7 @@ exports.createInvoice = async (payload) => {
     }
 
     // Process JobCard conditionally
-    // If a JobCard is provided, we auto-extract the Customer from its booking. 
+    // If a JobCard is provided, we auto-extract the Customer from its booking.
     // Joi XOR validation guarantees a raw 'customer' property wasn't also sent.
     if (value.jobCard) {
       if (!mongoose.Types.ObjectId.isValid(value.jobCard)) {
@@ -95,19 +98,29 @@ exports.createInvoice = async (payload) => {
 
     if (value.additionalItems && value.additionalItems.length > 0) {
       for (const add of value.additionalItems) {
-        const inventoryItem = await Inventory.findOne({ _id: add.item, isDeleted: false });
+        const inventoryItem = await Inventory.findOne({
+          _id: add.item,
+          isDeleted: false,
+        });
         if (!inventoryItem) throw new AppError(`Inventory item not found`, 404);
         if (inventoryItem.qty < add.qty) {
-          throw new AppError(`Insufficient quantity for ${inventoryItem.itemName}. Only ${inventoryItem.qty} left.`, 400);
+          throw new AppError(
+            `Insufficient quantity for ${inventoryItem.itemName}. Only ${inventoryItem.qty} left.`,
+            400,
+          );
         }
-        if (!add.sellingPrice || add.sellingPrice === 0) add.sellingPrice = inventoryItem.sellingPrice;
+        if (!add.sellingPrice || add.sellingPrice === 0)
+          add.sellingPrice = inventoryItem.sellingPrice;
       }
       saveData.additionalItems = value.additionalItems;
     }
 
     if (value.additionalServices && value.additionalServices.length > 0) {
       for (const add of value.additionalServices) {
-        const serviceItem = await Service.findOne({ _id: add.service, isDeleted: false });
+        const serviceItem = await Service.findOne({
+          _id: add.service,
+          isDeleted: false,
+        });
         if (!serviceItem) throw new AppError(`Service not found`, 404);
       }
       saveData.additionalServices = value.additionalServices;
@@ -120,12 +133,18 @@ exports.createInvoice = async (payload) => {
       newInvoice.selectedPackage = value.selectedPackage;
     }
     await newInvoice.save();
-    return { id: newInvoice._id, message: `Invoice created successfully ${newInvoice.invoiceId}` };
+    return {
+      id: newInvoice._id,
+      message: `Invoice created successfully ${newInvoice.invoiceId}`,
+    };
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
     }
-    throw new AppError(`Failed to create invoice: ${error.message || "Unknown db error"}`, 500);
+    throw new AppError(
+      `Failed to create invoice: ${error.message || "Unknown db error"}`,
+      500,
+    );
   }
 };
 
@@ -134,20 +153,35 @@ exports.createInvoice = async (payload) => {
  * Throws 404 cleanly if no Invoice was piped to the referenced ID.
  */
 exports.getInvoiceByJobCard = async (jobCardId) => {
-  if (!jobCardId) throw new AppError("Invalid search parameters: JobCard ID is essentially required", 400);
+  if (!jobCardId)
+    throw new AppError(
+      "Invalid search parameters: JobCard ID is essentially required",
+      400,
+    );
 
   try {
-    const invoice = await Invoice.findOne({ jobCard: jobCardId, isDeleted: false })
+    const invoice = await Invoice.findOne({
+      jobCard: jobCardId,
+      isDeleted: false,
+    })
       .populate("customer", "name mobile")
       .populate("additionalItems.item", "name sku")
-      .populate("additionalServices.service", "name category");
+      .populate("additionalServices.service", "name category")
+      .sort({ createdAt: -1 });
 
-    if (!invoice) throw new AppError("No Invoice organically found for the provided JobCard", 404);
+    if (!invoice)
+      throw new AppError(
+        "No Invoice organically found for the provided JobCard",
+        404,
+      );
 
     return invoice;
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError("Failed terminating backend fetch schema for jobCard mapping", 500);
+    throw new AppError(
+      "Failed terminating backend fetch schema for jobCard mapping",
+      500,
+    );
   }
 };
 
@@ -172,7 +206,7 @@ exports.getAllInvoices = async (queryOptions = {}) => {
     }
 
     // Apply search filter for invoiceId if provided
-    if (queryOptions.search && queryOptions.search.trim() !== '') {
+    if (queryOptions.search && queryOptions.search.trim() !== "") {
       filter.invoiceId = { $regex: queryOptions.search.trim(), $options: "i" };
     }
 
@@ -204,7 +238,7 @@ exports.getAllInvoices = async (queryOptions = {}) => {
         "-additionalItems.item",
         "-additionalServices.service",
       ])
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: -1 });
 
     return invoices;
   } catch (error) {
@@ -252,7 +286,7 @@ exports.getInvoiceById = async (invoiceId) => {
               ],
               populate: {
                 path: "image",
-                select:["filePath","-_id"]
+                select: ["filePath", "-_id"],
               },
             },
           },
@@ -328,12 +362,18 @@ exports.addInvoiceItem = async (invoiceId, payload) => {
 
     if (value.type === constants.INVOICE_UPDATE_TYPES.ITEM) {
       // Actively verify the inventory item physically exists before injecting it
-      const inventoryItem = await Inventory.findOne({ _id: value.data.item, isDeleted: false });
+      const inventoryItem = await Inventory.findOne({
+        _id: value.data.item,
+        isDeleted: false,
+      });
       if (!inventoryItem) throw new AppError("Inventory item not found", 404);
 
       // Block insertion if physically available store quantities cannot fulfill the request
       if (inventoryItem.qty < value.data.qty) {
-        throw new AppError(`Insufficient quantity. Only ${inventoryItem.qty} left in stock.`, 400);
+        throw new AppError(
+          `Insufficient quantity. Only ${inventoryItem.qty} left in stock.`,
+          400,
+        );
       }
 
       // Automatically fallback to the explicit catalog price if none is manually requested
@@ -342,28 +382,35 @@ exports.addInvoiceItem = async (invoiceId, payload) => {
       }
 
       const existingItemIndex = invoice.additionalItems.findIndex(
-        (i) => i.item.toString() === value.data.item
+        (i) => i.item.toString() === value.data.item,
       );
 
       if (existingItemIndex > -1) {
         // Update existing item attributes over pushing a duplicate
         invoice.additionalItems[existingItemIndex].qty = value.data.qty;
-        invoice.additionalItems[existingItemIndex].sellingPrice = value.data.sellingPrice;
-        if (value.data.itemType) invoice.additionalItems[existingItemIndex].itemType = value.data.itemType;
+        invoice.additionalItems[existingItemIndex].sellingPrice =
+          value.data.sellingPrice;
+        if (value.data.itemType)
+          invoice.additionalItems[existingItemIndex].itemType =
+            value.data.itemType;
       } else {
         invoice.additionalItems.push(value.data);
       }
     } else if (value.type === constants.INVOICE_UPDATE_TYPES.SERVICE) {
-      const serviceItem = await Service.findOne({ _id: value.data.service, isDeleted: false });
+      const serviceItem = await Service.findOne({
+        _id: value.data.service,
+        isDeleted: false,
+      });
       if (!serviceItem) throw new AppError("Service not found", 404);
 
       const existingServiceIndex = invoice.additionalServices.findIndex(
-        (s) => s.service.toString() === value.data.service
+        (s) => s.service.toString() === value.data.service,
       );
 
       if (existingServiceIndex > -1) {
         // Update existing service
-        invoice.additionalServices[existingServiceIndex].charge = value.data.charge;
+        invoice.additionalServices[existingServiceIndex].charge =
+          value.data.charge;
       } else {
         invoice.additionalServices.push(value.data);
       }
@@ -409,10 +456,16 @@ exports.removeInvoiceItem = async (invoiceId, payload) => {
       // Dynamically pull (remove) the nested sub-document that matches the target item ID
       updateQuery = { $pull: { additionalItems: { item: value.targetId } } };
     } else if (value.type === constants.INVOICE_UPDATE_TYPES.SERVICE) {
-      updateQuery = { $pull: { additionalServices: { service: value.targetId } } };
+      updateQuery = {
+        $pull: { additionalServices: { service: value.targetId } },
+      };
     }
 
-    const updatedInvoice = await Invoice.findByIdAndUpdate(invoiceId, updateQuery, { new: true });
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      invoiceId,
+      updateQuery,
+      { new: true },
+    );
     return `${updatedInvoice?.invoiceId || "Invoice"} item removed successfully`;
   } catch (error) {
     if (error instanceof AppError) throw error;

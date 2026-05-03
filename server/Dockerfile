@@ -1,21 +1,27 @@
-# Use a light Node.js image
-FROM node:22-alpine
+# Production Dockerfile
+FROM node:18-alpine
+
+# Set environment to production
+ENV NODE_ENV=production
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# Install dependencies
 COPY package*.json ./
+RUN npm install --omit=dev
 
-# Install dependencies (only production if needed, but here we might need all for start)
-RUN npm install
-
-# Bundle app source
+# Copy app source
 COPY . .
 
-# Expose the port the app runs on
+# Change ownership to non-root user
+RUN chown -R node:node /app
+
+# Switch to non-root user
+USER node
+
+# Expose port
 EXPOSE 4000
 
-# Start the application
-CMD [ "node", "server.js" ]
+# Start script
+CMD ["sh", "-c", "node ./db/seed.js && node server.js"]

@@ -38,7 +38,6 @@ export default function SatisfactionReport() {
         text1: "Failed to load report",
         text2: error?.response?.data?.payload?.message || error.message,
       });
-      console.log(error.response.data.payload);
     } finally {
       setLoading(false);
     }
