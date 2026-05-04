@@ -12,8 +12,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
 import { useFocusEffect } from "@react-navigation/native";
+import { timeslotService } from "../../../../services/timeslot/timeslot.service";
 
 import colors from "../../../../constants/colors";
 import { useRouter } from "expo-router";
@@ -46,7 +46,7 @@ export default function Bookings() {
     setScheduleData([]); // Reset stale data before fetching new results
     try {
       const dateStr = dates[selectedDateIndex].isoDate;
-      const response = await axios.get(`/timeslot/schedule?date=${dateStr}`);
+      const response = await timeslotService.getSchedule(dateStr);
       if (response.data?.payload?.schedule) {
         setScheduleData(response.data.payload.schedule);
       }

@@ -5,7 +5,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import axios from "axios";
+import { bookingService } from "../../../../services/booking/booking.service";
+import { jobCardService } from "../../../../services/jobCard/jobCard.service";
+import { packageService } from "../../../../services/package/package.service";
+import { invoiceService } from "../../../../services/invoice/invoice.service";
 import colors from "../../../../constants/colors";
 import getImageFullUrl from "../../../../utils/getImageFullUrl";
 import getStatusColor from "../../../../utils/getStatusColor";
@@ -59,14 +62,14 @@ export default function BookingDetails() {
             selectedPackage: values.selectedPackage,
             milageCount: Number(values.milageCount),
           };
-          const jobResponse = await axios.post("/job-cards", jobPayload);
+          const jobResponse = await jobCardService.createJobCard(jobPayload);
           newJobId = jobResponse.data?.payload?.data?._id;
 
           if (!newJobId) throw new Error("Failed to extract Job Card ID from server");
 
           // 2. Assign Team
           if (values.assignedTeam) {
-            await axios.patch("/job-cards/assign", {
+            await jobCardService.assignTeam({
               jobCardId: newJobId,
               teamId: values.assignedTeam,
             });
@@ -84,7 +87,7 @@ export default function BookingDetails() {
             },
           },
         };
-        const invoiceResponse = await axios.post("/invoice", invoicePayload);
+        const invoiceResponse = await invoiceService.createInvoice(invoicePayload);
 
         Toast.show({
           type: "success",
@@ -123,12 +126,12 @@ export default function BookingDetails() {
 
     try {
       // Fetch Booking Details and Packages in parallel to reconcile them
-      const [bookingResponse, pkgResponse] = await Promise.all([
-        axios.get(`/booking/admin/${id}/details`),
-        axios.get(`/package/public`)
+      const [bookingResponse, allPackagesData] = await Promise.all([
+        bookingService.getBookingDetailsAdmin(id),
+        packageService.fetchPackages()
       ]);
       const details = bookingResponse.data?.payload?.data;
-      const allPackages = pkgResponse.data?.payload?.packages || [];
+      const allPackages = allPackagesData || [];
       setData(details);
       setPackages(allPackages);
 
@@ -140,7 +143,7 @@ export default function BookingDetails() {
 
         if (details.service.jobCardId) {
           try {
-            const invoiceRes = await axios.get(`/invoice/jobcard/${details.service.jobCardId}`);
+            const invoiceRes = await invoiceService.fetchInvoiceByJobCard(details.service.jobCardId);
             setInvoiceDetails(invoiceRes.data?.payload?.data || invoiceRes.data?.data);
           } catch (e) {
             setInvoiceDetails(null);
