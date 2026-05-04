@@ -140,6 +140,18 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
+          name="customers"
+          options={{
+            headerShown: false,
+            drawerLabel: "Customers",
+            title: "Customers List",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="people-circle-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
           name="staff"
           options={{
             headerShown: false,
