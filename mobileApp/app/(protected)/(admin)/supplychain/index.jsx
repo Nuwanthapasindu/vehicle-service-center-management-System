@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking, Modal } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Menu, Plus, Search, Phone, ClipboardList, Truck, AlertTriangle, X } from 'lucide-react-native';
@@ -10,6 +10,7 @@ import AddSupplier from './addSupplier';
 import EditSupplier from './editSupplier';
 import AddOrder from './AddOrder';
 import EditOrder from './editOrder';
+import SupplyChainListItem from '../../../../components/supplychain/SupplyChainListItem';
 
 import enums from '../../../../constants/enums';
 import supplyChainService from '../../../../services/supplychain/supplychain.service';
@@ -26,6 +27,8 @@ export default function SupplyChainApp() {
   const [lowStockWarning, setLowStockWarning] = useState(false);
   const [lowStockItems, setLowStockItems] = useState([]);
   const [isWarningDismissed, setIsWarningDismissed] = useState(false);
+  const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
+  const [currentPhoneNumbers, setCurrentPhoneNumbers] = useState([]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -85,7 +88,8 @@ export default function SupplyChainApp() {
 
   const callSupplier = (phoneNumbers) => {
     if (phoneNumbers && phoneNumbers.length > 0) {
-      Linking.openURL(`tel:${phoneNumbers[0]}`);
+      setCurrentPhoneNumbers(phoneNumbers);
+      setIsPhoneModalVisible(true);
     } else {
       Toast.show({ type: "error", text1: "No Number", text2: "This supplier doesn't have a registered mobile number." });
     }
@@ -145,41 +149,15 @@ export default function SupplyChainApp() {
           keyExtractor={(item) => item._id || Math.random().toString()}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.card,
-                activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIES && {
-                  borderLeftWidth: 5,
-                  borderLeftColor: item.status === enums.PURCHASE_ORDER_STATUS.RECEIVED ? '#84CC16' : (item.status === enums.PURCHASE_ORDER_STATUS.SENT ? '#3B82F6' : '#FFB800')
-                }
-              ]}
+            <SupplyChainListItem
+              item={item}
+              activeTab={activeTab}
               onPress={() => {
                 setSelectedItem(item);
                 setCurrentView(activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? enums.SUPPLY_CHAIN_VIEWS.EDIT_SUPPLIER : enums.SUPPLY_CHAIN_VIEWS.EDIT_ORDER);
               }}
-            >
-              <View style={[styles.cardContent, { flex: 1 }]}>
-                <Text style={styles.supplierName}>
-                  {activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? item.companyName : item.supplier?.companyName || "Unknown Supplier"}
-                </Text>
-
-                {activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? (
-                  <Text style={styles.infoText}>Agent: {item.agentName || 'N/A'}</Text>
-                ) : (
-                  <Text style={styles.subtitle}>{item.items?.length || 0} Items - {item.status === enums.PURCHASE_ORDER_STATUS.SENT ? 'Pending' : item.status}</Text>
-                )}
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                {activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIERS ? (
-                  <TouchableOpacity style={styles.callButton} onPress={() => callSupplier(item.companyMobile)}>
-                    <Phone size={20} color="#1F2937" />
-                  </TouchableOpacity>
-                ) : (
-                  <Text style={styles.totalCostValue}>Rs. {item.totalCost || 0}</Text>
-                )}
-              </View>
-            </TouchableOpacity>
+              onCallPress={callSupplier}
+            />
           )}
         />
       )}
@@ -199,6 +177,44 @@ export default function SupplyChainApp() {
           <Text style={[styles.tabText, activeTab === enums.SUPPLY_CHAIN_TABS.SUPPLIES && styles.activeTabText]}>SUPPLIES</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={isPhoneModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsPhoneModalVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setIsPhoneModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Contact Supplier</Text>
+              <TouchableOpacity onPress={() => setIsPhoneModalVisible(false)}>
+                <X size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+            
+            {currentPhoneNumbers.map((number, index) => (
+              <TouchableOpacity 
+                key={index} 
+                style={styles.numberItem}
+                onPress={() => {
+                  Linking.openURL(`tel:${number}`);
+                  setIsPhoneModalVisible(false);
+                }}
+              >
+                <Text style={styles.numberText}>{number}</Text>
+                <View style={styles.callIconContainer}>
+                  <Phone size={20} color="#84CC16" />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
