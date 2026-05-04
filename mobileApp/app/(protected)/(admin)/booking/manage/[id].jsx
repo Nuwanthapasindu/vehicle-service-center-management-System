@@ -9,7 +9,6 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
@@ -166,17 +165,7 @@ export default function ManageBooking() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={28} color={colors.PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manage Booking</Text>
-      </View>
+    <View style={styles.container}>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -356,7 +345,7 @@ export default function ManageBooking() {
           )}
         </Formik>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -376,25 +365,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.SECONDARY,
     fontWeight: "600",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: colors.LIGHT,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.BORDER_COLOR,
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.DARK,
-    flex: 1,
-    textAlign: "right",
   },
   scrollContent: {
     padding: 20,

@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Image, Dimensions, ActivityIndicator, Modal, FlatList
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
@@ -185,20 +184,20 @@ export default function BookingDetails() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={colors.PRIMARY} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!data) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ fontSize: 16, color: colors.SECONDARY }}>Booking not found.</Text>
         <TouchableOpacity onPress={() => router.push("/(protected)/(admin)/booking")} style={{ marginTop: 20 }}>
           <Text style={{ color: colors.PRIMARY, fontWeight: 'bold' }}>Go Back</Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -206,15 +205,7 @@ export default function BookingDetails() {
   const imgSource = imagePath ? { uri: getImageFullUrl(imagePath) } : FALLBACK_IMG;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push("/(protected)/(admin)/booking")}>
-          <Ionicons name="chevron-back" size={28} color={colors.PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Booking Details</Text>
-      </View>
-
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Schedule Info */}
         <View style={styles.section}>
@@ -419,7 +410,7 @@ export default function BookingDetails() {
         )}
       </View>
 
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -427,25 +418,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.BACKGROUND_COLOR,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: colors.LIGHT,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.BORDER_COLOR,
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.DARK,
-    flex: 1,
-    textAlign: "right",
   },
   scrollContent: {
     padding: 20,

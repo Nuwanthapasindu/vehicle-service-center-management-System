@@ -129,8 +129,9 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-          name="booking/index"
+          name="booking"
           options={{
+            headerShown: false,
             drawerLabel: "Bookings",
             title: "Bookings",
             drawerIcon: ({ color, size }) => (
@@ -236,18 +237,6 @@ export default function AdminDrawerLayout() {
         />
 
         {/* Hidden Screens */}
-        <Drawer.Screen
-          name="booking/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Drawer.Screen
-          name="booking/manage/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
         <Drawer.Screen
           name="revenue"
           options={{
