@@ -6,6 +6,7 @@ const {
   getAdminBookingDetails,
   updateBookingByAdmin,
   cancelBookingByAdmin,
+  getAdminBookingHistory,
 } = require("../controller/booking.controller");
 const { USER_ROLES } = require("../util/constants");
 const { authTokenMiddleware, accessControl } = require("../middleware/auth");
@@ -133,6 +134,50 @@ router.get("/dashboard", authTokenMiddleware, (req, res, next) => {
     })
     .catch((error) => next(error));
 });
+
+/**
+ * @swagger
+ * /api/v1/booking/admin/history:
+ *   get:
+ *     summary: Get admin booking history
+ *     tags: [Booking Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search query
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Status filter
+ *     responses:
+ *       200:
+ *         description: Admin booking history retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.get(
+  "/admin/history",
+  authTokenMiddleware,
+  accessControl([USER_ROLES.ADMIN]),
+  (req, res, next) => {
+    const responseBuilder = new responseBuild(res);
+    const { search, status } = req.query;
+
+    getAdminBookingHistory({ search, status })
+      .then((history) => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse({ history });
+      })
+      .catch((error) => next(error));
+  },
+);
 
 /**
  * @swagger

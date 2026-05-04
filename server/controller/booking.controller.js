@@ -298,6 +298,71 @@ module.exports.getDashboardData = async (mobile) => {
   }
 };
 
+module.exports.getAdminBookingHistory = async (filters = {}) => {
+  try {
+    const { search, status } = filters;
+    
+    // We fetch all bookings (or maybe limit it to past 30 days? Let's just fetch all for now, sorted by date descending)
+    const bookings = await Booking.find({ isDeleted: false })
+      .populate("customer", "name mobile")
+      .populate("vehicle", "make model licensePlate image")
+      .populate("slot", "startTime endTime")
+      .sort({ date: -1 });
+
+    // For each booking, fetch corresponding JobCard details
+    let history = await Promise.all(
+      bookings.map(async (booking) => {
+        const jobCard = await JobCard.findOne({
+          booking: booking._id,
+          isDeleted: false,
+        }).populate("selectedPackage", "name");
+
+        let vehicleImagePath = null;
+        if (booking.vehicle?.image) {
+          const fileData = await File.findById(booking.vehicle.image).select("filePath");
+          if (fileData) vehicleImagePath = fileData.filePath.replace(/\\/g, "/");
+        }
+
+        return {
+          id: booking._id,
+          date: booking.date,
+          time: booking.slot ? `${booking.slot.startTime} - ${booking.slot.endTime}` : "TBD",
+          customer: booking.customer ? booking.customer.name : "Unknown",
+          customerMobile: booking.customer ? booking.customer.mobile : "Unknown",
+          vehicle: booking.vehicle
+            ? `${booking.vehicle.make} ${booking.vehicle.model}`
+            : "Unknown Vehicle",
+          licensePlate: booking.vehicle?.licensePlate || "N/A",
+          vehicleImage: vehicleImagePath,
+          service: jobCard?.selectedPackage?.name || "Pending Selection",
+          jobStatus: jobCard?.status || "PENDING",
+        };
+      }),
+    );
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      history = history.filter((item) => {
+        return (
+          item.vehicle.toLowerCase().includes(searchLower) ||
+          item.licensePlate.toLowerCase().includes(searchLower) ||
+          item.customer.toLowerCase().includes(searchLower) ||
+          item.customerMobile.toLowerCase().includes(searchLower) ||
+          item.service.toLowerCase().includes(searchLower)
+        );
+      });
+    }
+
+    if (status && status !== "all") {
+       history = history.filter(item => item.jobStatus === status);
+    }
+
+    return history;
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
 module.exports.getAdminBookingDetails = async (bookingId) => {
   try {
     const booking = await Booking.findById(bookingId)

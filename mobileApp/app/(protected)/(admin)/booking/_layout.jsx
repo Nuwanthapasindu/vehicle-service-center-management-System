@@ -21,10 +21,16 @@ export default function BookingLayout() {
       }}
     >
       <Stack.Screen 
-        name="index" 
+        name="(tabs)" 
         options={{
           title: 'Bookings',
           headerLeft: () => <DrawerToggleButton tintColor={colors.DARK} />
+        }} 
+      />
+      <Stack.Screen 
+        name="index" 
+        options={{
+          headerShown: false,
         }} 
       />
       <Stack.Screen 

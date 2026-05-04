@@ -9,5 +9,8 @@ export const bookingService = {
   },
   deleteBookingAdmin: async (id) => {
     return await axios.delete(`/booking/admin/${id}`);
+  },
+  getBookingHistoryAdmin: async (params = {}) => {
+    return await axios.get('/booking/admin/history', { params });
   }
 };
