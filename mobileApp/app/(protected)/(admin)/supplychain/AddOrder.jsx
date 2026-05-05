@@ -23,8 +23,10 @@ import DropdownInput from "../../../../components/DropdownInput";
 import { Formik } from "formik";
 import { purchaseOrderSchema } from "../../../../schema/purchaseOrder.schema";
 import supplyChainService from "../../../../services/supplychain/supplychain.service";
+import { useRouter } from "expo-router";
 
-export default function AddOrder({ onBack }) {
+export default function AddOrder() {
+  const router = useRouter();
   const initialValues = {
     supplier: null,
     items: [],
@@ -81,8 +83,9 @@ export default function AddOrder({ onBack }) {
         type: "success",
         text1: "Success",
         text2: "Purchase Order created successfully!",
+        position: "bottom",
       });
-      onBack();
+      router.back();
     } catch (err) {
       Toast.show({
         type: "error",
@@ -97,7 +100,7 @@ export default function AddOrder({ onBack }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
+        <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft color="#84CC16" size={32} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>ADD NEW ORDER</Text>

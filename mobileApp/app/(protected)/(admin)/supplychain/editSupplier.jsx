@@ -24,6 +24,7 @@ import { supplierValidationSchema } from "../../../../schema/supplier.schema";
 import { styles } from "./styles";
 import DropdownInput from "../../../../components/DropdownInput";
 import supplyChainService from "../../../../services/supplychain/supplychain.service";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const Form = {
   Item: ({ help, status, children, style }) => (
@@ -45,7 +46,11 @@ const Form = {
   ),
 };
 
-export default function EditSupplier({ supplier, onBack }) {
+export default function EditSupplier() {
+  const router = useRouter();
+  const { item } = useLocalSearchParams();
+  const supplier = item ? JSON.parse(item) : null;
+
   const initialValues = {
     companyName: supplier?.companyName || "",
     agentName: supplier?.agentName || "",
@@ -82,7 +87,7 @@ export default function EditSupplier({ supplier, onBack }) {
         items: values.items.filter((i) => i.trim() !== ""),
       });
       Toast.show({ type: "success", text1: "Success", text2: "Supplier updated successfully!" });
-      onBack();
+      router.back();
     } catch (error) {
       const errorMessage =
         error.response?.data?.payload?.message || "Could not update supplier";
@@ -109,7 +114,7 @@ export default function EditSupplier({ supplier, onBack }) {
                 text1: "Deleted",
                 text2: "Supplier removed.",
               });
-              onBack();
+              router.back();
             } catch (error) {
               Toast.show({ type: "error", text1: "Error", text2: "Could not delete supplier" });
             }
@@ -122,7 +127,7 @@ export default function EditSupplier({ supplier, onBack }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
+        <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft color="#84CC16" size={32} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>EDIT SUPPLIER</Text>

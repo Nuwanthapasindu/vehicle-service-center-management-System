@@ -23,6 +23,7 @@ import { supplierValidationSchema } from "../../../../schema/supplier.schema";
 import { styles } from "./styles";
 import DropdownInput from "../../../../components/DropdownInput";
 import supplyChainService from "../../../../services/supplychain/supplychain.service";
+import { useRouter } from "expo-router";
 
 const Form = {
   Item: ({ help, status, children, style }) => (
@@ -44,7 +45,8 @@ const Form = {
   ),
 };
 
-export default function AddSupplier({ onBack }) {
+export default function AddSupplier() {
+  const router = useRouter();
   const initialValues = {
     companyName: "",
     agentName: "",
@@ -84,7 +86,7 @@ export default function AddSupplier({ onBack }) {
         text2: "Supplier saved successfully!",
         position: "bottom",
       });
-      onBack();
+      router.back();
     } catch (error) {
       const errorMessage =
         error.response?.data?.payload?.message || "Failed to save supplier";
@@ -102,7 +104,7 @@ export default function AddSupplier({ onBack }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
+        <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft color="#84CC16" size={32} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>ADD SUPPLIER</Text>

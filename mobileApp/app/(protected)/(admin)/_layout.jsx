@@ -177,7 +177,7 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-          name="supplychain/index"
+          name="supplychain"
           options={{
             headerShown: false,
             drawerLabel: "Supply Chain",
