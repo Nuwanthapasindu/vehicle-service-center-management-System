@@ -2,9 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking, Modal } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu, Plus, Search, Phone, AlertTriangle, X } from 'lucide-react-native';
-import { useNavigation, useRouter, useFocusEffect } from 'expo-router';
-import { DrawerActions } from '@react-navigation/native';
+import { Plus, Search, Phone, X } from 'lucide-react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 
 import { styles } from '../../app/(protected)/(admin)/supplychain/styles';
 import enums from '../../constants/enums';
@@ -12,15 +11,11 @@ import supplyChainService from '../../services/supplychain/supplychain.service';
 import SupplyChainListItem from './SupplyChainListItem';
 
 export default function SupplyChainListScreen({ activeTab }) {
-  const navigation = useNavigation();
   const router = useRouter();
   
   const [searchText, setSearchText] = useState('');
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [lowStockWarning, setLowStockWarning] = useState(false);
-  const [lowStockItems, setLowStockItems] = useState([]);
-  const [isWarningDismissed, setIsWarningDismissed] = useState(false);
   const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
   const [currentPhoneNumbers, setCurrentPhoneNumbers] = useState([]);
 
@@ -41,15 +36,6 @@ export default function SupplyChainListScreen({ activeTab }) {
         });
         setData(ordersWithCost);
       }
-
-      const invData = await supplyChainService.getInventory();
-      const lowStock = invData.filter(
-        (item) =>
-          item.qty <=
-          (item.reorderLevel !== undefined ? item.reorderLevel : 10),
-      );
-      setLowStockItems(lowStock);
-      setLowStockWarning(lowStock.length > 0);
     } catch (error) {
       Toast.show({
         type: "error",
@@ -64,7 +50,6 @@ export default function SupplyChainListScreen({ activeTab }) {
   useFocusEffect(
     useCallback(() => {
       fetchData();
-      setIsWarningDismissed(false);
     }, [activeTab])
   );
 
@@ -102,34 +87,7 @@ export default function SupplyChainListScreen({ activeTab }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-          <Menu color="#1F2937" size={28} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{activeTab}</Text>
-        {lowStockWarning && !isWarningDismissed ? <AlertTriangle color="#EF4444" size={28} /> : <View style={{ width: 28 }} />}
-      </View>
-
-      {lowStockWarning && !isWarningDismissed && (
-        <View style={{ backgroundColor: '#FEF2F2', padding: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <TouchableOpacity
-            style={{ flex: 1 }}
-            onPress={() => {
-              if (lowStockItems.length > 0) {
-                const itemNames = lowStockItems.map(i => `• ${i.name} (Qty: ${i.qty})`).join('\n');
-                Alert.alert('Low Stock Items', itemNames);
-              }
-            }}
-          >
-            <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>⚠️ Inventory Low Stock Alert (Tap to view)</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsWarningDismissed(true)} style={{ paddingHorizontal: 10 }}>
-            <X size={20} color="#EF4444" />
-          </TouchableOpacity>
-        </View>
-      )}
-
+    <View style={[styles.container, { backgroundColor: '#F9FAFB' }]}>
       <View style={styles.searchContainer}>
         <View style={styles.searchSection}>
           <Search size={20} color="#9CA3AF" style={styles.searchIcon} />
@@ -201,6 +159,6 @@ export default function SupplyChainListScreen({ activeTab }) {
           </View>
         </TouchableOpacity>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
