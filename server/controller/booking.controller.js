@@ -301,6 +301,92 @@ module.exports.getDashboardData = async (mobile) => {
   }
 };
 
+module.exports.getAdminBookingHistory = async (filters = {}) => {
+  try {
+    const { search, status } = filters;
+    const page = parseInt(filters.page) || 1;
+    const limit = parseInt(filters.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    // Fetch matching bookings
+    let bookingsQuery = Booking.find({ isDeleted: false })
+      .populate("customer", "name mobile")
+      .populate({
+        path: "vehicle",
+        select: "make model licensePlate image",
+        populate: { path: "image", select: "filePath" }
+      })
+      .populate("slot", "startTime endTime")
+      .sort({ date: -1 })
+      .lean();
+
+    const bookings = await bookingsQuery.exec();
+
+    // Batch fetch JobCards for these bookings
+    const bookingIds = bookings.map(b => b._id);
+    const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
+      .populate("selectedPackage", "name")
+      .lean();
+
+    // Map job cards by booking ID
+    const jobCardMap = jobCards.reduce((acc, jc) => {
+      acc[jc.booking.toString()] = jc;
+      return acc;
+    }, {});
+
+    let history = bookings.map((booking) => {
+      const jobCard = jobCardMap[booking._id.toString()];
+      let vehicleImagePath = null;
+      if (booking.vehicle?.image?.filePath) {
+        vehicleImagePath = booking.vehicle.image.filePath.replace(/\\/g, "/");
+      }
+
+      return {
+        id: booking._id,
+        date: booking.date,
+        time: booking.slot ? `${booking.slot.startTime} - ${booking.slot.endTime}` : "TBD",
+        customer: booking.customer ? booking.customer.name : "Unknown",
+        customerMobile: booking.customer ? booking.customer.mobile : "Unknown",
+        vehicle: booking.vehicle
+          ? `${booking.vehicle.make} ${booking.vehicle.model}`
+          : "Unknown Vehicle",
+        licensePlate: booking.vehicle?.licensePlate || "N/A",
+        vehicleImage: vehicleImagePath,
+        service: jobCard?.selectedPackage?.name || "Pending Selection",
+        jobStatus: jobCard?.status || "PENDING",
+      };
+    });
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      history = history.filter((item) => {
+        return (
+          item.vehicle.toLowerCase().includes(searchLower) ||
+          item.licensePlate.toLowerCase().includes(searchLower) ||
+          item.customer.toLowerCase().includes(searchLower) ||
+          item.customerMobile.toLowerCase().includes(searchLower) ||
+          item.service.toLowerCase().includes(searchLower)
+        );
+      });
+    }
+
+    if (status && status !== "all") {
+       history = history.filter(item => item.jobStatus === status);
+    }
+
+    const totalCount = history.length;
+    const totalPages = Math.ceil(totalCount / limit);
+    const paginatedHistory = history.slice(skip, skip + limit);
+
+    return { 
+      history: paginatedHistory,
+      metadata: { totalCount, page, limit, totalPages }
+    };
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
 module.exports.getAdminBookingDetails = async (bookingId) => {
   try {
     const booking = await Booking.findById(bookingId)

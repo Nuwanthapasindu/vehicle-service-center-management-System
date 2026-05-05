@@ -129,12 +129,25 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-          name="booking/index"
+          name="booking"
           options={{
+            headerShown: false,
             drawerLabel: "Bookings",
             title: "Bookings",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="calendar-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="customers"
+          options={{
+            headerShown: false,
+            drawerLabel: "Customers",
+            title: "Customers List",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="people-circle-outline" size={size} color={color} />
             ),
           }}
         />
@@ -164,7 +177,7 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-          name="supplychain/index"
+          name="supplychain"
           options={{
             headerShown: false,
             drawerLabel: "Supply Chain",
@@ -224,18 +237,6 @@ export default function AdminDrawerLayout() {
         />
 
         {/* Hidden Screens */}
-        <Drawer.Screen
-          name="booking/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Drawer.Screen
-          name="booking/manage/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
         <Drawer.Screen
           name="revenue"
           options={{

@@ -304,6 +304,47 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F2937',
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    minHeight: 200,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1F2937',
+  },
+  numberItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  numberText: {
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '600',
+  },
+  callIconContainer: {
+    backgroundColor: '#F4FCE3',
+    padding: 10,
+    borderRadius: 50,
+  },
 });
 
 export default function IgnoreStyles() {

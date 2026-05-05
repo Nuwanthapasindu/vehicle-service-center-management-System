@@ -107,7 +107,7 @@ export default function TeamDirectory() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Search Header */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color={colors.SECONDARY} style={styles.searchIcon} />
@@ -186,7 +186,7 @@ export default function TeamDirectory() {
         <Ionicons name="add" size={32} color={colors.DARK} />
       </TouchableOpacity>
 
-    </SafeAreaView>
+    </View>
   );
 }
 
