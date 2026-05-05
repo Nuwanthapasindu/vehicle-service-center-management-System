@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, Dimensions, ActivityIndicator, Modal, FlatList
+  Image, Dimensions, ActivityIndicator, Modal, FlatList, Linking
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -236,7 +236,16 @@ export default function BookingDetails() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.callButton}>
+            <TouchableOpacity 
+              style={styles.callButton}
+              onPress={() => {
+                if (data?.customer?.phone) {
+                  Linking.openURL(`tel:${data.customer.phone}`);
+                } else {
+                  Toast.show({ type: "error", text1: "No Number", text2: "Customer mobile number not found" });
+                }
+              }}
+            >
               <Ionicons name="call-outline" size={20} color={colors.DARK} />
             </TouchableOpacity>
           </View>
