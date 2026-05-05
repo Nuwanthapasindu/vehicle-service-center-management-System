@@ -18,10 +18,10 @@ import Toast from "react-native-toast-message";
 import AddEmployeeSchema from "../../../../../schema/AddEmployeeSchema";
 import axios from "axios";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomInput from "../../../../../components/CustomInput";
 
 export default function AddEmployee() {
   const router = useRouter();
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
 
@@ -100,45 +100,45 @@ export default function AddEmployee() {
           >
             <Text style={styles.sectionLabel}>PERSONAL INFORMATION</Text>
 
-            {errors.name && touched.name && (
-              <Text style={{ color: "red" }}>{errors.name}</Text>
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="Full Name"
+            <CustomInput
+              label="Full Name"
+              placeholder="e.g. John Doe"
               value={values.name}
               onChangeText={handleChange("name")}
+              error={errors.name}
+              touched={touched.name}
+              icon={<Ionicons name="person-outline" size={20} color={colors.SECONDARY} />}
             />
 
-            {errors.mobile && touched.mobile && (
-              <Text style={{ color: "red" }}>{errors.mobile}</Text>
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="Mobile Number"
+            <CustomInput
+              label="Mobile Number"
+              placeholder="e.g. 0712345678"
               keyboardType="phone-pad"
               value={values.mobile}
               onChangeText={handleChange("mobile")}
+              error={errors.mobile}
+              touched={touched.mobile}
+              icon={<Ionicons name="call-outline" size={20} color={colors.SECONDARY} />}
             />
 
-            {errors.address && touched.address && (
-              <Text style={{ color: "red" }}>{errors.address}</Text>
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="Address"
+            <CustomInput
+              label="Address"
+              placeholder="e.g. 123 Main St, Colombo"
               value={values.address}
               onChangeText={handleChange("address")}
+              error={errors.address}
+              touched={touched.address}
+              icon={<Ionicons name="location-outline" size={20} color={colors.SECONDARY} />}
             />
 
-            {errors.nic && touched.nic && (
-              <Text style={{ color: "red" }}>{errors.nic}</Text>
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="NIC"
+            <CustomInput
+              label="NIC"
+              placeholder="e.g. 199012345678"
               value={values.nic}
               onChangeText={handleChange("nic")}
+              error={errors.nic}
+              touched={touched.nic}
+              icon={<Ionicons name="card-outline" size={20} color={colors.SECONDARY} />}
             />
 
             {errors.dob && touched.dob && (
@@ -245,38 +245,26 @@ export default function AddEmployee() {
             )}
 
             <Text style={styles.sectionLabel}>SECURITY</Text>
-            {errors.userName && touched.userName && (
-              <Text style={{ color: "red" }}>{errors.userName}</Text>
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="Username"
+            <CustomInput
+              label="Username"
+              placeholder="e.g. johndoe"
               value={values.userName}
               onChangeText={handleChange("userName")}
+              error={errors.userName}
+              touched={touched.userName}
+              icon={<Ionicons name="at-outline" size={20} color={colors.SECONDARY} />}
             />
 
-            {errors.password && touched.password && (
-              <Text style={{ color: "red" }}>{errors.password}</Text>
-            )}
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Password"
-                secureTextEntry={!isPasswordVisible}
-                value={values.password}
-                onChangeText={handleChange("password")}
-              />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-              >
-                <Ionicons
-                  name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                  size={22}
-                  color={colors.SECONDARY}
-                />
-              </TouchableOpacity>
-            </View>
+            <CustomInput
+              label="Password"
+              placeholder="Enter password"
+              value={values.password}
+              onChangeText={handleChange("password")}
+              error={errors.password}
+              touched={touched.password}
+              isPassword={true}
+              icon={<Ionicons name="lock-closed-outline" size={20} color={colors.SECONDARY} />}
+            />
 
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
               <Ionicons
@@ -336,23 +324,4 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   submitBtnText: { fontSize: 18, fontWeight: "bold", color: colors.DARK },
-  // ---STYLES FOR PASSWORD CONTAINER ---
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.LIGHT,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.BORDER_COLOR,
-    marginBottom: 12,
-    height: 50,
-  },
-  passwordInput: {
-    flex: 1,
-    padding: 15,
-    color: colors.DARK,
-  },
-  eyeIcon: {
-    paddingHorizontal: 15,
-  },
 });
