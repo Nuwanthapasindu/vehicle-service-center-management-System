@@ -49,7 +49,19 @@ const Form = {
 export default function EditSupplier() {
   const router = useRouter();
   const { item } = useLocalSearchParams();
-  const supplier = item ? JSON.parse(item) : null;
+  
+  let supplier = null;
+  try {
+    supplier = item ? JSON.parse(item) : null;
+  } catch (error) {
+    Toast.show({
+      type: "error",
+      text1: "Data Error",
+      text2: "Failed to load supplier details",
+    });
+    router.back();
+    return null;
+  }
 
   const initialValues = {
     companyName: supplier?.companyName || "",

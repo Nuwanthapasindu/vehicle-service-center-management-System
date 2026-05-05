@@ -20,7 +20,19 @@ import { purchaseOrderTemplate } from "../../../../templates/pdf/purchaseOrderTe
 export default function EditOrder() {
   const router = useRouter();
   const { item } = useLocalSearchParams();
-  const displayOrder = item ? JSON.parse(item) : {};
+  
+  let displayOrder = {};
+  try {
+    displayOrder = item ? JSON.parse(item) : {};
+  } catch (error) {
+    Toast.show({
+      type: "error",
+      text1: "Data Error",
+      text2: "Failed to load order details",
+    });
+    router.back();
+    return null;
+  }
 
   const isPending = displayOrder?.status === enums.PURCHASE_ORDER_STATUS.SENT;
   const isDraft = displayOrder?.status === enums.PURCHASE_ORDER_STATUS.DRAFT;

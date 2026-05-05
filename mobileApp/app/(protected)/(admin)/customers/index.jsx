@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -38,13 +38,28 @@ export default function CustomersList() {
     }
   };
 
+  const searchQueryRef = useRef(searchQuery);
+  const isMounted = useRef(false);
+
+  // Keep ref in sync
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
+
+  // Fetch on focus
   useFocusEffect(
     useCallback(() => {
-      fetchCustomers(searchQuery);
+      fetchCustomers(searchQueryRef.current);
     }, [])
   );
 
+  // Debounced fetch on search query change (skip initial mount)
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    
     const delayDebounceFn = setTimeout(() => {
       fetchCustomers(searchQuery);
     }, 500);

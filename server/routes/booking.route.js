@@ -168,12 +168,12 @@ router.get(
   accessControl([USER_ROLES.ADMIN]),
   (req, res, next) => {
     const responseBuilder = new responseBuild(res);
-    const { search, status } = req.query;
+    const { search, status, page, limit } = req.query;
 
-    getAdminBookingHistory({ search, status })
-      .then((history) => {
+    getAdminBookingHistory({ search, status, page, limit })
+      .then((data) => {
         responseBuilder.setStatus(200);
-        responseBuilder.buildResponse({ history });
+        responseBuilder.buildResponse(data);
       })
       .catch((error) => next(error));
   },

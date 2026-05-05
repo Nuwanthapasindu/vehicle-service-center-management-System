@@ -144,7 +144,11 @@ router.get(
  *       404:
  *         description: Customer not found
  */
-router.get("/customers/:customerId", authTokenMiddleware, (req, res, next) => {
+router.get(
+  "/customers/:customerId",
+  authTokenMiddleware,
+  accessControl([USER_ROLES.ADMIN]),
+  (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const { customerId } = req.params;
 
