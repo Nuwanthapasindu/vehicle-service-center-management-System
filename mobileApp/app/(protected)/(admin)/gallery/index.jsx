@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -17,19 +18,45 @@ import GalleryList from "../../../../components/GalleryList";
 import { galleryService } from "../../../../services/gallery/gallery.service";
 import colors from "../../../../constants/colors";
 
+const PAGE_LIMIT = 10;
+
 export default function AdminGalleryScreen() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalAssets, setTotalAssets] = useState(0);
+
+  // Selection State
+  const [selectedIds, setSelectedIds] = useState([]);
+  const selectionAnim = React.useRef(new Animated.Value(0)).current;
+
   const [isModalVisible, setModalVisible] = useState(false);
   const [uploadedImageIds, setUploadedImageIds] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  const fetchImages = async () => {
+  const fetchImages = async (pageNum = 1, isRefresh = false) => {
     try {
-      setLoading(true);
-      const response = await galleryService.getGalleryImages();
-      setImages(response.data?.payload || []);
+      if (pageNum === 1) {
+        if (!isRefresh) setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const response = await galleryService.getGalleryImages({ page: pageNum, limit: PAGE_LIMIT });
+      const { images: newImages, total, page: currentPage, totalPages } = response.data?.payload || {};
+
+      if (pageNum === 1) {
+        setImages(newImages || []);
+      } else {
+        setImages((prev) => [...prev, ...(newImages || [])]);
+      }
+
+      setPage(currentPage);
+      setHasMore(currentPage < totalPages);
+      setTotalAssets(total || 0);
     } catch (error) {
       Toast.show({
         type: "error",
@@ -39,18 +66,45 @@ export default function AdminGalleryScreen() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      fetchImages();
+      fetchImages(1);
     }, [])
   );
 
+  useEffect(() => {
+    Animated.spring(selectionAnim, {
+      toValue: selectedIds.length > 0 ? 1 : 0,
+      useNativeDriver: true,
+      friction: 8,
+    }).start();
+  }, [selectedIds]);
+
+  const handleSelect = (id) => {
+    setSelectedIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
+  const clearSelection = () => setSelectedIds([]);
+
   const onRefresh = () => {
     setRefreshing(true);
-    fetchImages();
+    fetchImages(1, true);
+  };
+
+  const onLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchImages(page + 1);
+    }
   };
 
   const handleUpload = async () => {
@@ -64,11 +118,7 @@ export default function AdminGalleryScreen() {
 
     try {
       setUploading(true);
-      const payload = {
-        images: uploadedImageIds,
-      };
-
-      const response = await galleryService.createGalleryImage(payload);
+      const response = await galleryService.createGalleryImage({ images: uploadedImageIds });
       
       Toast.show({
         type: "success",
@@ -77,13 +127,13 @@ export default function AdminGalleryScreen() {
       });
       
       setModalVisible(false);
-      resetModal(false); // Skip cleanup on success
-      fetchImages();
+      resetModal(false); 
+      fetchImages(1);
     } catch (error) {
       Toast.show({
         type: "error",
         text1: "Update Failed",
-        text2: error.response?.data?.payload?.message || "Failed to save gallery items",
+        text2: "Failed to save gallery items",
       });
     } finally {
       setUploading(false);
@@ -91,16 +141,9 @@ export default function AdminGalleryScreen() {
   };
 
   const resetModal = (shouldCleanup = true) => {
-    // Cleanup any uploaded but unsaved files if requested
     if (shouldCleanup && uploadedImageIds.length > 0) {
       uploadedImageIds.forEach(id => {
-        axios.delete(`/file/${id}`).catch(err => {
-          Toast.show({
-            type: "error",
-            text1: "Discard Cleanup Error",
-            text2: "Some unsaved files could not be removed from the server",
-          });
-        });
+        axios.delete(`/file/${id}`).catch(() => {});
       });
     }
     setUploadedImageIds([]);
@@ -108,28 +151,50 @@ export default function AdminGalleryScreen() {
 
   const handleDelete = (id) => {
     Alert.alert(
-      "Remove from Gallery?",
-      "This image will be permanently deleted from the system.",
+      "Remove Image?",
+      "This image will be permanently deleted.",
       [
-        { text: "Keep Image", style: "cancel" },
+        { text: "Cancel", style: "cancel" },
         {
           text: "Remove",
           style: "destructive",
           onPress: async () => {
             try {
               await galleryService.deleteGalleryImage(id);
+              fetchImages(1);
+            } catch (error) {
+              Toast.show({ type: "error", text1: "Delete Failed" });
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    Alert.alert(
+      "Bulk Delete",
+      `Are you sure you want to delete ${selectedIds.length} selected images?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete All",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await galleryService.deleteMultipleGalleryImages(selectedIds);
               Toast.show({
                 type: "success",
-                text1: "Removed",
-                text2: "Image deleted from gallery",
+                text1: "Batch Deleted",
+                text2: `Successfully removed ${selectedIds.length} images`,
               });
-              fetchImages();
+              setSelectedIds([]);
+              fetchImages(1);
             } catch (error) {
-              Toast.show({
-                type: "error",
-                text1: "Delete Failed",
-                text2: "Could not remove image at this time",
-              });
+              Toast.show({ type: "error", text1: "Bulk Delete Failed" });
+            } finally {
+              setLoading(false);
             }
           },
         },
@@ -140,10 +205,20 @@ export default function AdminGalleryScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Gallery Management</Text>
-          <Text style={styles.headerSubtitle}>{images.length} assets in collection</Text>
-        </View>
+        {selectedIds.length > 0 ? (
+          <View style={styles.selectionHeader}>
+            <TouchableOpacity onPress={clearSelection}>
+              <Ionicons name="close" size={24} color={colors.DARK} />
+            </TouchableOpacity>
+            <Text style={styles.selectionText}>{selectedIds.length} selected</Text>
+          </View>
+        ) : (
+          <View>
+            <Text style={styles.headerTitle}>Gallery Management</Text>
+            <Text style={styles.headerSubtitle}>{totalAssets} assets in collection</Text>
+          </View>
+        )}
+        
         <TouchableOpacity 
           style={styles.refreshBtn} 
           onPress={onRefresh}
@@ -158,23 +233,46 @@ export default function AdminGalleryScreen() {
         loading={loading}
         refreshing={refreshing}
         onRefresh={onRefresh}
+        onLoadMore={onLoadMore}
+        loadingMore={loadingMore}
+        hasMore={hasMore}
         onDelete={handleDelete}
         isAdmin={true}
+        selectedIds={selectedIds}
+        onSelect={handleSelect}
       />
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setModalVisible(true)}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={32} color={colors.LIGHT} />
-      </TouchableOpacity>
+      {/* Floating Action Bar for Selection */}
+      {selectedIds.length > 0 && (
+        <Animated.View 
+          style={[
+            styles.selectionBar,
+            { transform: [{ translateY: selectionAnim.interpolate({ inputRange: [0, 1], outputRange: [100, 0] }) }] }
+          ]}
+        >
+          <TouchableOpacity style={styles.bulkDeleteBtn} onPress={handleBulkDelete}>
+            <Ionicons name="trash" size={24} color="white" />
+            <Text style={styles.bulkDeleteText}>Delete Selected ({selectedIds.length})</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
 
+      {selectedIds.length === 0 && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={32} color={colors.LIGHT} />
+        </TouchableOpacity>
+      )}
+
+      {/* Modal is same as before */}
       <Modal
         visible={isModalVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => { setModalVisible(false); resetModal(true); }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -192,13 +290,7 @@ export default function AdminGalleryScreen() {
             />
 
             <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.btn, styles.cancelBtn]}
-                onPress={() => {
-                  setModalVisible(false);
-                  resetModal(true);
-                }}
-              >
+              <TouchableOpacity style={[styles.btn, styles.cancelBtn]} onPress={() => { setModalVisible(false); resetModal(true); }}>
                 <Text style={styles.cancelBtnText}>Discard</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -206,13 +298,7 @@ export default function AdminGalleryScreen() {
                 onPress={handleUpload}
                 disabled={uploading || uploadedImageIds.length === 0}
               >
-                {uploading ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <Text style={styles.saveBtnText}>
-                    Save {uploadedImageIds.length > 0 ? `(${uploadedImageIds.length})` : ""}
-                  </Text>
-                )}
+                {uploading ? <ActivityIndicator color="white" size="small" /> : <Text style={styles.saveBtnText}>Save</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -232,10 +318,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingVertical: 18,
     backgroundColor: colors.LIGHT,
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
+    height: 90,
+  },
+  selectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+  selectionText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.DARK,
   },
   headerTitle: {
     fontSize: 22,
@@ -266,14 +363,40 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
-    shadowColor: colors.PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+  },
+  selectionBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "white",
+    padding: 20,
+    paddingBottom: 40,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    elevation: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
+  bulkDeleteBtn: {
+    backgroundColor: "#EF4444",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    borderRadius: 16,
+    gap: 10,
+  },
+  bulkDeleteText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.75)", // colors.DARK with opacity
+    backgroundColor: "rgba(15, 23, 42, 0.75)",
     justifyContent: "flex-end",
   },
   modalContent: {
@@ -282,7 +405,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     padding: 24,
     paddingBottom: 40,
-    width: "100%",
   },
   modalHeader: {
     flexDirection: "row",
@@ -305,7 +427,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
-    minWidth: 120,
+    minWidth: 100,
     alignItems: "center",
   },
   cancelBtn: {
@@ -317,7 +439,6 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     backgroundColor: colors.PRIMARY,
-    elevation: 2,
   },
   saveBtnText: {
     color: colors.LIGHT,
@@ -325,6 +446,5 @@ const styles = StyleSheet.create({
   },
   disabledBtn: {
     opacity: 0.5,
-    elevation: 0,
   },
 });

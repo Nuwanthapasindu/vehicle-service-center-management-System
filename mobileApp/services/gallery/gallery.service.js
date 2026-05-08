@@ -1,8 +1,8 @@
 import axios from "axios";
 
 export const galleryService = {
-  getGalleryImages: async () => {
-    return await axios.get("/gallery");
+  getGalleryImages: async (params = {}) => {
+    return await axios.get("/gallery", { params });
   },
   
   createGalleryImage: async (payload) => {
@@ -11,5 +11,9 @@ export const galleryService = {
 
   deleteGalleryImage: async (id) => {
     return await axios.delete(`/gallery/${id}`);
+  },
+
+  deleteMultipleGalleryImages: async (ids) => {
+    return await axios.delete("/gallery/delete-multiple", { data: { ids } });
   },
 };

@@ -108,13 +108,57 @@ router.post(
  */
 router.get("/", (req, res, next) => {
   const responseBuilder = new responseBuild(res);
-  getAllGalleryImages()
+  getAllGalleryImages(req.query)
     .then((data) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse(data);
     })
     .catch((error) => next(error));
 });
+
+/**
+ * @swagger
+ * /api/v1/gallery/delete-multiple:
+ *   delete:
+ *     tags: [Gallery]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Delete multiple gallery items
+ *     description: |
+ *       Delete multiple gallery records and their associated physical files.
+ *       **Admin access only.**
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ids
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Images deleted successfully
+ */
+router.delete(
+  "/delete-multiple",
+  authTokenMiddleware,
+  accessControl([USER_ROLES.ADMIN]),
+  (req, res, next) => {
+    const { deleteMultipleGalleryImages } = require("../controller/gallery.controller");
+    const responseBuilder = new responseBuild(res);
+    deleteMultipleGalleryImages(req.body)
+      .then((data) => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse(data);
+      })
+      .catch((error) => next(error));
+  }
+);
 
 /**
  * @swagger

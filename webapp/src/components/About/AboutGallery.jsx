@@ -1,15 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getGalleryImages } from "../../services/galleryService";
+import getImageUrl from "../../util/getImageUrl";
 import './AboutGallery.css';
 
-// Gallery images
-import g1 from '../../assets/imgs/about/gallery1.png';
-import g2 from '../../assets/imgs/about/gallery2.png';
-import g3 from '../../assets/imgs/about/gallery3.png';
-import g4 from '../../assets/imgs/about/gallery4.png';
-import g5 from '../../assets/imgs/about/gallery5.png';
-import g6 from '../../assets/imgs/about/gallery6.png';
-
 const AboutGallery = () => {
+    const [images, setImages] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchLatestImages = async () => {
+            try {
+                const response = await getGalleryImages({ page: 1, limit: 6 });
+                if (response && response.payload) {
+                    setImages(response.payload.images || []);
+                }
+            } catch (error) {
+                console.error("Failed to fetch about gallery images:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLatestImages();
+    }, []);
+
+    if (loading) {
+        return (
+            <section className="gallery-section">
+                <div className="gallery-loading">
+                    <i className="fa-solid fa-circle-notch fa-spin"></i>
+                </div>
+            </section>
+        );
+    }
+
+    if (images.length === 0) {
+        return null; // Or show fallback static images if preferred
+    }
+
     return (
         <section className="gallery-section">
             <div className="gallery-header">
@@ -18,12 +46,17 @@ const AboutGallery = () => {
             </div>
 
             <div className="gallery-grid">
-                <div className="gallery-item shadow-hover"><img src={g1} alt="Red Porsche" /></div>
-                <div className="gallery-item shadow-hover"><img src={g2} alt="Black SUV" /></div>
-                <div className="gallery-item shadow-hover"><img src={g3} alt="Silver Lamborghini" /></div>
-                <div className="gallery-item shadow-hover"><img src={g4} alt="Blue Ferrari" /></div>
-                <div className="gallery-item shadow-hover"><img src={g5} alt="Classic Mustang" /></div>
-                <div className="gallery-item shadow-hover"><img src={g6} alt="Bentley Interior" /></div>
+                {images.map((item, index) => (
+                    <div key={item._id || index} className="gallery-item shadow-hover">
+                        <img 
+                            src={getImageUrl(item.image?.filePath)} 
+                            alt={`Gallery asset ${index + 1}`}
+                            onError={(e) => {
+                                e.target.src = "https://via.placeholder.com/600x400?text=Image+Not+Found";
+                            }}
+                        />
+                    </div>
+                ))}
             </div>
         </section>
     );

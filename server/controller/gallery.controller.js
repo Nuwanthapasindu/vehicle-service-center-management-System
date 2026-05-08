@@ -32,13 +32,32 @@ module.exports.createGalleryImage = async (data) => {
 };
 
 /**
- * Get all gallery images
+ * Get all gallery images (with optional pagination)
  */
-module.exports.getAllGalleryImages = async () => {
+module.exports.getAllGalleryImages = async (query = {}) => {
   try {
-    return await Gallery.find()
-      .populate("image", "filePath fileName")
-      .sort({ createdAt: -1 });
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 0; // 0 means return all
+    const skip = (page - 1) * limit;
+
+    let mongoQuery = Gallery.find().populate("image", "filePath fileName").sort({ createdAt: -1 });
+
+    if (limit > 0) {
+      mongoQuery = mongoQuery.limit(limit).skip(skip);
+    }
+
+    const [images, total] = await Promise.all([
+      mongoQuery,
+      Gallery.countDocuments()
+    ]);
+
+    return {
+      images,
+      total,
+      page,
+      limit,
+      totalPages: limit > 0 ? Math.ceil(total / limit) : 1
+    };
   } catch (error) {
     throw new AppError(error.message, error.statusCode || 500);
   }
@@ -64,6 +83,34 @@ module.exports.deleteGalleryImage = async (id) => {
     await Gallery.findByIdAndDelete(id);
 
     return { message: "Gallery image deleted successfully" };
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 500);
+  }
+};
+
+/**
+ * Delete multiple gallery images
+ */
+module.exports.deleteMultipleGalleryImages = async (data) => {
+  try {
+    const ids = data.ids;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new AppError("No IDs provided for deletion", 400);
+    }
+
+    const galleryImages = await Gallery.find({ _id: { $in: ids } });
+
+    // Delete associated files
+    const fileDeletionPromises = galleryImages
+      .filter(img => img.image)
+      .map(img => fileController.deleteFileById(img.image));
+    
+    await Promise.all(fileDeletionPromises);
+
+    // Delete gallery records
+    await Gallery.deleteMany({ _id: { $in: ids } });
+
+    return { message: `${galleryImages.length} images deleted successfully` };
   } catch (error) {
     throw new AppError(error.message, error.statusCode || 500);
   }
