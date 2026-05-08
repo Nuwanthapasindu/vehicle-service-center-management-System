@@ -13,23 +13,24 @@ function CustomDrawerContent(props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.LIGHT }}>
+      {/* Header - FIXED at the top */}
+      <View style={styles.drawerHeader}>
+        <View style={styles.logoWrapper}>
+          <Image source={logo} style={styles.logo} resizeMode="contain" />
+        </View>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>AutoMate</Text>
+          <Text style={styles.headerSubtitle}>SHINE DEPOT</Text>
+        </View>
+      </View>
+
+      {/* Separator */}
+      <View style={styles.separator} />
+
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={{ paddingTop: 0 }}
       >
-        {/* Header */}
-        <View style={styles.drawerHeader}>
-          <View style={styles.logoWrapper}>
-            <Image source={logo} style={styles.logo} resizeMode="contain" />
-          </View>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>AutoMate</Text>
-            <Text style={styles.headerSubtitle}>SHINE DEPOT</Text>
-          </View>
-        </View>
-
-        {/* Separator */}
-        <View style={styles.separator} />
 
         {/* List of items */}
         <View style={styles.drawerItemsWrapper}>
@@ -232,6 +233,18 @@ export default function AdminDrawerLayout() {
             title: "Time Slot Configuration",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="time-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="gallery"
+          options={{
+            headerShown: false,
+            drawerLabel: "Gallery",
+            title: "Gallery Management",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="images-outline" size={size} color={color} />
             ),
           }}
         />

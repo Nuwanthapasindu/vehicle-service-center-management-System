@@ -3,14 +3,6 @@ const Schema = mongoose.Schema;
 
 const gallerySchema = new Schema(
   {
-    title: {
-      type: String,
-      required: false,
-    },
-    description: {
-      type: String,
-      required: false,
-    },
     image: {
       type: Schema.Types.ObjectId,
       ref: "File",
@@ -19,7 +11,8 @@ const gallerySchema = new Schema(
   },
   {
     timestamps: true,
-  },
+    versionKey: false,
+  }
 );
 
 module.exports = mongoose.model("Gallery", gallerySchema);

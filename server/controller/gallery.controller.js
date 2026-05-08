@@ -3,21 +3,29 @@ const fileController = require("./file.controller");
 const AppError = require("../error/AppError");
 
 /**
- * Create a new gallery image record
+ * Create gallery image records (supports multiple)
  */
 module.exports.createGalleryImage = async (data) => {
   try {
-    if (!data.image) {
-      throw new AppError("Image ID is required", 400);
+    const imageIds = data.images || (data.image ? [data.image] : []);
+
+    if (!imageIds || imageIds.length === 0) {
+      throw new AppError("At least one image ID is required", 400);
     }
 
-    const newGallery = new Gallery({
-      title: data.title || "",
-      description: data.description || "",
-      image: data.image,
+    const galleryPromises = imageIds.map((id) => {
+      const newGallery = new Gallery({
+        image: id,
+      });
+      return newGallery.save();
     });
 
-    return await newGallery.save();
+    const results = await Promise.all(galleryPromises);
+    
+    return {
+      message: `${results.length} gallery image(s) created successfully`,
+      payload: results
+    };
   } catch (error) {
     throw new AppError(error.message, error.statusCode || 500);
   }
