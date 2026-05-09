@@ -309,7 +309,7 @@ module.exports.getAdminBookingHistory = async (filters = {}) => {
     const skip = (page - 1) * limit;
 
     // Fetch matching bookings
-    let bookingsQuery = Booking.find({ isDeleted: false })
+    const bookings = await Booking.find({ isDeleted: false })
       .populate("customer", "name mobile")
       .populate({
         path: "vehicle",
@@ -317,10 +317,9 @@ module.exports.getAdminBookingHistory = async (filters = {}) => {
         populate: { path: "image", select: "filePath" }
       })
       .populate("slot", "startTime endTime")
-      .sort({ date: -1 })
+      .sort({ createdAt: -1 })
       .lean();
 
-    const bookings = await bookingsQuery.exec();
 
     // Batch fetch JobCards for these bookings
     const bookingIds = bookings.map(b => b._id);
