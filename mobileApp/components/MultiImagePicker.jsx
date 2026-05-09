@@ -45,6 +45,19 @@ export default function MultiImagePicker({
     return { destUri, filename };
   };
 
+  // Validates that a string is a valid MongoDB ObjectId
+  const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
+
+  // Cleans up already-uploaded files from the server on partial failure
+  const cleanupUploadedFiles = async (ids) => {
+    if (ids.length === 0) return;
+    try {
+      await Promise.all(ids.map((id) => axios.delete(`/file/${id}`)));
+    } catch {
+      // Cleanup is best-effort; don't block the error flow
+    }
+  };
+
   const uploadImages = async (uris) => {
     const personalAccessToken = await getItem(storageKeys.PERSONAL_ACCESS_TOKEN);
     setUploading(true);
@@ -72,29 +85,50 @@ export default function MultiImagePicker({
           }
         );
 
-        const data = JSON.parse(uploadResult.body);
-
-        if (uploadResult.status === 200 || uploadResult.status === 201) {
-          const fileId = data?.payload?.file?.id || data?.payload?._id || data?.payload?.file?._id;
-          newUploadedIds.push(fileId);
-          // Update uploadedIds state as we go to show checkmarks
-          setUploadedIds(prev => [...prev, fileId]);
+        // Validate HTTP status
+        if (uploadResult.status !== 200 && uploadResult.status !== 201) {
+          throw new Error(
+            `Upload failed for image ${i + 1}/${uris.length} (HTTP ${uploadResult.status})`
+          );
         }
+
+        const data = JSON.parse(uploadResult.body);
+        const fileId =
+          data?.payload?.file?.id ||
+          data?.payload?._id ||
+          data?.payload?.file?._id;
+
+        // Validate the returned file ID
+        if (!fileId || !isValidObjectId(String(fileId))) {
+          throw new Error(
+            `Server returned an invalid file ID for image ${i + 1}/${uris.length}`
+          );
+        }
+
+        newUploadedIds.push(fileId);
+        // Update uploadedIds state as we go to show checkmarks
+        setUploadedIds((prev) => [...prev, fileId]);
       }
 
+      // All uploads succeeded — notify parent
       onUploadSuccess?.(newUploadedIds);
-      
+
       Toast.show({
         type: "success",
         text1: "Upload Complete",
-        text2: `Successfully uploaded ${newUploadedIds.length} images`,
+        text2: `Successfully uploaded ${newUploadedIds.length} image${newUploadedIds.length > 1 ? "s" : ""}`,
       });
     } catch (error) {
+      // Rollback: delete any files that were already uploaded in this batch
+      await cleanupUploadedFiles(newUploadedIds);
+      setUploadedIds([]);
+      setPreviews([]);
+
       onUploadError?.(error.message);
       Toast.show({
         type: "error",
         text1: "Upload Failed",
-        text2: "Something went wrong while uploading images",
+        text2: error.message || "Something went wrong while uploading images",
       });
     } finally {
       setUploading(false);
