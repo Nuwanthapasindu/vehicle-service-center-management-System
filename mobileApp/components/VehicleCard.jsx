@@ -52,7 +52,6 @@ export default function VehicleCard({ vehicle }) {
         {/* License Plate Row */}
         <View style={styles.plateRow}>
           <View style={styles.plateContainer}>
-            <Text style={styles.plateLabel}>LK</Text>
             <Text style={styles.plateNumber} numberOfLines={1}>
               {displayPlate}
             </Text>
