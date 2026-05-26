@@ -260,7 +260,11 @@ exports.getInvoiceById = async (invoiceId) => {
         },
         {
           path: "selectedPackage.package",
-          select: ["name", "description", "-_id"],
+          select: ["name", "description", "servicesIncluded", "-_id"],
+          populate: {
+            path: "servicesIncluded",
+            select: ["name", "description", "-_id"]
+          }
         },
         {
           path: "additionalItems.item",
