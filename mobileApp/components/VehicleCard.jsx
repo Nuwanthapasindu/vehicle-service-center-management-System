@@ -1,10 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { Car, User } from "lucide-react-native";
+import { useRouter } from "expo-router";
 import colors from "../constants/colors";
 import getImageFullUrl from "../utils/getImageFullUrl";
 
 export default function VehicleCard({ vehicle }) {
+  const router = useRouter();
   const imageUrl = vehicle.image?.filePath
     ? getImageFullUrl(vehicle.image.filePath)
     : null;
@@ -12,8 +14,18 @@ export default function VehicleCard({ vehicle }) {
   const isDeleted = vehicle.isDeleted || vehicle.licensePlate?.includes("-deleted-");
   const displayPlate = vehicle.licensePlate?.split("-deleted-")[0] || vehicle.licensePlate;
 
+  const handlePress = () => {
+    if (!isDeleted) {
+      router.push(`/(protected)/(admin)/vehicles/${vehicle._id}`);
+    }
+  };
+
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={handlePress}
+      activeOpacity={isDeleted ? 1 : 0.7}
+    >
       {/* Top Section: Large Square-ish Image */}
       <View style={styles.imageWrapper}>
         {imageUrl ? (
@@ -79,7 +91,7 @@ export default function VehicleCard({ vehicle }) {
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

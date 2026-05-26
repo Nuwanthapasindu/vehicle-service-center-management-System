@@ -26,6 +26,14 @@ export default function VehiclesLayout() {
           headerLeft: () => <DrawerToggleButton tintColor={colors.DARK} />,
         }}
       />
+      <Stack.Screen
+        name="[id]"
+        options={{
+          title: "Vehicle Details",
+          headerBackTitleVisible: true,
+          headerBackTitle: "Back",
+        }}
+      />
     </Stack>
   );
 }

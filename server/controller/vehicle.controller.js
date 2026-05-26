@@ -3,6 +3,7 @@ const User = require("../model/User");
 const File = require("../model/File");
 const Booking = require("../model/Booking");
 const JobCard = require("../model/JobCard");
+const Invoice = require("../model/Invoice");
 const AppError = require("../error/AppError");
 const { validatedVehicleAdd } = require("../validation/vehicle.validation");
 const { deleteFileById } = require("./file.controller");
@@ -178,5 +179,80 @@ module.exports.getAllVehicles = async (search = "", page = 1, limit = 100) => {
   } catch (error) {
     if (error instanceof AppError) throw error;
     throw new AppError(error.message || "Failed to fetch registered vehicles", error.statusCode || 500);
+  }
+};
+
+module.exports.getVehicleDetailsAdmin = async (vehicleId) => {
+  try {
+    const vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false })
+      .populate("image")
+      .populate("ownerId", "name mobile address");
+
+    if (!vehicle) {
+      throw new AppError("Vehicle not found", 404);
+    }
+
+    const bookings = await Booking.find({ vehicle: vehicleId, isDeleted: false })
+      .populate("slot", "startTime endTime");
+
+    const bookingIds = bookings.map(b => b._id);
+
+    const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
+      .populate({
+        path: "selectedPackage",
+        populate: {
+          path: "servicesIncluded",
+          select: "name description"
+        }
+      });
+
+    const jobCardIds = jobCards.map(jc => jc._id);
+    const invoices = await Invoice.find({ jobCard: { $in: jobCardIds }, isDeleted: false });
+
+    // Map invoices by jobCard ID for quick lookup
+    const invoiceMap = {};
+    invoices.forEach(inv => {
+      invoiceMap[inv.jobCard.toString()] = inv;
+    });
+
+    // Map bookings by ID for quick lookup
+    const bookingMap = {};
+    bookings.forEach(b => {
+      bookingMap[b._id.toString()] = b;
+    });
+
+    let totalExpenditure = 0;
+    const serviceHistory = jobCards.map(jc => {
+      const booking = bookingMap[jc.booking.toString()];
+      const invoice = invoiceMap[jc._id.toString()];
+      const cost = invoice ? invoice.totalPrice : 0;
+      totalExpenditure += cost;
+
+      return {
+        jobCardId: jc._id,
+        date: booking ? booking.date : jc.createdAt,
+        status: jc.status,
+        milageCount: jc.milageCount || 0,
+        packageName: jc.selectedPackage ? jc.selectedPackage.name : "N/A",
+        packageDescription: jc.selectedPackage ? jc.selectedPackage.description : "",
+        services: jc.selectedPackage && jc.selectedPackage.servicesIncluded 
+          ? jc.selectedPackage.servicesIncluded.map(s => ({ name: s.name, description: s.description }))
+          : [],
+        cost: cost,
+        invoiceId: invoice ? invoice.invoiceId : null
+      };
+    });
+
+    // Sort service history by date descending
+    serviceHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return {
+      vehicle,
+      totalExpenditure,
+      serviceHistory
+    };
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(error.message || "Failed to fetch vehicle details", error.statusCode || 500);
   }
 };
