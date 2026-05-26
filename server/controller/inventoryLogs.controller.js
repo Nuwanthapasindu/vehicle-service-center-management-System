@@ -11,9 +11,10 @@ const calculateDateRange = (period, startDate, endDate, timezoneOffset) => {
     let start = null;
     let end = null;
 
-    const userNow = (timezoneOffset !== undefined && timezoneOffset !== null)
-      ? new Date(now.getTime() - (timezoneOffset * 60000))
-      : now;
+    const userNow =
+      timezoneOffset !== undefined && timezoneOffset !== null
+        ? new Date(now.getTime() - timezoneOffset * 60000)
+        : now;
 
     if (period) {
       switch (period.toLowerCase()) {
@@ -54,9 +55,13 @@ const calculateDateRange = (period, startDate, endDate, timezoneOffset) => {
           break;
       }
 
-      if (period.toLowerCase() !== LOG_PERIODS.CUSTOM && timezoneOffset !== undefined && timezoneOffset !== null) {
-        if (start) start = new Date(start.getTime() + (timezoneOffset * 60000));
-        if (end) end = new Date(end.getTime() + (timezoneOffset * 60000));
+      if (
+        period.toLowerCase() !== LOG_PERIODS.CUSTOM &&
+        timezoneOffset !== undefined &&
+        timezoneOffset !== null
+      ) {
+        if (start) start = new Date(start.getTime() + timezoneOffset * 60000);
+        if (end) end = new Date(end.getTime() + timezoneOffset * 60000);
       }
     } else if (startDate || endDate) {
       if (startDate) {
@@ -143,7 +148,10 @@ module.exports.getLogs = async (filters) => {
 // GET LOGS BY INVENTORY ITEM
 module.exports.getLogsByItem = async (inventoryId, filters) => {
   try {
-    const { error, value } = logFilterSchema.validate({ ...filters, inventoryId });
+    const { error, value } = logFilterSchema.validate({
+      ...filters,
+      inventoryId,
+    });
     if (error) throw new AppError(error.details[0].message, 400);
 
     const {

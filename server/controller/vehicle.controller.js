@@ -18,8 +18,12 @@ module.exports.addVehicle = async (payload, mobile) => {
     if (!owner) throw new AppError("Owner not found", 404);
 
     // Check if license plate exists
-    const existingVehicle = await Vehicle.findOne({ licensePlate: payload.licensePlate, isDeleted: false });
-    if (existingVehicle) throw new AppError("License plate already registered", 400);
+    const existingVehicle = await Vehicle.findOne({
+      licensePlate: payload.licensePlate,
+      isDeleted: false,
+    });
+    if (existingVehicle)
+      throw new AppError("License plate already registered", 400);
 
     // Verify image if provided
     if (payload.image) {
@@ -34,14 +38,17 @@ module.exports.addVehicle = async (payload, mobile) => {
       make: payload.make,
       model: payload.model,
       year: payload.year,
-      ...(payload.image && { image: payload.image })
+      ...(payload.image && { image: payload.image }),
     });
 
     await newVehicle.save();
     return "Vehicle added successfully";
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to add vehicle", error.statusCode || 500);
+    throw new AppError(
+      error.message || "Failed to add vehicle",
+      error.statusCode || 500,
+    );
   }
 };
 
@@ -50,14 +57,20 @@ module.exports.getMyVehicles = async (mobile) => {
     const owner = await User.findOne({ mobile, isDeleted: false });
     if (!owner) throw new AppError("Owner not found", 404);
 
-    const vehicles = await Vehicle.find({ ownerId: owner._id, isDeleted: false })
+    const vehicles = await Vehicle.find({
+      ownerId: owner._id,
+      isDeleted: false,
+    })
       .populate("image")
       .sort({ createdAt: -1 });
 
     return vehicles;
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to fetch vehicles", error.statusCode || 500);
+    throw new AppError(
+      error.message || "Failed to fetch vehicles",
+      error.statusCode || 500,
+    );
   }
 };
 
@@ -66,7 +79,11 @@ module.exports.deleteVehicle = async (vehicleId, mobile) => {
     const owner = await User.findOne({ mobile, isDeleted: false });
     if (!owner) throw new AppError("Owner not found", 404);
 
-    const vehicle = await Vehicle.findOne({ _id: vehicleId, ownerId: owner._id, isDeleted: false });
+    const vehicle = await Vehicle.findOne({
+      _id: vehicleId,
+      ownerId: owner._id,
+      isDeleted: false,
+    });
     if (!vehicle) throw new AppError("Vehicle not found", 404);
 
     if (vehicle.image) {
@@ -76,9 +93,15 @@ module.exports.deleteVehicle = async (vehicleId, mobile) => {
     }
 
     // Delete all pending/incomplete bookings associated with this vehicle
-    const bookings = await Booking.find({ vehicle: vehicleId, isDeleted: false });
+    const bookings = await Booking.find({
+      vehicle: vehicleId,
+      isDeleted: false,
+    });
     for (const booking of bookings) {
-      const jobCard = await JobCard.findOne({ booking: booking._id, isDeleted: false });
+      const jobCard = await JobCard.findOne({
+        booking: booking._id,
+        isDeleted: false,
+      });
       // If no job card exists or job card is not finished, delete the booking
       if (!jobCard || jobCard.status !== JOBCARD_STATUS.FINISH) {
         await Booking.findByIdAndUpdate(booking._id, {
@@ -105,7 +128,10 @@ module.exports.deleteVehicle = async (vehicleId, mobile) => {
     return "Vehicle deleted successfully";
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to delete vehicle", error.statusCode || 500);
+    throw new AppError(
+      error.message || "Failed to delete vehicle",
+      error.statusCode || 500,
+    );
   }
 };
 
@@ -114,32 +140,51 @@ module.exports.getVehicleById = async (vehicleId, mobile) => {
     const owner = await User.findOne({ mobile, isDeleted: false });
     if (!owner) throw new AppError("Owner not found", 404);
 
-    const vehicle = await Vehicle.findOne({ _id: vehicleId, ownerId: owner._id, isDeleted: false }).populate("image");
+    const vehicle = await Vehicle.findOne({
+      _id: vehicleId,
+      ownerId: owner._id,
+      isDeleted: false,
+    }).populate("image");
     if (!vehicle) throw new AppError("Vehicle not found", 404);
 
     return vehicle;
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to fetch vehicle details", error.statusCode || 500);
+    throw new AppError(
+      error.message || "Failed to fetch vehicle details",
+      error.statusCode || 500,
+    );
   }
 };
 
 module.exports.updateVehicle = async (vehicleId, mobile, payload) => {
   try {
-    const { validatedVehicleUpdate } = require("../validation/vehicle.validation");
+    const {
+      validatedVehicleUpdate,
+    } = require("../validation/vehicle.validation");
     const { error } = validatedVehicleUpdate(payload);
     if (error) throw new AppError(error.details[0].message, 400);
 
     const owner = await User.findOne({ mobile, isDeleted: false });
     if (!owner) throw new AppError("Owner not found", 404);
 
-    const vehicle = await Vehicle.findOne({ _id: vehicleId, ownerId: owner._id, isDeleted: false });
+    const vehicle = await Vehicle.findOne({
+      _id: vehicleId,
+      ownerId: owner._id,
+      isDeleted: false,
+    });
     if (!vehicle) throw new AppError("Vehicle not found", 404);
 
     if (payload.licensePlate && payload.licensePlate !== vehicle.licensePlate) {
-      const existingVehicle = await Vehicle.findOne({ licensePlate: payload.licensePlate, isDeleted: false });
+      const existingVehicle = await Vehicle.findOne({
+        licensePlate: payload.licensePlate,
+        isDeleted: false,
+      });
       if (existingVehicle) {
-        throw new AppError("A vehicle with this license plate already exists", 400);
+        throw new AppError(
+          "A vehicle with this license plate already exists",
+          400,
+        );
       }
     }
 
@@ -153,7 +198,10 @@ module.exports.updateVehicle = async (vehicleId, mobile, payload) => {
     return "Vehicle updated successfully";
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw new AppError(error.message || "Failed to update vehicle", error.statusCode || 500);
+    throw new AppError(
+      error.message || "Failed to update vehicle",
+      error.statusCode || 500,
+    );
   }
 };
 

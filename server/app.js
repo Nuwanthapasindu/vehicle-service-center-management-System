@@ -41,19 +41,25 @@ app.use(
   cors({
     origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  })
+  }),
 );
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(log);
 if (process.env.NODE_ENV !== "production") {
-  app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec, {
-    explorer: true,
-
-  }));
+  app.use(
+    "/api/v1/docs",
+    swaggerUI.serve,
+    swaggerUI.setup(swaggerSpec, {
+      explorer: true,
+    }),
+  );
 }
 
 // STATIC FOLDER
-app.use("/api/v1/storage/uploads", express.static(path.join(process.cwd(), "storage", "uploads")));
+app.use(
+  "/api/v1/storage/uploads",
+  express.static(path.join(process.cwd(), "storage", "uploads")),
+);
 
 // ROUTES
 app.use("/api/v1/auth", authRouter);

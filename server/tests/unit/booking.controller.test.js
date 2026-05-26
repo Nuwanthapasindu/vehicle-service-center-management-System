@@ -12,7 +12,11 @@ const Booking = require("../../model/Booking");
 const Timeslot = require("../../model/Timeslot");
 const JobCard = require("../../model/JobCard");
 const Invoice = require("../../model/Invoice");
-const { createBooking, getBookingHistory, getDashboardData } = require("../../controller/booking.controller");
+const {
+  createBooking,
+  getBookingHistory,
+  getDashboardData,
+} = require("../../controller/booking.controller");
 const AppError = require("../../error/AppError");
 
 let mongoServer;
@@ -70,7 +74,7 @@ describe("Booking Controller Tests", () => {
       const payload = {
         vehicle: mockVehicle._id.toString(),
         slot: mockSlot._id.toString(),
-        date: new Date(Date.now() + (2 * 86400000)).toISOString(), // 2 days from now
+        date: new Date(Date.now() + 2 * 86400000).toISOString(), // 2 days from now
         specialNote: "Test note",
       };
 
@@ -79,12 +83,14 @@ describe("Booking Controller Tests", () => {
       expect(result.vehicle.toString()).toBe(mockVehicle._id.toString());
       expect(result.slot.toString()).toBe(mockSlot._id.toString());
 
-      const bookingCount = await Booking.countDocuments({ customer: mockUser._id });
+      const bookingCount = await Booking.countDocuments({
+        customer: mockUser._id,
+      });
       expect(bookingCount).toBe(1);
     });
 
     test("should fail if timeslot is fully booked", async () => {
-      const date = new Date(Date.now() + (2 * 86400000));
+      const date = new Date(Date.now() + 2 * 86400000);
       date.setHours(0, 0, 0, 0);
 
       const mockVehicle2 = await new Vehicle({
@@ -110,14 +116,14 @@ describe("Booking Controller Tests", () => {
         customer: mockUser._id,
         vehicle: mockVehicle._id,
         slot: mockSlot._id,
-        date: date
+        date: date,
       }).save();
 
       await new Booking({
         customer: mockUser._id,
         vehicle: mockVehicle2._id,
         slot: mockSlot._id,
-        date: date
+        date: date,
       }).save();
 
       const payload = {
@@ -126,19 +132,24 @@ describe("Booking Controller Tests", () => {
         date: date.toISOString(),
       };
 
-      await expect(createBooking(payload, mockMobile)).rejects.toThrow("This timeslot is fully booked for the selected date");
+      await expect(createBooking(payload, mockMobile)).rejects.toThrow(
+        "This timeslot is fully booked for the selected date",
+      );
     });
 
     test("should fail if the same vehicle tries to book the same slot on the same day twice", async () => {
-      const date = new Date(Date.now() + (2 * 86400000));
+      const date = new Date(Date.now() + 2 * 86400000);
       date.setHours(0, 0, 0, 0);
 
       // First booking
-      await createBooking({
-        vehicle: mockVehicle._id.toString(),
-        slot: mockSlot._id.toString(),
-        date: date.toISOString(),
-      }, mockMobile);
+      await createBooking(
+        {
+          vehicle: mockVehicle._id.toString(),
+          slot: mockSlot._id.toString(),
+          date: date.toISOString(),
+        },
+        mockMobile,
+      );
 
       // Second booking (same vehicle, same slot, same date)
       const payload = {
@@ -147,7 +158,9 @@ describe("Booking Controller Tests", () => {
         date: date.toISOString(),
       };
 
-      await expect(createBooking(payload, mockMobile)).rejects.toThrow("This vehicle is already booked for this specific time slot on the selected date.");
+      await expect(createBooking(payload, mockMobile)).rejects.toThrow(
+        "This vehicle is already booked for this specific time slot on the selected date.",
+      );
     });
   });
 
@@ -157,14 +170,14 @@ describe("Booking Controller Tests", () => {
         customer: mockUser._id,
         vehicle: mockVehicle._id,
         slot: mockSlot._id,
-        date: new Date()
+        date: new Date(),
       }).save();
 
       // Create JobCard
       await new JobCard({
         booking: booking._id,
         status: "START",
-        isDeleted: false
+        isDeleted: false,
       }).save();
 
       const history = await getBookingHistory(mockMobile);
@@ -180,7 +193,7 @@ describe("Booking Controller Tests", () => {
         customer: mockUser._id,
         vehicle: mockVehicle._id,
         slot: mockSlot._id,
-        date: new Date()
+        date: new Date(),
       }).save();
 
       const data = await getDashboardData(mockMobile);

@@ -2,7 +2,10 @@ const Invoice = require("../model/Invoice");
 const Review = require("../model/Review");
 const JobCard = require("../model/JobCard");
 const AppError = require("../error/AppError");
-const { LOG_PERIODS: REPORT_RANGES, INVOICE_ITEM_TYPES } = require("../util/constants");
+const {
+  LOG_PERIODS: REPORT_RANGES,
+  INVOICE_ITEM_TYPES,
+} = require("../util/constants");
 
 /**
  * Get Admin Review Report
@@ -77,7 +80,9 @@ exports.getAdminReviewReport = async (query) => {
 
           if (jobCard && jobCard.selectedPackage) {
             packageName = jobCard.selectedPackage.name;
-            packageServices = jobCard.selectedPackage.servicesIncluded?.map((s) => s.name) || [];
+            packageServices =
+              jobCard.selectedPackage.servicesIncluded?.map((s) => s.name) ||
+              [];
           }
         }
 
@@ -91,7 +96,7 @@ exports.getAdminReviewReport = async (query) => {
           date: review.createdAt,
           adminReply: review.adminReply || null,
         };
-      })
+      }),
     );
 
     return {
@@ -107,10 +112,16 @@ exports.getAdminReviewReport = async (query) => {
         },
       },
       reviews: enrichedReviews,
-      totalRemaining: Math.max(0, stats.totalReviews - (skip + enrichedReviews.length)),
+      totalRemaining: Math.max(
+        0,
+        stats.totalReviews - (skip + enrichedReviews.length),
+      ),
     };
   } catch (error) {
-    throw new AppError(error.message || "Failed to fetch admin review report", 500);
+    throw new AppError(
+      error.message || "Failed to fetch admin review report",
+      500,
+    );
   }
 };
 
@@ -130,23 +141,58 @@ exports.getIncomeReport = async (range, startDate, endDate) => {
     switch (range) {
       case REPORT_RANGES.TODAY:
         start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999,
+        );
         break;
       case REPORT_RANGES.WEEKLY:
         start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
-        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999,
+        );
         break;
       case REPORT_RANGES.MONTHLY:
         start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
-        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999,
+        );
         break;
       case REPORT_RANGES.YEARLY:
         start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999,
+        );
         break;
       case REPORT_RANGES.CUSTOM:
         if (!startDate || !endDate) {
-          throw new AppError("startDate and endDate are required for custom range", 400);
+          throw new AppError(
+            "startDate and endDate are required for custom range",
+            400,
+          );
         }
         start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
@@ -155,7 +201,15 @@ exports.getIncomeReport = async (range, startDate, endDate) => {
         break;
       default:
         start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999,
+        );
     }
 
     let groupByFormat = "%Y-%m-%d";
@@ -193,7 +247,9 @@ exports.getIncomeReport = async (range, startDate, endDate) => {
                     $filter: {
                       input: { $ifNull: ["$additionalItems", []] },
                       as: "item",
-                      cond: { $eq: ["$$item.itemType", INVOICE_ITEM_TYPES.OTHER] },
+                      cond: {
+                        $eq: ["$$item.itemType", INVOICE_ITEM_TYPES.OTHER],
+                      },
                     },
                   },
                   initialValue: 0,
