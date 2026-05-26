@@ -52,7 +52,7 @@ function ContactPage() {
                     </div>
                     <div className="method-info">
                       <span>EMAIL US</span>
-                      <h4>care@shinedepot.com</h4>
+                      <h4>info@shinedepot.lk</h4>
                     </div>
                   </div>
                   <div className="contact-method-card shadow-sm">
