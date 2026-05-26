@@ -156,7 +156,7 @@ export const getInvoiceTemplate = (invoice = {}) => {
     
     <div class="footer">
       Thank you for choosing AutoMate!<br>
-      For any inquiries, contact support at +94 77 767 3368
+      For any inquiries, contact support at +94 76 315 3797
     </div>
   </body>
 </html>

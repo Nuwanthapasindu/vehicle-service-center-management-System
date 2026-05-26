@@ -280,7 +280,7 @@ const ServiceBooking = () => {
 
                             <div className="booking-note-alert" style={{ backgroundColor: '#FFFBEB', borderColor: '#FDE68A', marginTop: '12px' }}>
                                 <i className="fa-solid fa-phone" style={{ color: '#D97706' }}></i>
-                                <p style={{ color: '#92400E' }}><strong>Modifications:</strong> Online cancellations or changes are not permitted. If you need to make changes to your booking, please call our service center at <strong>+94 77 767 3368</strong>.</p>
+                                <p style={{ color: '#92400E' }}><strong>Modifications:</strong> Online cancellations or changes are not permitted. If you need to make changes to your booking, please call our service center at <strong>+94 76 315 3797</strong>.</p>
                             </div>
                         </div>
 
