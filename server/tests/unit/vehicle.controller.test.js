@@ -9,7 +9,7 @@ Object.keys(mongoose.models).forEach((key) => {
 const User = require("../../model/User");
 const Vehicle = require("../../model/Vehicle");
 const File = require("../../model/File");
-const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle } = require("../../controller/vehicle.controller");
+const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle, getAllVehicles } = require("../../controller/vehicle.controller");
 const AppError = require("../../error/AppError");
 
 let mongoServer;
@@ -265,6 +265,84 @@ describe("Vehicle Controller Tests", () => {
       };
 
       await expect(updateVehicle(vehicle1._id, mockMobile, payload)).rejects.toThrow("A vehicle with this license plate already exists");
+    });
+  });
+
+  describe("getAllVehicles", () => {
+    test("should return all vehicles with owners and images populated", async () => {
+      const mockFile = await new File({
+        originalName: "test.png",
+        fileName: "1711580000000-test.png",
+        filePath: "uploads/1711580000000-test.png",
+        fileType: "image/png",
+        fileSize: 1024,
+      }).save();
+
+      await new Vehicle({
+        ownerId: mockUser._id,
+        licensePlate: "WP-CAB-1111",
+        type: "CAR",
+        make: "Toyota",
+        model: "Corolla",
+        year: 2021,
+        image: mockFile._id,
+      }).save();
+
+      const secondUser = await new User({
+        name: "Second User",
+        mobile: "0771234567",
+        address: "456 Second Rd",
+        role: "CUSTOMER",
+        isActive: true,
+      }).save();
+
+      await new Vehicle({
+        ownerId: secondUser._id,
+        licensePlate: "WP-CAB-2222",
+        type: "VAN",
+        make: "Toyota",
+        model: "Hiace",
+        year: 2018,
+      }).save();
+
+      const result = await getAllVehicles();
+      expect(result.length).toBe(2);
+      expect(result[0].licensePlate).toBe("WP-CAB-2222"); // sorted by createdAt desc
+      expect(result[0].ownerId.name).toBe("Second User");
+      expect(result[1].licensePlate).toBe("WP-CAB-1111");
+      expect(result[1].ownerId.name).toBe("Test User");
+      expect(result[1].image.originalName).toBe("test.png");
+    });
+
+    test("should search vehicles by license plate", async () => {
+      await new Vehicle({
+        ownerId: mockUser._id,
+        licensePlate: "WP-CAB-1111",
+        type: "CAR",
+        make: "Toyota",
+        model: "Corolla",
+        year: 2021,
+      }).save();
+
+      await new Vehicle({
+        ownerId: mockUser._id,
+        licensePlate: "WP-XYZ-9999",
+        type: "SUV",
+        make: "Toyota",
+        model: "Land Cruiser",
+        year: 2022,
+      }).save();
+
+      const searchResult1 = await getAllVehicles("XYZ");
+      expect(searchResult1.length).toBe(1);
+      expect(searchResult1[0].licensePlate).toBe("WP-XYZ-9999");
+
+      const searchResult2 = await getAllVehicles("1111");
+      expect(searchResult2.length).toBe(1);
+      expect(searchResult2[0].licensePlate).toBe("WP-CAB-1111");
+
+      const searchResult3 = await getAllVehicles("abc");
+      expect(searchResult3.length).toBe(0);
     });
   });
 });

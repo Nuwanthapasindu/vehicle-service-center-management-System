@@ -1,6 +1,7 @@
 const router = require("express").Router();
-const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle } = require("../controller/vehicle.controller");
-const { authTokenMiddleware } = require("../middleware/auth");
+const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle, getAllVehicles } = require("../controller/vehicle.controller");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
 
 /**
@@ -66,6 +67,40 @@ router.get("/my-vehicles", authTokenMiddleware, (req, res, next) => {
   const mobile = req.user.mobile;
 
   getMyVehicles(mobile)
+    .then((vehicles) => {
+      responseBuilder.setStatus(200);
+      responseBuilder.buildResponse({ vehicles });
+    })
+    .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/vehicle/all:
+ *   get:
+ *     summary: Get all registered vehicles (Admin and Mechanic only)
+ *     tags: [Vehicle]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search query for license plate
+ *     responses:
+ *       200:
+ *         description: Vehicles retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.get("/all", authTokenMiddleware, accessControl([USER_ROLES.ADMIN, USER_ROLES.MECHANIC]), (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const { search, page, limit } = req.query;
+
+  getAllVehicles(search, page, limit)
     .then((vehicles) => {
       responseBuilder.setStatus(200);
       responseBuilder.buildResponse({ vehicles });
@@ -192,5 +227,6 @@ router.put("/:id", authTokenMiddleware, (req, res, next) => {
     })
     .catch((error) => next(error));
 });
+
 
 module.exports = router;

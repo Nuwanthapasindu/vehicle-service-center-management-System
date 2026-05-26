@@ -155,3 +155,28 @@ module.exports.updateVehicle = async (vehicleId, mobile, payload) => {
     throw new AppError(error.message || "Failed to update vehicle", error.statusCode || 500);
   }
 };
+
+module.exports.getAllVehicles = async (search = "", page = 1, limit = 100) => {
+  try {
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 100;
+    const skip = (pageNum - 1) * limitNum;
+
+    const query = {};
+    if (search) {
+      query.licensePlate = { $regex: search, $options: "i" };
+    }
+
+    const vehicles = await Vehicle.find(query)
+      .populate("image")
+      .populate("ownerId", "name mobile")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    return vehicles;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(error.message || "Failed to fetch registered vehicles", error.statusCode || 500);
+  }
+};
