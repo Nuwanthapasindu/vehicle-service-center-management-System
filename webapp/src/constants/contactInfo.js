@@ -13,8 +13,8 @@ export const CONTACT_INFO = {
     },
     EMAIL: {
         label: "EMAIL US",
-        value: "care@shinedepot.com",
-        link: "mailto:care@shinedepot.com",
+        value: "info@shinedepot.lk",
+        link: "mailto:info@shinedepot.lk",
         icon: "fa-solid fa-envelope",
     },
     LOCATION: {
@@ -26,14 +26,15 @@ export const CONTACT_INFO = {
 };
 
 export const OPENING_HOURS = [
-    { day: "TUESDAY - SATURDAY", time: "8:00 AM - 7:00 PM" },
-    { day: "SUNDAY", time: "9:00 AM - 5:00 PM" },
+    { day: "TUESDAY - SATURDAY", time: "8:30 AM - 6:00 PM" },
+    { day: "SUNDAY", time: "8:30 AM - 6:00 PM" },
     { day: "MONDAY", time: "CLOSED", isClosed: true },
 ];
 
 export const OFFICE_ADDRESS = {
     name: "SHINE DEPOT HQ",
-    address: "123 Gloss Avenue, Suite 100",
-    city: "Automotive District, GA 30303",
+    address: "108 Old Kottawa Rd,Nugegoda",
+    city: "Nugegoda",
+    country: "Sri Lanka",
     directionsLink: "#",
 };

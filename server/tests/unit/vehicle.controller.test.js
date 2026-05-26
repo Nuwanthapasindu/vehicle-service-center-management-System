@@ -9,13 +9,11 @@ Object.keys(mongoose.models).forEach((key) => {
 const User = require("../../model/User");
 const Vehicle = require("../../model/Vehicle");
 const File = require("../../model/File");
-const {
-  addVehicle,
-  getMyVehicles,
-  deleteVehicle,
-  getVehicleById,
-  updateVehicle,
-} = require("../../controller/vehicle.controller");
+const Booking = require("../../model/Booking");
+const JobCard = require("../../model/JobCard");
+const Invoice = require("../../model/Invoice");
+const Timeslot = require("../../model/Timeslot");
+const { addVehicle, getMyVehicles, deleteVehicle, getVehicleById, updateVehicle, getAllVehicles, getVehicleDetailsAdmin } = require("../../controller/vehicle.controller");
 const AppError = require("../../error/AppError");
 
 let mongoServer;
@@ -35,6 +33,10 @@ beforeEach(async () => {
   await User.deleteMany({});
   await Vehicle.deleteMany({});
   await File.deleteMany({});
+  await Booking.deleteMany({});
+  await JobCard.deleteMany({});
+  await Invoice.deleteMany({});
+  await Timeslot.deleteMany({});
 });
 
 describe("Vehicle Controller Tests", () => {
@@ -283,6 +285,181 @@ describe("Vehicle Controller Tests", () => {
       await expect(
         updateVehicle(vehicle1._id, mockMobile, payload),
       ).rejects.toThrow("A vehicle with this license plate already exists");
+    });
+  });
+
+  describe("getAllVehicles", () => {
+    test("should return all vehicles with owners and images populated", async () => {
+      const mockFile = await new File({
+        originalName: "test.png",
+        fileName: "1711580000000-test.png",
+        filePath: "uploads/1711580000000-test.png",
+        fileType: "image/png",
+        fileSize: 1024,
+      }).save();
+
+      await new Vehicle({
+        ownerId: mockUser._id,
+        licensePlate: "WP-CAB-1111",
+        type: "CAR",
+        make: "Toyota",
+        model: "Corolla",
+        year: 2021,
+        image: mockFile._id,
+      }).save();
+
+      // Ensure distinct createdAt timestamps for sorting
+      await new Promise((resolve) => setTimeout(resolve, 15));
+
+      const secondUser = await new User({
+        name: "Second User",
+        mobile: "0771234567",
+        address: "456 Second Rd",
+        role: "CUSTOMER",
+        isActive: true,
+      }).save();
+
+      await new Vehicle({
+        ownerId: secondUser._id,
+        licensePlate: "WP-CAB-2222",
+        type: "VAN",
+        make: "Toyota",
+        model: "Hiace",
+        year: 2018,
+      }).save();
+
+      const result = await getAllVehicles();
+      expect(result.length).toBe(2);
+      expect(result[0].licensePlate).toBe("WP-CAB-2222"); // sorted by createdAt desc
+      expect(result[0].ownerId.name).toBe("Second User");
+      expect(result[1].licensePlate).toBe("WP-CAB-1111");
+      expect(result[1].ownerId.name).toBe("Test User");
+      expect(result[1].image.originalName).toBe("test.png");
+    });
+
+    test("should search vehicles by license plate", async () => {
+      await new Vehicle({
+        ownerId: mockUser._id,
+        licensePlate: "WP-CAB-1111",
+        type: "CAR",
+        make: "Toyota",
+        model: "Corolla",
+        year: 2021,
+      }).save();
+
+      await new Vehicle({
+        ownerId: mockUser._id,
+        licensePlate: "WP-XYZ-9999",
+        type: "SUV",
+        make: "Toyota",
+        model: "Land Cruiser",
+        year: 2022,
+      }).save();
+
+      const searchResult1 = await getAllVehicles("XYZ");
+      expect(searchResult1.length).toBe(1);
+      expect(searchResult1[0].licensePlate).toBe("WP-XYZ-9999");
+
+      const searchResult2 = await getAllVehicles("1111");
+      expect(searchResult2.length).toBe(1);
+      expect(searchResult2[0].licensePlate).toBe("WP-CAB-1111");
+
+      const searchResult3 = await getAllVehicles("abc");
+      expect(searchResult3.length).toBe(0);
+
+      // Metacharacter escaping test: "." should be matched literally, not as any character
+      const searchResultMeta = await getAllVehicles("CAB-11.1");
+      expect(searchResultMeta.length).toBe(0);
+
+      // Max length validation test
+      const longQuery = "A".repeat(51);
+      await expect(getAllVehicles(longQuery)).rejects.toThrow("Search query exceeds maximum allowed length");
+
+      // Invalid pagination values test
+      await expect(getAllVehicles("", 0, 10)).rejects.toThrow("Page and limit parameters must be 1 or greater");
+      await expect(getAllVehicles("", 1, -5)).rejects.toThrow("Page and limit parameters must be 1 or greater");
+    });
+  });
+
+  describe("getVehicleDetailsAdmin", () => {
+    test("should return full vehicle details, total expenditure, and service history", async () => {
+      const mockFile = await new File({
+        originalName: "avatar.png",
+        fileName: "1711580000000-avatar.png",
+        filePath: "uploads/1711580000000-avatar.png",
+        fileType: "image/png",
+        fileSize: 512,
+      }).save();
+
+      const vehicle = await new Vehicle({
+        ownerId: mockUser._id,
+        licensePlate: "WP-CAB-1234",
+        type: "CAR",
+        make: "Toyota",
+        model: "Corolla",
+        year: 2022,
+        image: mockFile._id,
+      }).save();
+
+      // Create mock booking
+      const booking = await new Booking({
+        customer: mockUser._id,
+        vehicle: vehicle._id,
+        date: new Date("2026-05-20"),
+        slot: new mongoose.Types.ObjectId(),
+      }).save();
+
+      // Create mock JobCard
+      const jobCard = await new JobCard({
+        booking: booking._id,
+        status: "FINISH",
+        milageCount: 15000,
+        createdAt: new Date("2026-05-20"),
+      }).save();
+
+      // Create mock Invoice
+      const invoice = await new Invoice({
+        jobCard: jobCard._id,
+        customer: mockUser._id,
+        selectedPackage: {
+          package: new mongoose.Types.ObjectId(),
+          selectedPackageTier: {
+            name: "Standard",
+            price: 12500,
+          },
+        },
+        invoiceId: "INV-1001",
+      }).save();
+
+      const result = await getVehicleDetailsAdmin(vehicle._id.toString());
+      expect(result.vehicle).toBeDefined();
+      expect(result.vehicle.licensePlate).toBe("WP-CAB-1234");
+      expect(result.vehicle.ownerId.name).toBe("Test User");
+      expect(result.vehicle.image.originalName).toBe("avatar.png");
+      expect(result.totalExpenditure).toBe(12500);
+      expect(result.serviceHistory.length).toBe(1);
+      expect(result.serviceHistory[0].milageCount).toBe(15000);
+      expect(result.serviceHistory[0].cost).toBe(12500);
+      expect(result.serviceHistory[0].invoiceId).toBe("INV-1001");
+    });
+
+    test("should return details even for soft-deleted vehicles, but fail if vehicle does not exist", async () => {
+      const vehicle = await new Vehicle({
+        ownerId: mockUser._id,
+        licensePlate: "WP-CAB-9999",
+        type: "CAR",
+        make: "Toyota",
+        model: "Corolla",
+        year: 2022,
+        isDeleted: true,
+      }).save();
+
+      const result = await getVehicleDetailsAdmin(vehicle._id.toString());
+      expect(result.vehicle).toBeDefined();
+      expect(result.vehicle.isDeleted).toBe(true);
+      expect(result.vehicle.licensePlate).toBe("WP-CAB-9999");
+      
+      await expect(getVehicleDetailsAdmin(new mongoose.Types.ObjectId().toString())).rejects.toThrow("Vehicle not found");
     });
   });
 });

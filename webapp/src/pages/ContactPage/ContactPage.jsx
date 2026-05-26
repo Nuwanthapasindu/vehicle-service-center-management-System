@@ -34,7 +34,7 @@ function ContactPage() {
                     </div>
                     <div className="method-info">
                       <span>WHATSAPP</span>
-                      <h4>+94 77 767 3368</h4>
+                      <h4>+94 76 315 3797</h4>
                     </div>
                   </div>
                   <div className="contact-method-card shadow-sm">
@@ -43,7 +43,7 @@ function ContactPage() {
                     </div>
                     <div className="method-info">
                       <span>SUPPORT LINE</span>
-                      <h4>+94 77 767 3368</h4>
+                      <h4>+94 76 315 3797</h4>
                     </div>
                   </div>
                   <div className="contact-method-card shadow-sm">
@@ -52,7 +52,7 @@ function ContactPage() {
                     </div>
                     <div className="method-info">
                       <span>EMAIL US</span>
-                      <h4>care@shinedepot.com</h4>
+                      <h4>info@shinedepot.lk</h4>
                     </div>
                   </div>
                   <div className="contact-method-card shadow-sm">

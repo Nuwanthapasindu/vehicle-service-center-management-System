@@ -154,6 +154,18 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
+          name="vehicles"
+          options={{
+            headerShown: false,
+            drawerLabel: "Vehicles",
+            title: "Registered Vehicles",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="car-sport-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
           name="staff"
           options={{
             headerShown: false,
