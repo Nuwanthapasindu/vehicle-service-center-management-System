@@ -9,6 +9,10 @@ const { validatedVehicleAdd } = require("../validation/vehicle.validation");
 const { deleteFileById } = require("./file.controller");
 const { JOBCARD_STATUS } = require("../util/constants");
 
+const escapeRegExp = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
 module.exports.addVehicle = async (payload, mobile) => {
   try {
     const { error } = validatedVehicleAdd(payload);
@@ -207,13 +211,26 @@ module.exports.updateVehicle = async (vehicleId, mobile, payload) => {
 
 module.exports.getAllVehicles = async (search = "", page = 1, limit = 100) => {
   try {
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 100;
-    const skip = (pageNum - 1) * limitNum;
+    const parsedPage = parseInt(page);
+    const parsedLimit = parseInt(limit);
+    const pageNum = isNaN(parsedPage) ? 1 : parsedPage;
+    const limitNum = isNaN(parsedLimit) ? 100 : parsedLimit;
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new AppError("Page and limit parameters must be 1 or greater", 400);
+    }
+
+    const finalLimit = Math.min(limitNum, 100);
+    const skip = (pageNum - 1) * finalLimit;
+
+    if (search && search.length > 50) {
+      throw new AppError("Search query exceeds maximum allowed length", 400);
+    }
 
     const query = {};
     if (search) {
-      query.licensePlate = { $regex: search, $options: "i" };
+      const escapedSearch = escapeRegExp(search);
+      query.licensePlate = { $regex: escapedSearch, $options: "i" };
     }
 
     const vehicles = await Vehicle.find(query)
@@ -221,7 +238,7 @@ module.exports.getAllVehicles = async (search = "", page = 1, limit = 100) => {
       .populate("ownerId", "name mobile")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limitNum);
+      .limit(finalLimit);
 
     return vehicles;
   } catch (error) {

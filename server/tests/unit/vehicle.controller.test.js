@@ -308,6 +308,9 @@ describe("Vehicle Controller Tests", () => {
         image: mockFile._id,
       }).save();
 
+      // Ensure distinct createdAt timestamps for sorting
+      await new Promise((resolve) => setTimeout(resolve, 15));
+
       const secondUser = await new User({
         name: "Second User",
         mobile: "0771234567",
@@ -363,6 +366,18 @@ describe("Vehicle Controller Tests", () => {
 
       const searchResult3 = await getAllVehicles("abc");
       expect(searchResult3.length).toBe(0);
+
+      // Metacharacter escaping test: "." should be matched literally, not as any character
+      const searchResultMeta = await getAllVehicles("CAB-11.1");
+      expect(searchResultMeta.length).toBe(0);
+
+      // Max length validation test
+      const longQuery = "A".repeat(51);
+      await expect(getAllVehicles(longQuery)).rejects.toThrow("Search query exceeds maximum allowed length");
+
+      // Invalid pagination values test
+      await expect(getAllVehicles("", 0, 10)).rejects.toThrow("Page and limit parameters must be 1 or greater");
+      await expect(getAllVehicles("", 1, -5)).rejects.toThrow("Page and limit parameters must be 1 or greater");
     });
   });
 
