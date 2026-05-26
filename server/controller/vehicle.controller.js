@@ -184,7 +184,7 @@ module.exports.getAllVehicles = async (search = "", page = 1, limit = 100) => {
 
 module.exports.getVehicleDetailsAdmin = async (vehicleId) => {
   try {
-    const vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false })
+    const vehicle = await Vehicle.findOne({ _id: vehicleId })
       .populate("image")
       .populate("ownerId", "name mobile address");
 

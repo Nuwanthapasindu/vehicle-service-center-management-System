@@ -15,16 +15,14 @@ export default function VehicleCard({ vehicle }) {
   const displayPlate = vehicle.licensePlate?.split("-deleted-")[0] || vehicle.licensePlate;
 
   const handlePress = () => {
-    if (!isDeleted) {
-      router.push(`/(protected)/(admin)/vehicles/${vehicle._id}`);
-    }
+    router.push(`/(protected)/(admin)/vehicles/${vehicle._id}`);
   };
 
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={handlePress}
-      activeOpacity={isDeleted ? 1 : 0.7}
+      activeOpacity={0.7}
     >
       {/* Top Section: Large Square-ish Image */}
       <View style={styles.imageWrapper}>

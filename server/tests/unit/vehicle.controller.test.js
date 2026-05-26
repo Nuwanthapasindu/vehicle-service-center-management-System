@@ -416,7 +416,7 @@ describe("Vehicle Controller Tests", () => {
       expect(result.serviceHistory[0].invoiceId).toBe("INV-1001");
     });
 
-    test("should fail if vehicle does not exist or is soft-deleted", async () => {
+    test("should return details even for soft-deleted vehicles, but fail if vehicle does not exist", async () => {
       const vehicle = await new Vehicle({
         ownerId: mockUser._id,
         licensePlate: "WP-CAB-9999",
@@ -427,7 +427,11 @@ describe("Vehicle Controller Tests", () => {
         isDeleted: true,
       }).save();
 
-      await expect(getVehicleDetailsAdmin(vehicle._id.toString())).rejects.toThrow(AppError);
+      const result = await getVehicleDetailsAdmin(vehicle._id.toString());
+      expect(result.vehicle).toBeDefined();
+      expect(result.vehicle.isDeleted).toBe(true);
+      expect(result.vehicle.licensePlate).toBe("WP-CAB-9999");
+      
       await expect(getVehicleDetailsAdmin(new mongoose.Types.ObjectId().toString())).rejects.toThrow("Vehicle not found");
     });
   });
