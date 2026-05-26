@@ -151,7 +151,6 @@ export default function VehicleDetails() {
 
             <View style={styles.plateRow}>
               <View style={styles.plateContainer}>
-                <Text style={styles.plateLabel}>LK</Text>
                 <Text style={styles.plateNumber}>{displayPlate}</Text>
               </View>
             </View>
