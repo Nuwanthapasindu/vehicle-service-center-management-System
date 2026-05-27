@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,25 +8,32 @@ import {
   RefreshControl,
   ActivityIndicator,
   Animated,
+  DeviceEventEmitter,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
-import { Truck, BarChart2, List, Star, CreditCard, ChevronRight } from "lucide-react-native";
+import { Truck, BarChart2, List, Star, CreditCard, ChevronRight, Bell } from "lucide-react-native";
 import colors from "../../../constants/colors";
 import { invoiceService } from "../../../services/invoice/invoice.service";
+import { notificationService } from "../../../services/notification/notification.service";
 import SmsGatewayStatusCard from "../../../components/SmsGatewayStatusCard";
 import Toast from "react-native-toast-message";
 
 export default function Dashboard() {
   const router = useRouter();
   const [revenue, setRevenue] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const report = await invoiceService.fetchIncomeReport("today");
+      const [report, count] = await Promise.all([
+        invoiceService.fetchIncomeReport("today"),
+        notificationService.getUnreadCount()
+      ]);
       setRevenue(report.totalIncome || 0);
+      setUnreadCount(count || 0);
     } catch (error) {
       Toast.show({
         type: "error",
@@ -45,6 +52,25 @@ export default function Dashboard() {
     }, [])
   );
 
+  useEffect(() => {
+    const loadCount = async () => {
+      try {
+        const count = await notificationService.getUnreadCount();
+        setUnreadCount(count);
+      } catch (error) {
+        console.error("Failed to load notifications count", error);
+      }
+    };
+
+    const subscription = DeviceEventEmitter.addListener("REFRESH_NOTIFICATIONS", () => {
+      loadCount();
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchDashboardData();
@@ -61,8 +87,24 @@ export default function Dashboard() {
     >
       {/* HEADER SECTION */}
       <View style={styles.headerHero}>
-        <Text style={styles.greetingText}>Welcome back, Admin</Text>
-        <Text style={styles.subGreetingText}>Here is your summary for today</Text>
+        <View style={styles.headerTopRow}>
+          <View style={styles.headerGreetingCol}>
+            <Text style={styles.greetingText}>Welcome back, Admin</Text>
+            <Text style={styles.subGreetingText}>Here is your summary for today</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.notificationBellButton} 
+            onPress={() => router.push("/(protected)/(admin)/notifications")}
+            activeOpacity={0.7}
+          >
+            <Bell size={22} color={colors.DARK} />
+            {unreadCount > 0 && (
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>{unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.revenueCard}>
           <View style={styles.revenueHeaderRow}>
@@ -217,7 +259,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.SECONDARY,
     marginTop: 4,
-    marginBottom: 24,
   },
   revenueCard: {
     backgroundColor: colors.PRIMARY,
@@ -343,5 +384,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
     color: colors.SECONDARY,
+  },
+  headerTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    width: "100%",
+    marginBottom: 24,
+  },
+  headerGreetingCol: {
+    flex: 1,
+  },
+  notificationBellButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+    marginLeft: 12,
+  },
+  badgeContainer: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#EF4444",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 5,
+    borderWidth: 2,
+    borderColor: colors.LIGHT,
+  },
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "900",
   },
 });

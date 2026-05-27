@@ -59,4 +59,8 @@ module.exports = Object.freeze({
     YEARLY: "yearly",
     CUSTOM: "custom",
   },
+  NOTIFICATION_TYPES: {
+    BOOKING: "booking",
+    GENERAL: "general",
+  },
 });

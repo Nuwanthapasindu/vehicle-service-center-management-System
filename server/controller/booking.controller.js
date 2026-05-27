@@ -8,7 +8,9 @@ const AppError = require("../error/AppError");
 const File = require("../model/File");
 const Team = require("../model/Team");
 const Review = require("../model/Review");
-const { JOBCARD_STATUS } = require("../util/constants");
+const { JOBCARD_STATUS, USER_ROLES, NOTIFICATION_TYPES } = require("../util/constants");
+const Notification = require("../model/Notification");
+const socketHelper = require("../socket");
 
 const { validatedCreateBooking } = require("../validation/booking.validation");
 
@@ -84,6 +86,46 @@ module.exports.createBooking = async (payload, mobile) => {
     });
 
     const savedBooking = await newBooking.save();
+
+    // Create notifications for all active ADMIN users
+    try {
+      const populated = await Booking.findById(savedBooking._id)
+        .populate("customer", "name mobile")
+        .populate("vehicle", "make model licensePlateNumber")
+        .populate("slot", "startTime endTime")
+        .lean();
+
+      if (populated) {
+        const admins = await User.find({ role: USER_ROLES.ADMIN, isActive: true, isDeleted: false }).lean();
+        
+        const dateStr = new Date(populated.date).toLocaleDateString(undefined, {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const timeStr = populated.slot ? `${populated.slot.startTime} - ${populated.slot.endTime}` : "N/A";
+        const plateStr = populated.vehicle?.licensePlateNumber || "N/A";
+        const customerName = populated.customer?.name || "Customer";
+
+        const title = "New Booking Confirmed";
+        const message = `${customerName} booked vehicle ${plateStr} for ${dateStr} at ${timeStr}.`;
+
+        const notificationPromises = admins.map(async (admin) => {
+          const newNotif = new Notification({
+            recipient: admin._id,
+            title,
+            message,
+            type: NOTIFICATION_TYPES.BOOKING,
+            data: { bookingId: savedBooking._id.toString() },
+          });
+          const savedNotif = await newNotif.save();
+          socketHelper.broadcastNotificationToAdmins(savedNotif);
+        });
+
+        await Promise.all(notificationPromises);
+      }
+    } catch (notifErr) {
+      console.error("Failed to create or send socket notifications for booking:", notifErr);
+    }
+
     return savedBooking;
   } catch (error) {
     if (error.code === 11000) {

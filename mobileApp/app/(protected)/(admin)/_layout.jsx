@@ -269,6 +269,13 @@ export default function AdminDrawerLayout() {
           }}
         />
         <Drawer.Screen
+          name="notifications"
+          options={{
+            title: "Notifications",
+            headerShown: true,
+          }}
+        />
+        <Drawer.Screen
           name="(InventoryLog)"
           options={{
             headerShown: false,
