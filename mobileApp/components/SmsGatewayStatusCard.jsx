@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { MessageSquare } from "lucide-react-native";
 import { useFocusEffect } from "expo-router";
+import Toast from "react-native-toast-message";
 import colors from "../constants/colors";
 import { smsService } from "../services/sms/sms.service";
 
@@ -24,7 +25,11 @@ export default function SmsGatewayStatusCard({ refreshing }) {
             setStatus(data);
           }
         } catch (error) {
-          console.error("Failed to fetch SMS status in card (focus):", error);
+          Toast.show({
+            type: "error",
+            text1: "SMS Gateway Error",
+            text2: error?.response?.data?.payload?.message || "Failed to fetch SMS status",
+          });
         } finally {
           if (isMounted) {
             setLoading(false);
@@ -51,7 +56,11 @@ export default function SmsGatewayStatusCard({ refreshing }) {
             setStatus(data);
           }
         } catch (error) {
-          console.error("Failed to fetch SMS status in card (refresh):", error);
+          Toast.show({
+            type: "error",
+            text1: "SMS Gateway Error",
+            text2: error?.response?.data?.payload?.message || "Failed to fetch SMS status",
+          });
         }
       };
       fetchStatus();
