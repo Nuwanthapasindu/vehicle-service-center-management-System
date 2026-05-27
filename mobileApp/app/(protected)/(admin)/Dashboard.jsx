@@ -13,6 +13,7 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { Truck, BarChart2, List, Star, CreditCard, ChevronRight } from "lucide-react-native";
 import colors from "../../../constants/colors";
 import { invoiceService } from "../../../services/invoice/invoice.service";
+import SmsGatewayStatusCard from "../../../components/SmsGatewayStatusCard";
 import Toast from "react-native-toast-message";
 
 export default function Dashboard() {
@@ -83,6 +84,10 @@ export default function Dashboard() {
 
       {/* QUICK ACTIONS */}
       <View style={styles.bodyContent}>
+        {/* SMS GATEWAY STATUS */}
+        <Text style={styles.sectionTitle}>System Status</Text>
+        <SmsGatewayStatusCard refreshing={refreshing} />
+
         <Text style={styles.sectionTitle}>Overview & Actions</Text>
 
         <View style={styles.actionGrid}>
