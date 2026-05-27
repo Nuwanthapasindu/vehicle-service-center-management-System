@@ -48,7 +48,7 @@ const ServiceBooking = () => {
         }
     });
 
-    const { values, errors, setFieldValue, submitForm } = formik;
+    const { values, errors, setFieldValue, submitForm, isSubmitting } = formik;
     const selectedDate = values.date;
     const selectedSlot = values.slotId;
     const selectedVehicle = vehicles.find(v => v._id === values.vehicleId);
@@ -315,12 +315,21 @@ const ServiceBooking = () => {
 
                                 <button
                                     className="confirm-booking-btn"
-                                    disabled={!selectedDate || !selectedVehicle || !selectedSlot}
-                                    style={{ opacity: (!selectedDate || !selectedVehicle || !selectedSlot) ? 0.5 : 1, cursor: (!selectedDate || !selectedVehicle || !selectedSlot) ? 'not-allowed' : 'pointer', marginTop: '1.5rem' }}
+                                    disabled={isSubmitting || !selectedDate || !selectedVehicle || !selectedSlot}
+                                    style={{ opacity: (isSubmitting || !selectedDate || !selectedVehicle || !selectedSlot) ? 0.5 : 1, cursor: (isSubmitting || !selectedDate || !selectedVehicle || !selectedSlot) ? 'not-allowed' : 'pointer', marginTop: '1.5rem' }}
                                     onClick={handleConfirmBooking}
                                 >
-                                    <span>CONFIRM BOOKING</span>
-                                    <i className="fa-solid fa-arrow-right"></i>
+                                    {isSubmitting ? (
+                                        <>
+                                            <span>CONFIRMING...</span>
+                                            <i className="fa-solid fa-spinner fa-spin"></i>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>CONFIRM BOOKING</span>
+                                            <i className="fa-solid fa-arrow-right"></i>
+                                        </>
+                                    )}
                                 </button>
                                 <p className="no-payment-text">NO PAYMENT REQUIRED TODAY</p>
                             </div>

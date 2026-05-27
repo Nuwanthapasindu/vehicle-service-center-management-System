@@ -46,7 +46,7 @@ module.exports.register = async (payload) => {
     try {
       await sendSms(
         savedUser.mobile,
-        `[SHINE DEPOT] Welcome! Your verification code is:  ${otp}. Use this code to verify your mobile number. Thank you!`,
+        ` Welcome! Your verification code is:  ${otp}. Use this code to verify your mobile number. Thank you!`,
       );
     } catch (smsError) {
       // role back auth and user
@@ -180,7 +180,7 @@ module.exports.resendAccountVerification = async (payload) => {
     try {
       await sendSms(
         user.mobile,
-        `[SHINE DEPOT] Welcome! Your verification code is: ${otp}. Use this code to verify your mobile number. Thank you!`,
+        ` Welcome! Your verification code is: ${otp}. Use this code to verify your mobile number. Thank you!`,
       );
     } catch (smsError) {
       throw smsError;
@@ -222,7 +222,7 @@ module.exports.forgotPassword = async (payload) => {
     try {
       await sendSms(
         user.mobile,
-        `[SHINE DEPOT] Hi! A password reset was requested. Your verification code is: ${otp}. If this wasn't you, please ignore this.`,
+        ` Hi! A password reset was requested. Your verification code is: ${otp}. If this wasn't you, please ignore this.`,
       );
     } catch (smsError) {
       // role back auth and user
@@ -263,7 +263,7 @@ module.exports.resetPassword = async (payload) => {
     try {
       await sendSms(
         auth.user.mobile,
-        "[SHINE DEPOT] Success! Your password has been reset. If you did not make this change, please contact us immediately.",
+        " Success! Your password has been reset. If you did not make this change, please contact us immediately.",
       );
     } catch (smsError) {
       // Handle SMS notification failure
