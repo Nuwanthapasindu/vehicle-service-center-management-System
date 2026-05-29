@@ -9,8 +9,10 @@ export const smsService = {
     const response = await axios.post("/sms/campaigns", payload);
     return response?.data?.payload || {};
   },
-  getSmsCampaigns: async () => {
-    const response = await axios.get("/sms/campaigns");
+  getSmsCampaigns: async (page = 1, limit = 10) => {
+    const response = await axios.get(`/sms/campaigns`,{
+      params: { page, limit }
+    });
     return response?.data?.payload || [];
   },
 };

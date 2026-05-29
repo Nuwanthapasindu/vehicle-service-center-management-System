@@ -154,5 +154,30 @@ describe("SMS Campaign Controller Tests", () => {
       expect(campaigns[0].sentBy.name).toBe("Admin User"); // populated
       expect(campaigns[1].title).toBe("Promo 1");
     });
+
+    test("should return paginated campaigns", async () => {
+      // Create 15 campaigns
+      for (let i = 1; i <= 15; i++) {
+        await new SmsCampaign({
+          title: `Promo ${i}`,
+          message: `Msg ${i}`,
+          campaignType: MESSAGE_TYPES.PROMOTIONAL,
+          recipientsCount: 2,
+          sentBy: mockAdmin._id,
+        }).save();
+        // Pause slightly to ensure creation times are sequential
+        await new Promise((resolve) => setTimeout(resolve, 5));
+      }
+
+      // Fetch page 1 with limit 10
+      const page1 = await getSmsCampaigns(1, 10);
+      expect(page1.length).toBe(10);
+      expect(page1[0].title).toBe("Promo 15"); // newest first
+
+      // Fetch page 2 with limit 10
+      const page2 = await getSmsCampaigns(2, 10);
+      expect(page2.length).toBe(5);
+      expect(page2[0].title).toBe("Promo 5");
+    });
   });
 });

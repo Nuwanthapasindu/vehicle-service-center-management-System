@@ -63,11 +63,17 @@ module.exports.createSmsCampaign = async (payload, senderMobile) => {
     }
 };
 
-module.exports.getSmsCampaigns = async () => {
+module.exports.getSmsCampaigns = async (page = 1, limit = 10) => {
     try {
+        const pageNum = parseInt(page, 10) || 1;
+        const limitNum = parseInt(limit, 10) || 10;
+        const skip = (pageNum - 1) * limitNum;
+
         const campaigns = await SmsCampaign.find()
             .populate("sentBy", "name mobile")
             .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum)
             .lean();
         return campaigns;
     } catch (error) {

@@ -271,7 +271,8 @@ router.post('/campaigns', authTokenMiddleware, accessControl([USER_ROLES.ADMIN])
 
 router.get('/campaigns', authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
     const responseBuilder = new responseBuild(res);
-    getSmsCampaigns().then(data => {
+    const { page, limit } = req.query;
+    getSmsCampaigns(page, limit).then(data => {
         responseBuilder.setStatus(200);
         responseBuilder.buildResponse(data);
     }).catch(error => {

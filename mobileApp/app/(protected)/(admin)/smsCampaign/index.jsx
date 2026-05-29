@@ -20,12 +20,27 @@ export default function SmsCampaignList() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const limit = 10;
 
-  const fetchCampaigns = async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
+  const fetchCampaigns = async (pageNum = 1, isRefresh = false) => {
+    if (pageNum === 1 && !isRefresh) {
+      setLoading(true);
+    } else if (pageNum > 1) {
+      setLoadingMore(true);
+    }
+
     try {
-      const data = await smsService.getSmsCampaigns();
-      setCampaigns(data);
+      const data = await smsService.getSmsCampaigns(pageNum, limit);
+      if (pageNum === 1) {
+        setCampaigns(data);
+      } else {
+        setCampaigns((prev) => [...prev, ...data]);
+      }
+      setHasMore(data.length === limit);
+      setPage(pageNum);
     } catch (error) {
       Toast.show({
         type: "error",
@@ -35,18 +50,25 @@ export default function SmsCampaignList() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      fetchCampaigns();
+      fetchCampaigns(1, true);
     }, [])
   );
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchCampaigns(true);
+    fetchCampaigns(1, true);
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore && !loading) {
+      fetchCampaigns(page + 1);
+    }
   };
 
   const formatDateTime = (dateString) => {
@@ -136,6 +158,15 @@ export default function SmsCampaignList() {
               Create a new SMS campaign to dispatch promotions or alerts to all customers.
             </Text>
           </View>
+        }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={{ paddingVertical: 16, alignItems: "center" }}>
+              <ActivityIndicator size="small" color={colors.PRIMARY} />
+            </View>
+          ) : null
         }
       />
 
