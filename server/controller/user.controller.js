@@ -7,6 +7,7 @@ const { USER_ROLES } = require("../util/constants");
 const Vehicle = require("../model/Vehicle");
 const Booking = require("../model/Booking");
 const JobCard = require("../model/JobCard");
+const Invoice = require("../model/Invoice");
 
 module.exports.updateProfile = async (payload, mobile) => {
   const { error } = validatedUpdateProfile(payload);
@@ -94,10 +95,27 @@ module.exports.getCustomerDetails = async (customerId) => {
     .populate("selectedPackage")
     .select("-__v -isDeleted");
 
+  const invoices = await Invoice.find({ customer: customerId, isDeleted: false })
+    .populate({
+      path: "jobCard",
+      select: ["booking", "-_id"],
+      populate: {
+        path: "booking",
+        select: ["vehicle", "-_id"],
+        populate: {
+          path: "vehicle",
+          select: ["licensePlate", "-_id"],
+        },
+      },
+    })
+    .select("-__v -isDeleted -deletedAt")
+    .sort({ createdAt: -1 });
+
   return {
     user,
     vehicles,
     bookings,
-    jobCards
+    jobCards,
+    invoices,
   };
 };
