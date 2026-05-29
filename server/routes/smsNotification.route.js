@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const responseBuild = require('../util/responseBuilder');
 const { authTokenMiddleware, accessControl } = require('../middleware/auth');
-const { fetchSmsAccountStatus } = require('../controller/smsNotification.controller');
+const { fetchSmsAccountStatus, createSmsCampaign, getSmsCampaigns } = require('../controller/smsNotification.controller');
 const { USER_ROLES } = require('../util/constants');
 
 /**
@@ -204,6 +204,79 @@ router.get('/account', authTokenMiddleware,accessControl([USER_ROLES.ADMIN]) ,(r
     }).catch(error => {
         next(error);
     })
+});
+
+/**
+ * @swagger
+ * /api/v1/sms/campaigns:
+ *   post:
+ *     summary: Create and send a new SMS campaign to all customers
+ *     tags: [SMS]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - message
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "Center Closed Today"
+ *               message:
+ *                 type: string
+ *                 example: "Dear customer, we are closed today due to weather conditions."
+ *               campaignType:
+ *                 type: string
+ *                 enum: [PROMOTIONAL, TRANSACTIONAL]
+ *                 example: "TRANSACTIONAL"
+ *     responses:
+ *       200:
+ *         description: Campaign sent successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: No active customers found
+ *       500:
+ *         description: Internal Server Error
+ * 
+ *   get:
+ *     summary: Fetch history of all SMS campaigns
+ *     tags: [SMS]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: History of campaigns retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal Server Error
+ */
+router.post('/campaigns', authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
+    const responseBuilder = new responseBuild(res);
+    createSmsCampaign(req.body, req.user.mobile).then(data => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse(data);
+    }).catch(error => {
+        next(error);
+    });
+});
+
+router.get('/campaigns', authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
+    const responseBuilder = new responseBuild(res);
+    getSmsCampaigns().then(data => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse(data);
+    }).catch(error => {
+        next(error);
+    });
 });
 
 module.exports = router;
