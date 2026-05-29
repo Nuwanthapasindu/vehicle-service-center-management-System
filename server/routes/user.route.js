@@ -1,6 +1,12 @@
 const router = require("express").Router();
-const { updateProfile, searchCustomersByMobile } = require("../controller/user.controller");
-const { authTokenMiddleware } = require("../middleware/auth");
+const {
+  updateProfile,
+  searchCustomersByMobile,
+  getAllCustomers,
+  getCustomerDetails,
+} = require("../controller/user.controller");
+const { authTokenMiddleware, accessControl } = require("../middleware/auth");
+const { USER_ROLES } = require("../util/constants");
 const responseBuild = require("../util/responseBuilder");
 
 /**
@@ -35,12 +41,15 @@ const responseBuild = require("../util/responseBuilder");
 router.put("/profile", authTokenMiddleware, (req, res, next) => {
   const responseBuilder = new responseBuild(res);
   const payload = req.body;
-  const mobile = req.user.mobile; 
+  const mobile = req.user.mobile;
 
   updateProfile(payload, mobile)
     .then((user) => {
       responseBuilder.setStatus(200);
-      responseBuilder.buildResponse({ message: "Profile updated successfully", user });
+      responseBuilder.buildResponse({
+        message: "Profile updated successfully",
+        user,
+      });
     })
     .catch((error) => next(error));
 });
@@ -66,14 +75,87 @@ router.put("/profile", authTokenMiddleware, (req, res, next) => {
  *       401:
  *         description: Unauthorized
  */
-router.get("/search-mobile/:mobile", authTokenMiddleware, (req, res, next) => {
-  const responseBuilder = new responseBuild(res);
-  const { mobile } = req.params;
+router.get(
+  "/search-mobile/:mobile",
+  authTokenMiddleware,
+  accessControl([USER_ROLES.ADMIN]),
+  (req, res, next) => {
+    const responseBuilder = new responseBuild(res);
+    const { mobile } = req.params;
 
-  searchCustomersByMobile(mobile)
-    .then((customers) => {
+    searchCustomersByMobile(mobile)
+      .then((customers) => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse({ customers });
+      })
+      .catch((error) => next(error));
+  },
+);
+
+/**
+ * @swagger
+ * /api/v1/user/customers:
+ *   get:
+ *     summary: Get all customers
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Customers retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.get(
+  "/customers",
+  authTokenMiddleware,
+  accessControl([USER_ROLES.ADMIN]),
+  (req, res, next) => {
+    const responseBuilder = new responseBuild(res);
+    const { search } = req.query;
+
+    getAllCustomers(search)
+      .then((customers) => {
+        responseBuilder.setStatus(200);
+        responseBuilder.buildResponse({ customers });
+      })
+      .catch((error) => next(error));
+  },
+);
+
+/**
+ * @swagger
+ * /api/v1/user/customers/{customerId}:
+ *   get:
+ *     summary: Get customer details by ID
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: customerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Customer ID
+ *     responses:
+ *       200:
+ *         description: Customer details retrieved successfully
+ *       404:
+ *         description: Customer not found
+ */
+router.get(
+  "/customers/:customerId",
+  authTokenMiddleware,
+  accessControl([USER_ROLES.ADMIN]),
+  (req, res, next) => {
+  const responseBuilder = new responseBuild(res);
+  const { customerId } = req.params;
+
+  getCustomerDetails(customerId)
+    .then((data) => {
       responseBuilder.setStatus(200);
-      responseBuilder.buildResponse({ customers });
+      responseBuilder.buildResponse(data);
     })
     .catch((error) => next(error));
 });

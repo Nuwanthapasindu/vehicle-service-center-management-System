@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, Dimensions, ActivityIndicator, Modal, FlatList
+  Image, Dimensions, ActivityIndicator, Modal, FlatList, Linking
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import axios from "axios";
+import { bookingService } from "../../../../services/booking/booking.service";
+import { jobCardService } from "../../../../services/jobCard/jobCard.service";
+import { packageService } from "../../../../services/package/package.service";
+import { invoiceService } from "../../../../services/invoice/invoice.service";
 import colors from "../../../../constants/colors";
 import getImageFullUrl from "../../../../utils/getImageFullUrl";
 import getStatusColor from "../../../../utils/getStatusColor";
@@ -60,14 +62,14 @@ export default function BookingDetails() {
             selectedPackage: values.selectedPackage,
             milageCount: Number(values.milageCount),
           };
-          const jobResponse = await axios.post("/job-cards", jobPayload);
+          const jobResponse = await jobCardService.createJobCard(jobPayload);
           newJobId = jobResponse.data?.payload?.data?._id;
 
           if (!newJobId) throw new Error("Failed to extract Job Card ID from server");
 
           // 2. Assign Team
           if (values.assignedTeam) {
-            await axios.patch("/job-cards/assign", {
+            await jobCardService.assignTeam({
               jobCardId: newJobId,
               teamId: values.assignedTeam,
             });
@@ -85,7 +87,7 @@ export default function BookingDetails() {
             },
           },
         };
-        const invoiceResponse = await axios.post("/invoice", invoicePayload);
+        const invoiceResponse = await invoiceService.createInvoice(invoicePayload);
 
         Toast.show({
           type: "success",
@@ -124,12 +126,12 @@ export default function BookingDetails() {
 
     try {
       // Fetch Booking Details and Packages in parallel to reconcile them
-      const [bookingResponse, pkgResponse] = await Promise.all([
-        axios.get(`/booking/admin/${id}/details`),
-        axios.get(`/package/public`)
+      const [bookingResponse, allPackagesData] = await Promise.all([
+        bookingService.getBookingDetailsAdmin(id),
+        packageService.fetchPackages()
       ]);
       const details = bookingResponse.data?.payload?.data;
-      const allPackages = pkgResponse.data?.payload?.packages || [];
+      const allPackages = allPackagesData || [];
       setData(details);
       setPackages(allPackages);
 
@@ -141,7 +143,7 @@ export default function BookingDetails() {
 
         if (details.service.jobCardId) {
           try {
-            const invoiceRes = await axios.get(`/invoice/jobcard/${details.service.jobCardId}`);
+            const invoiceRes = await invoiceService.fetchInvoiceByJobCard(details.service.jobCardId);
             setInvoiceDetails(invoiceRes.data?.payload?.data || invoiceRes.data?.data);
           } catch (e) {
             setInvoiceDetails(null);
@@ -185,20 +187,20 @@ export default function BookingDetails() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={colors.PRIMARY} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!data) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ fontSize: 16, color: colors.SECONDARY }}>Booking not found.</Text>
         <TouchableOpacity onPress={() => router.push("/(protected)/(admin)/booking")} style={{ marginTop: 20 }}>
           <Text style={{ color: colors.PRIMARY, fontWeight: 'bold' }}>Go Back</Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -206,15 +208,7 @@ export default function BookingDetails() {
   const imgSource = imagePath ? { uri: getImageFullUrl(imagePath) } : FALLBACK_IMG;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push("/(protected)/(admin)/booking")}>
-          <Ionicons name="chevron-back" size={28} color={colors.PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Booking Details</Text>
-      </View>
-
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Schedule Info */}
         <View style={styles.section}>
@@ -242,7 +236,16 @@ export default function BookingDetails() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.callButton}>
+            <TouchableOpacity 
+              style={styles.callButton}
+              onPress={() => {
+                if (data?.customer?.phone) {
+                  Linking.openURL(`tel:${data.customer.phone}`);
+                } else {
+                  Toast.show({ type: "error", text1: "No Number", text2: "Customer mobile number not found" });
+                }
+              }}
+            >
               <Ionicons name="call-outline" size={20} color={colors.DARK} />
             </TouchableOpacity>
           </View>
@@ -419,7 +422,7 @@ export default function BookingDetails() {
         )}
       </View>
 
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -427,25 +430,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.BACKGROUND_COLOR,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: colors.LIGHT,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.BORDER_COLOR,
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.DARK,
-    flex: 1,
-    textAlign: "right",
   },
   scrollContent: {
     padding: 20,

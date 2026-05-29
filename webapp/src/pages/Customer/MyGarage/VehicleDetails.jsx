@@ -35,7 +35,6 @@ const VehicleDetails = () => {
             const response = await axios.get('/booking/my-history', {
                 params: { vehicle: id }
             });
-            console.log(response.data.payload.history);
             setServiceHistory(response.data.payload.history || []);
         } catch (error) {
             console.error("Failed to fetch service history:", error);

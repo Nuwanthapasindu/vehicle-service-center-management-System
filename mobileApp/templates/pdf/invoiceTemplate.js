@@ -21,9 +21,16 @@ export const getInvoiceTemplate = (invoice = {}) => {
 
     // Package parsing
     if (invoice.selectedPackage?.selectedPackageTier) {
+        const services = invoice.selectedPackage.package?.servicesIncluded || [];
+        const servicesListStr = services.length > 0 
+            ? `<div class="package-services">
+                 ${services.map(s => `<div class="package-service-item">• ${s.name}</div>`).join('')}
+               </div>`
+            : '';
+
         billedItems.push({
             title: invoice.selectedPackage.package?.name || 'Package',
-            subtitle: invoice.selectedPackage.selectedPackageTier.name,
+            subtitle: `${invoice.selectedPackage.selectedPackageTier.name}${servicesListStr}`,
             amount: formatPrice(invoice.selectedPackage.selectedPackageTier.price)
         });
     }
@@ -70,11 +77,15 @@ export const getInvoiceTemplate = (invoice = {}) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
     <style>
       body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: ${colors.DARK}; padding: 20px; background-color: ${colors.BACKGROUND_COLOR}; }
-      .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid ${colors.BORDER_COLOR}; padding-bottom: 20px; margin-bottom: 20px; }
-      .brand-container { display: flex; align-items: center; }
-      .logo { height: 48px; margin-right: 12px; }
-      .title { font-size: 24px; font-weight: 900; color: ${colors.DARK}; }
-      .brand { font-size: 28px; font-weight: 900; color: ${colors.PRIMARY}; }
+      .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid ${colors.PRIMARY}; padding-bottom: 15px; margin-bottom: 25px; }
+      .header-left { display: flex; align-items: center; }
+      .logo { height: 55px; margin-right: 15px; }
+      .company-details { display: flex; flex-direction: column; }
+      .company-name { font-size: 20px; font-weight: 900; color: ${colors.DARK}; letter-spacing: 0.5px; margin-bottom: 2px; }
+      .company-info { font-size: 11px; color: ${colors.SECONDARY}; margin-bottom: 2px; }
+      .header-right { text-align: right; display: flex; flex-direction: column; }
+      .doc-title { font-size: 20px; font-weight: 900; color: ${colors.PRIMARY}; letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase; }
+      .doc-meta { font-size: 11px; color: ${colors.SECONDARY}; margin-bottom: 2px; font-weight: 600; }
       
       .card { background-color: ${colors.LIGHT}; border: 1px solid ${colors.BORDER_COLOR}; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
       .wip-tag { color: ${checkStatusColor}; font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
@@ -89,8 +100,9 @@ export const getInvoiceTemplate = (invoice = {}) => {
       th, td { padding: 15px; text-align: left; }
       th { background-color: ${colors.BACKGROUND_COLOR}; color: ${colors.SECONDARY}; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid ${colors.BORDER_COLOR}; }
       td { border-bottom: 1px solid ${colors.BORDER_COLOR}; }
-      .item-title { font-size: 16px; font-weight: bold; color: ${colors.DARK}; }
       .item-subtitle { font-size: 12px; color: ${colors.SECONDARY}; margin-top: 4px; }
+      .package-services { margin-top: 6px; }
+      .package-service-item { font-size: 10.5px; color: ${colors.SECONDARY}; font-style: italic; margin-top: 3px; padding-left: 8px; }
       .item-price { font-size: 16px; font-weight: bold; color: ${colors.DARK}; text-align: right; }
       
       .total-card { background-color: #111827; border-radius: 16px; padding: 24px; color: ${colors.LIGHT}; display: flex; justify-content: space-between; align-items: center; }
@@ -101,11 +113,19 @@ export const getInvoiceTemplate = (invoice = {}) => {
   </head>
   <body>
     <div class="header">
-      <div class="brand-container">
+      <div class="header-left">
         <img src="${logoUri}" class="logo" alt="Logo" />
-        <div class="brand">AutoMate</div>
+        <div class="company-details">
+          <div class="company-name">SHINE DEPOT</div>
+          <div class="company-info">108 Old Kottawa Rd, Nugegoda</div>
+          <div class="company-info">Hotline: +94 76 315 3797 | Email: info@shinedepot.lk</div>
+        </div>
       </div>
-      <div class="title">Invoice #${invoice.invoiceId || invoice._id}</div>
+      <div class="header-right">
+        <div class="doc-title">INVOICE</div>
+        <div class="doc-meta">Invoice #: ${invoice.invoiceId || invoice._id}</div>
+        <div class="doc-meta">Date: ${invoiceDate}</div>
+      </div>
     </div>
     
     <div class="card">
@@ -155,8 +175,8 @@ export const getInvoiceTemplate = (invoice = {}) => {
     </div>
     
     <div class="footer">
-      Thank you for choosing AutoMate!<br>
-      For any inquiries, contact support at +94 77 767 3368
+      Thank you for choosing Shine Depot!<br>
+      For any inquiries, contact support at +94 76 315 3797 | info@shinedepot.lk
     </div>
   </body>
 </html>

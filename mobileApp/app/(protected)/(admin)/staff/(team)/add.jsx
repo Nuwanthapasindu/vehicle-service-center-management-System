@@ -15,6 +15,8 @@ import Toast from "react-native-toast-message";
 import CreateTeamSchema from "../../../../../schema/CreateTeamSchema";
 import EmployeeCard from "../../../../../components/EmployeeCard";
 import axios from "axios";
+import CustomInput from "../../../../../components/CustomInput";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function CreateTeam() {
   const router = useRouter();
@@ -152,17 +154,14 @@ export default function CreateTeam() {
       }) => (
         <View style={styles.container}>
           <View style={styles.content}>
-            {/* Team Name */}
-            <Text style={styles.label}>TEAM NAME</Text>
-            {errors.name && touched.name && (
-              <Text style={{ color: "red" }}>{errors.name}</Text>
-            )}
-            <TextInput
-              style={styles.input}
+            <CustomInput
+              label="TEAM NAME"
               placeholder="e.g., Night Shift Detailing"
-              placeholderTextColor={colors.SECONDARY}
               value={values.name}
               onChangeText={handleChange("name")}
+              error={errors.name}
+              touched={touched.name}
+              icon={<Ionicons name="people-outline" size={20} color={colors.SECONDARY} />}
             />
 
             {/* Employee Selection */}
@@ -185,12 +184,11 @@ export default function CreateTeam() {
             )}
 
             {/* --- SEARCH BAR ADDED HERE --- */}
-            <TextInput
-              style={[styles.input, { marginBottom: 15 }]}
+            <CustomInput
               placeholder="Search employees..."
-              placeholderTextColor={colors.SECONDARY}
               value={searchQuery}
               onChangeText={setSearchQuery}
+              icon={<Ionicons name="search-outline" size={20} color={colors.SECONDARY} />}
             />
 
             {loading ? (

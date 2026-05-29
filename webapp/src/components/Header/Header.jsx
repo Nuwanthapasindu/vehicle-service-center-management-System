@@ -23,6 +23,7 @@ function Header() {
                     <Link to="/about" className="nav-link">About us</Link>
                     <Link to="/contact" className="nav-link">Contact us</Link>
                     <Link to="/reviews" className="nav-link">Reviews</Link>
+                    <Link to="/gallery" className="nav-link">Gallery</Link>
                 </nav>
 
                 <div className="header-actions">

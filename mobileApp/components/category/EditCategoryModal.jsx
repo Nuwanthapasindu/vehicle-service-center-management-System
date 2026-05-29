@@ -88,7 +88,7 @@ export default function EditCategoryModal({ visible, category, onClose, onSucces
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "padding"} style={{ flex: 1 }}>
         <Formik
           key={category.id}
           initialValues={{ name: category.name || "" }}

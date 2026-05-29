@@ -99,15 +99,18 @@ module.exports.getFileById = async (fileId) => {
  */
 module.exports.deleteFileById = async (fileId) => {
     try {
-        const fileExists = await File.findById(fileId);
-        if (!fileExists) {
+        const fileDoc = await File.findById(fileId);
+        if (!fileDoc) {
             throw new AppError("File not found.", 404);
         }
-        await File.findByIdAndDelete(fileId);
-        // DELETE FILE FROM STORAGE
-        deleteFile(fileExists.filePath);
-        return "File deleted successfully.";
 
+        // Delete physical file FIRST — preserves DB metadata if unlink fails
+        deleteFile(fileDoc.filePath);
+
+        // Only remove the DB record after the physical file is gone
+        await File.findByIdAndDelete(fileId);
+
+        return "File deleted successfully.";
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500);
     }

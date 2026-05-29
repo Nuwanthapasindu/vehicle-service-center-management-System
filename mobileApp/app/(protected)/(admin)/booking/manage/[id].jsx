@@ -9,16 +9,16 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import axios from "axios";
+import { bookingService } from "../../../../../services/booking/booking.service";
+import { timeslotService } from "../../../../../services/timeslot/timeslot.service";
 import colors from "../../../../../constants/colors";
 import Toast from "react-native-toast-message";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatTimeStringForDisplay } from "../../../../../utils/timeFormatter";
 import { Formik } from "formik";
-import { manageBookingSchema } from "../../../../../schemas/manageBooking.schema";
+import { manageBookingSchema } from "../../../../../schema/manageBooking.schema";
 
 const { width } = Dimensions.get("window");
 
@@ -46,7 +46,7 @@ export default function ManageBooking() {
     try {
       setLoading(true);
       // 1. Fetch Booking Details
-      const bookingRes = await axios.get(`/booking/admin/${id}/details`);
+      const bookingRes = await bookingService.getBookingDetailsAdmin(id);
       const details = bookingRes.data.payload.data;
       setBooking(details);
 
@@ -57,7 +57,7 @@ export default function ManageBooking() {
         setInitialFormValues({ selectedDate: targetDate, selectedSlotId: null });
 
         const dateStr = details.date; // Use string from details directly if it's YYYY-MM-DD
-        const slotsRes = await axios.get(`/timeslot/available?date=${dateStr}`);
+        const slotsRes = await timeslotService.getAvailable(dateStr);
         setAvailableSlots(slotsRes.data.payload.slots || []);
       }
     } catch (error) {
@@ -80,7 +80,7 @@ export default function ManageBooking() {
     setLoadingSlots(true);
     try {
       const dateStr = date.toISOString().split("T")[0];
-      const response = await axios.get(`/timeslot/available?date=${dateStr}`);
+      const response = await timeslotService.getAvailable(dateStr);
       setAvailableSlots(response.data.payload.slots || []);
     } catch (error) {
       Toast.show({
@@ -97,7 +97,7 @@ export default function ManageBooking() {
     try {
       setIsUpdating(true);
       const dateStr = values.selectedDate.toISOString().split("T")[0];
-    const response =  await axios.patch(`/booking/admin/${id}`, {
+    const response = await bookingService.updateBookingAdmin(id, {
         date: dateStr,
         slot: values.selectedSlotId,
       });
@@ -132,7 +132,7 @@ export default function ManageBooking() {
           onPress: async () => {
             try {
               setIsUpdating(true);
-              await axios.delete(`/booking/admin/${id}`);
+              await bookingService.deleteBookingAdmin(id);
               Toast.show({
                 type: "success",
                 text1: "Cancelled",
@@ -166,17 +166,7 @@ export default function ManageBooking() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={28} color={colors.PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manage Booking</Text>
-      </View>
+    <View style={styles.container}>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -356,7 +346,7 @@ export default function ManageBooking() {
           )}
         </Formik>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -376,25 +366,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.SECONDARY,
     fontWeight: "600",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: colors.LIGHT,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.BORDER_COLOR,
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.DARK,
-    flex: 1,
-    textAlign: "right",
   },
   scrollContent: {
     padding: 20,

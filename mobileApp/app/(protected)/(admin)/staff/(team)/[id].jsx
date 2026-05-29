@@ -15,6 +15,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import colors from "../../../../../constants/colors";
 import EmployeeCard from "../../../../../components/EmployeeCard";
 import axios from "axios";
+import CustomInput from "../../../../../components/CustomInput";
 
 export default function EditTeam() {
   const router = useRouter();
@@ -179,24 +180,22 @@ export default function EditTeam() {
     <View style={styles.container}>
 
       <View style={styles.content}>
-        <Text style={styles.label}>TEAM NAME</Text>
-        <TextInput
-          style={styles.input}
+        <CustomInput
+          label="TEAM NAME"
+          placeholder="Enter team name"
           value={teamName}
           onChangeText={setTeamName}
-          placeholder="Enter team name"
-          placeholderTextColor={colors.SECONDARY}
+          icon={<Ionicons name="people-outline" size={20} color={colors.SECONDARY} />}
         />
 
         <Text style={styles.label}>MANAGE EMPLOYEES ({employees.length})</Text>
 
         {/* --- SEARCH BAR ADDED --- */}
-        <TextInput
-          style={[styles.input, { marginBottom: 15 }]}
+        <CustomInput
           placeholder="Search employees..."
-          placeholderTextColor={colors.SECONDARY}
           value={searchQuery}
           onChangeText={setSearchQuery}
+          icon={<Ionicons name="search-outline" size={20} color={colors.SECONDARY} />}
         />
 
         <FlatList

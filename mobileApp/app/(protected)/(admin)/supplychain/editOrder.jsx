@@ -13,11 +13,26 @@ import { styles } from "./styles";
 import CustomButton from "../../../../components/CustomButton";
 import enums from "../../../../constants/enums";
 import supplyChainService from "../../../../services/supplychain/supplychain.service";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { pdfGenerator } from "../../../../utils/pdfGenerator";
 import { purchaseOrderTemplate } from "../../../../templates/pdf/purchaseOrderTemplate";
 
-export default function EditOrder({ order, onBack }) {
-  const displayOrder = order || {};
+export default function EditOrder() {
+  const router = useRouter();
+  const { item } = useLocalSearchParams();
+  
+  let displayOrder = {};
+  try {
+    displayOrder = item ? JSON.parse(item) : {};
+  } catch (error) {
+    Toast.show({
+      type: "error",
+      text1: "Data Error",
+      text2: "Failed to load order details",
+    });
+    router.back();
+    return null;
+  }
 
   const isPending = displayOrder?.status === enums.PURCHASE_ORDER_STATUS.SENT;
   const isDraft = displayOrder?.status === enums.PURCHASE_ORDER_STATUS.DRAFT;
@@ -60,7 +75,7 @@ export default function EditOrder({ order, onBack }) {
           text2: `Order marked as ${newStatus}`,
         });
       }
-      onBack();
+      router.back();
     } catch (err) {
       Toast.show({
         type: "error",
@@ -83,7 +98,7 @@ export default function EditOrder({ order, onBack }) {
             try {
               await supplyChainService.deletePurchaseOrder(displayOrder._id);
               Toast.show({ type: "success", text1: "Deleted", text2: "Order removed" });
-              onBack();
+              router.back();
             } catch (err) {
               Toast.show({ type: "error", text1: "Error", text2: "Could not delete order" });
             }
@@ -109,7 +124,7 @@ export default function EditOrder({ order, onBack }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
+        <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft color="#84CC16" size={32} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>ORDER DETAILS</Text>

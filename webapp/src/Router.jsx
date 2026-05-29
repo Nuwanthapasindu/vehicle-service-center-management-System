@@ -18,6 +18,7 @@ import EditReview from "./pages/Customer/EditReview/EditReview";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import ContactPage from "./pages/ContactPage/ContactPage";
 import ReviewsPage from "./pages/ReviewsPage/ReviewsPage";
+import GalleryPage from "./pages/GalleryPage/GalleryPage";
 
 import AuthGuard from "./guards/AuthGuard";
 import PublicAuthGuard from "./guards/PublicAuthGuard";
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/reviews" element={<ReviewsPage />} />
+      <Route path="/gallery" element={<GalleryPage />} />
 
       <Route
         path="/login"

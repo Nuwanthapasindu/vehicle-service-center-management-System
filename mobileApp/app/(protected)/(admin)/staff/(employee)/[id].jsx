@@ -18,6 +18,7 @@ import UpdateEmployeeSchema from "../../../../../schema/UpdateEmployeeSchema";
 import axios from "axios";
 import enums from "../../../../../constants/enums";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomInput from "../../../../../components/CustomInput";
 
 export default function EditEmployee() {
   const { id } = useLocalSearchParams();
@@ -193,70 +194,69 @@ export default function EditEmployee() {
             {/* Personal Information */}
             <Text style={styles.sectionLabel}>PERSONAL INFORMATION</Text>
 
-            <Text style={styles.fieldLabel}>FULL NAME</Text>
-            <TextInput
-              style={styles.input}
+            <CustomInput
+              label="FULL NAME"
+              placeholder="e.g. John Doe"
               value={values.name}
               onChangeText={handleChange("name")}
+              error={errors.name}
+              touched={touched.name}
+              icon={<Ionicons name="person-outline" size={20} color={colors.SECONDARY} />}
             />
-            {touched.name && errors.name && (
-              <Text style={styles.errorText}>{errors.name}</Text>
-            )}
 
-            <Text style={styles.fieldLabel}>MOBILE NUMBER</Text>
-            <TextInput
-              style={styles.input}
-              value={values.mobile}
+            <CustomInput
+              label="MOBILE NUMBER"
+              placeholder="e.g. 0712345678"
               keyboardType="phone-pad"
+              value={values.mobile}
               onChangeText={handleChange("mobile")}
+              error={errors.mobile}
+              touched={touched.mobile}
+              icon={<Ionicons name="call-outline" size={20} color={colors.SECONDARY} />}
             />
-            {touched.mobile && errors.mobile && (
-              <Text style={styles.errorText}>{errors.mobile}</Text>
-            )}
 
-            <Text style={styles.fieldLabel}>ADDRESS</Text>
-            <TextInput
-              style={styles.input}
+            <CustomInput
+              label="ADDRESS"
+              placeholder="e.g. 123 Main St, Colombo"
               value={values.address}
               onChangeText={handleChange("address")}
+              error={errors.address}
+              touched={touched.address}
+              icon={<Ionicons name="location-outline" size={20} color={colors.SECONDARY} />}
             />
-            {touched.address && errors.address && (
-              <Text style={styles.errorText}>{errors.address}</Text>
-            )}
 
-            <Text style={styles.fieldLabel}>USERNAME</Text>
-            <TextInput
-              style={styles.input}
+            <CustomInput
+              label="USERNAME"
+              placeholder="e.g. johndoe"
               value={values.userName}
               onChangeText={handleChange("userName")}
+              error={errors.userName}
+              touched={touched.userName}
+              icon={<Ionicons name="at-outline" size={20} color={colors.SECONDARY} />}
             />
-            {touched.userName && errors.userName && (
-              <Text style={styles.errorText}>{errors.userName}</Text>
-            )}
 
-            <Text style={styles.fieldLabel}>PASSWORD</Text>
-            <TextInput
-              style={styles.input}
-              value={values.password}
-              secureTextEntry
+            <CustomInput
+              label="PASSWORD"
               placeholder="Leave blank to keep current password"
+              value={values.password}
               onChangeText={handleChange("password")}
+              error={errors.password}
+              touched={touched.password}
+              isPassword={true}
+              icon={<Ionicons name="lock-closed-outline" size={20} color={colors.SECONDARY} />}
             />
-            {touched.password && errors.password && (
-              <Text style={styles.errorText}>{errors.password}</Text>
-            )}
 
             <View style={styles.rowInputs}>
               <View style={{ flex: 1, marginRight: 10 }}>
-                <Text style={styles.fieldLabel}>NIC</Text>
-                <TextInput
-                  style={styles.input}
+                <CustomInput
+                  label="NIC"
+                  placeholder="e.g. 199012345678"
                   value={values.nic}
                   onChangeText={handleChange("nic")}
+                  error={errors.nic}
+                  touched={touched.nic}
+                  icon={<Ionicons name="card-outline" size={20} color={colors.SECONDARY} />}
                 />
-                {touched.nic && errors.nic && (
-                  <Text style={styles.errorText}>{errors.nic}</Text>
-                )}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.fieldLabel}>DATE OF BIRTH</Text>

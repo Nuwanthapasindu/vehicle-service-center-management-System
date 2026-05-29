@@ -4,6 +4,9 @@ const AppError = require("../error/AppError");
 const { hashPassword, comparePassword } = require("../util/password");
 const { validatedUpdateProfile } = require("../validation/user.validation");
 const { USER_ROLES } = require("../util/constants");
+const Vehicle = require("../model/Vehicle");
+const Booking = require("../model/Booking");
+const JobCard = require("../model/JobCard");
 
 module.exports.updateProfile = async (payload, mobile) => {
   const { error } = validatedUpdateProfile(payload);
@@ -47,4 +50,54 @@ module.exports.searchCustomersByMobile = async (mobile) => {
   }).select("-__v -createdAt -updatedAt -isDeleted");
 
   return customers;
+};
+
+module.exports.getAllCustomers = async (searchQuery = "") => {
+  const query = {
+    role: USER_ROLES.CUSTOMER,
+    isDeleted: false,
+  };
+
+  if (searchQuery) {
+    query.$or = [
+      { name: { $regex: searchQuery, $options: "i" } },
+      { mobile: { $regex: searchQuery, $options: "i" } },
+    ];
+  }
+
+  const customers = await User.find(query)
+    .select("-__v -isDeleted")
+    .sort({ createdAt: -1 });
+
+  return customers;
+};
+
+module.exports.getCustomerDetails = async (customerId) => {
+  const user = await User.findOne({ _id: customerId, role: USER_ROLES.CUSTOMER, isDeleted: false })
+    .select("-__v -isDeleted");
+  
+  if (!user) throw new AppError("Customer not found", 404);
+
+  const vehicles = await Vehicle.find({ ownerId: customerId, isDeleted: false })
+    .populate("image")
+    .select("-__v -isDeleted");
+
+  const bookings = await Booking.find({ customer: customerId, isDeleted: false })
+    .populate("vehicle")
+    .populate("slot")
+    .sort({ date: -1 })
+    .select("-__v -isDeleted");
+
+  const bookingIds = bookings.map(b => b._id);
+  const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
+    .populate("team")
+    .populate("selectedPackage")
+    .select("-__v -isDeleted");
+
+  return {
+    user,
+    vehicles,
+    bookings,
+    jobCards
+  };
 };

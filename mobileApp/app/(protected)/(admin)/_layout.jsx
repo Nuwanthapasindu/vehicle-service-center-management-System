@@ -13,23 +13,24 @@ function CustomDrawerContent(props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.LIGHT }}>
+      {/* Header - FIXED at the top */}
+      <View style={styles.drawerHeader}>
+        <View style={styles.logoWrapper}>
+          <Image source={logo} style={styles.logo} resizeMode="contain" />
+        </View>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>AutoMate</Text>
+          <Text style={styles.headerSubtitle}>SHINE DEPOT</Text>
+        </View>
+      </View>
+
+      {/* Separator */}
+      <View style={styles.separator} />
+
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={{ paddingTop: 0 }}
       >
-        {/* Header */}
-        <View style={styles.drawerHeader}>
-          <View style={styles.logoWrapper}>
-            <Image source={logo} style={styles.logo} resizeMode="contain" />
-          </View>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>AutoMate</Text>
-            <Text style={styles.headerSubtitle}>SHINE DEPOT</Text>
-          </View>
-        </View>
-
-        {/* Separator */}
-        <View style={styles.separator} />
 
         {/* List of items */}
         <View style={styles.drawerItemsWrapper}>
@@ -129,12 +130,37 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-          name="booking/index"
+          name="booking"
           options={{
+            headerShown: false,
             drawerLabel: "Bookings",
             title: "Bookings",
             drawerIcon: ({ color, size }) => (
               <Ionicons name="calendar-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="customers"
+          options={{
+            headerShown: false,
+            drawerLabel: "Customers",
+            title: "Customers List",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="people-circle-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
+        <Drawer.Screen
+          name="vehicles"
+          options={{
+            headerShown: false,
+            drawerLabel: "Vehicles",
+            title: "Registered Vehicles",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="car-sport-outline" size={size} color={color} />
             ),
           }}
         />
@@ -164,7 +190,7 @@ export default function AdminDrawerLayout() {
         />
 
         <Drawer.Screen
-          name="supplychain/index"
+          name="supplychain"
           options={{
             headerShown: false,
             drawerLabel: "Supply Chain",
@@ -223,19 +249,19 @@ export default function AdminDrawerLayout() {
           }}
         />
 
+        <Drawer.Screen
+          name="gallery"
+          options={{
+            headerShown: false,
+            drawerLabel: "Gallery",
+            title: "Gallery Management",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="images-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
         {/* Hidden Screens */}
-        <Drawer.Screen
-          name="booking/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Drawer.Screen
-          name="booking/manage/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
         <Drawer.Screen
           name="revenue"
           options={{
