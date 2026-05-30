@@ -48,7 +48,7 @@ const ServiceBooking = () => {
         }
     });
 
-    const { values, errors, setFieldValue, submitForm } = formik;
+    const { values, errors, setFieldValue, submitForm, isSubmitting } = formik;
     const selectedDate = values.date;
     const selectedSlot = values.slotId;
     const selectedVehicle = vehicles.find(v => v._id === values.vehicleId);
@@ -133,29 +133,28 @@ const ServiceBooking = () => {
                         <div className="info-mini-card">
                             <div className="card-icon-box">
                                 <i className="fa-solid fa-shield-halved"></i>
-
                             </div>
                             <div className="card-text">
                                 <h5>Quality Guarantee</h5>
-                                <p>Every service includes a 100% satisfaction guarantee or we re-detail for free.</p>
-                            </div>
-                        </div>
-                        <div className="info-mini-card">
-                            <div className="card-icon-box">
-                                <i className="fa-solid fa-location-dot"></i>
-                            </div>
-                            <div className="card-text">
-                                <h5>Central Hub Location</h5>
                                 <p>Easily accessible facility at 122 Industrial Way with premium waiting lounge.</p>
                             </div>
                         </div>
                         <div className="info-mini-card">
                             <div className="card-icon-box">
-                                <i className="fa-regular fa-bell"></i>
+                                <i className="fa-solid fa-clock-rotate-left"></i>
                             </div>
                             <div className="card-text">
-                                <h5>Instant Reminders</h5>
-                                <p>Get SMS reminders 24 hours before your scheduled arrival.</p>
+                                <h5>Service History Logs</h5>
+                                <p>View full detailings, trace past expenditure, and download official PDF reports.</p>
+                            </div>
+                        </div>
+                        <div className="info-mini-card">
+                            <div className="card-icon-box">
+                                <i className="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <div className="card-text">
+                                <h5>Instant Booking Alerts</h5>
+                                <p>Schedule premium detailing slots online and receive immediate SMS updates on slot confirmations.</p>
                             </div>
                         </div>
                     </div>
@@ -315,12 +314,21 @@ const ServiceBooking = () => {
 
                                 <button
                                     className="confirm-booking-btn"
-                                    disabled={!selectedDate || !selectedVehicle || !selectedSlot}
-                                    style={{ opacity: (!selectedDate || !selectedVehicle || !selectedSlot) ? 0.5 : 1, cursor: (!selectedDate || !selectedVehicle || !selectedSlot) ? 'not-allowed' : 'pointer', marginTop: '1.5rem' }}
+                                    disabled={isSubmitting || !selectedDate || !selectedVehicle || !selectedSlot}
+                                    style={{ opacity: (isSubmitting || !selectedDate || !selectedVehicle || !selectedSlot) ? 0.5 : 1, cursor: (isSubmitting || !selectedDate || !selectedVehicle || !selectedSlot) ? 'not-allowed' : 'pointer', marginTop: '1.5rem' }}
                                     onClick={handleConfirmBooking}
                                 >
-                                    <span>CONFIRM BOOKING</span>
-                                    <i className="fa-solid fa-arrow-right"></i>
+                                    {isSubmitting ? (
+                                        <>
+                                            <span>CONFIRMING...</span>
+                                            <i className="fa-solid fa-spinner fa-spin"></i>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>CONFIRM BOOKING</span>
+                                            <i className="fa-solid fa-arrow-right"></i>
+                                        </>
+                                    )}
                                 </button>
                                 <p className="no-payment-text">NO PAYMENT REQUIRED TODAY</p>
                             </div>

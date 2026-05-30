@@ -35,7 +35,7 @@ function HomePage() {
             <Header />
             <main>
                 <HomeHero />
-                <HomeStats />
+                <HomeStats packages={packages} />
                 <HomeServices services={services} packages={packages} />
                 <HomeTestimonials />
                 <HomeCTA />

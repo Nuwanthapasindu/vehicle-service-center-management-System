@@ -10,6 +10,8 @@ import tokenRefresh from "../services/tokenRefresh";
 import storageKeys from "../constants/storageKeys";
 import useAsyncStorage from "../hooks/useAsyncStorage";
 import AuthProvider from "../context/AuthContext";
+import SocketProvider from "../context/SocketContext";
+import { registerBackgroundNotificationTask } from "../utils/backgroundWorker";
 import "../services/axios.defaults";
 
 storeSubscribe();
@@ -29,6 +31,7 @@ export default function RootLayout() {
   const router = useRouter();
   useEffect(() => {
     ensureUploadDir();
+    registerBackgroundNotificationTask();
   }, []);
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -43,7 +46,9 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <AuthProvider>
-        <Slot />
+        <SocketProvider>
+          <Slot />
+        </SocketProvider>
       </AuthProvider>
       <Toast />
     </Provider>

@@ -4,12 +4,14 @@ const JobCard = require("../../model/JobCard");
 const User = require("../../model/User");
 const Package = require("../../model/Package");
 const Inventory = require("../../model/Inventory");
+const Service = require("../../model/Service");
 
 jest.mock("../../model/Invoice");
 jest.mock("../../model/JobCard");
 jest.mock("../../model/User");
 jest.mock("../../model/Package");
 jest.mock("../../model/Inventory");
+jest.mock("../../model/Service");
 jest.mock("../../controller/inventory.controller", () => ({
   reduceStockByInvoice: jest.fn(),
   increaseStockByPO: jest.fn(),
@@ -58,6 +60,88 @@ describe("Invoice Controller Unit Tests", () => {
 
       await expect(completeInvoice("507f1f77bcf86cd799439011", {}))
         .rejects.toThrow("already completed");
+    });
+  });
+
+  describe("addInvoiceItem", () => {
+    it("should successfully add a new additional service item", async () => {
+      const { validatedAddInvoiceItem } = require("../../validation/invoice.validation");
+      const serviceId = "507f1f77bcf86cd799439012";
+      validatedAddInvoiceItem.mockReturnValue({
+        value: {
+          type: "SERVICE",
+          data: {
+            service: serviceId,
+            charge: 1500,
+          },
+        },
+        error: null,
+      });
+
+      const mockSave = jest.fn();
+      const mockInvoice = {
+        _id: "507f1f77bcf86cd799439011",
+        invoiceId: "INV-001",
+        isCompleted: false,
+        additionalServices: [],
+        save: mockSave,
+      };
+
+      Invoice.findOne.mockResolvedValue(mockInvoice);
+      Service.findOne.mockResolvedValue({ _id: serviceId, isDeleted: false });
+
+      const result = await addInvoiceItem("507f1f77bcf86cd799439011", {
+        type: "SERVICE",
+        data: { service: serviceId, charge: 1500 },
+      });
+
+      expect(mockInvoice.additionalServices.length).toBe(1);
+      expect(mockInvoice.additionalServices[0].service).toBe(serviceId);
+      expect(mockInvoice.additionalServices[0].charge).toBe(1500);
+      expect(mockSave).toHaveBeenCalled();
+      expect(result).toContain("updated successfully");
+    });
+
+    it("should update the charge of an existing additional service item", async () => {
+      const { validatedAddInvoiceItem } = require("../../validation/invoice.validation");
+      const serviceId = "507f1f77bcf86cd799439012";
+      validatedAddInvoiceItem.mockReturnValue({
+        value: {
+          type: "SERVICE",
+          data: {
+            service: serviceId,
+            charge: 2500, // Updated price
+          },
+        },
+        error: null,
+      });
+
+      const mockSave = jest.fn();
+      const mockInvoice = {
+        _id: "507f1f77bcf86cd799439011",
+        invoiceId: "INV-001",
+        isCompleted: false,
+        additionalServices: [
+          {
+            service: serviceId,
+            charge: 1500, // original price
+          },
+        ],
+        save: mockSave,
+      };
+
+      Invoice.findOne.mockResolvedValue(mockInvoice);
+      Service.findOne.mockResolvedValue({ _id: serviceId, isDeleted: false });
+
+      const result = await addInvoiceItem("507f1f77bcf86cd799439011", {
+        type: "SERVICE",
+        data: { service: serviceId, charge: 2500 },
+      });
+
+      expect(mockInvoice.additionalServices.length).toBe(1);
+      expect(mockInvoice.additionalServices[0].charge).toBe(2500);
+      expect(mockSave).toHaveBeenCalled();
+      expect(result).toContain("updated successfully");
     });
   });
 });

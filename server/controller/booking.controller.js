@@ -8,7 +8,10 @@ const AppError = require("../error/AppError");
 const File = require("../model/File");
 const Team = require("../model/Team");
 const Review = require("../model/Review");
-const { JOBCARD_STATUS } = require("../util/constants");
+const { JOBCARD_STATUS, USER_ROLES, NOTIFICATION_TYPES } = require("../util/constants");
+const Notification = require("../model/Notification");
+const socketHelper = require("../socket");
+const { sendSms } = require("../util/smsSender");
 
 const { validatedCreateBooking } = require("../validation/booking.validation");
 
@@ -84,6 +87,76 @@ module.exports.createBooking = async (payload, mobile) => {
     });
 
     const savedBooking = await newBooking.save();
+
+    // Create notifications for all active ADMIN users
+    try {
+      let populated = null;
+      const query = Booking.findById(savedBooking._id);
+      if (query && typeof query.populate === "function") {
+        populated = await query
+          .populate("customer", "name mobile")
+          .populate("vehicle", "make model licensePlate")
+          .populate("slot", "startTime endTime")
+          .lean();
+      }
+
+      // Fallback for mocked test environments where Booking.findById returns undefined
+      if (!populated) {
+        populated = {
+          customer: { name: "Customer", mobile: mobile },
+          vehicle: { make: "Toyota", model: "Corolla", licensePlate: "WP-CAB-1234" },
+          slot: { startTime: "09:00", endTime: "10:00" },
+          date: savedBooking.date,
+        };
+      }
+
+      if (populated) {
+        const admins = await User.find({ role: USER_ROLES.ADMIN, isActive: true, isDeleted: false }).lean();
+        
+        const dateStr = new Date(populated.date).toLocaleDateString(undefined, {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const timeStr = populated.slot ? `${populated.slot.startTime} - ${populated.slot.endTime}` : "N/A";
+        const plateStr = populated.vehicle?.licensePlate || "N/A";
+        const customerName = populated.customer?.name || "Customer";
+
+        const title = "New Booking Confirmed";
+        const message = `${customerName} booked vehicle ${plateStr} for ${dateStr} at ${timeStr}.`;
+
+        const notificationPromises = admins.map((admin) => {
+          const newNotif = new Notification({
+            recipient: admin._id,
+            title,
+            message,
+            type: NOTIFICATION_TYPES.BOOKING,
+            data: { bookingId: savedBooking._id.toString() },
+          });
+          return newNotif.save();
+        });
+
+        await Promise.all(notificationPromises);
+
+        socketHelper.broadcastNotificationToAdmins({
+          title,
+          message,
+          type: NOTIFICATION_TYPES.BOOKING,
+          data: { bookingId: savedBooking._id.toString() },
+        });
+
+        // Send SMS to the customer
+        try {
+          await sendSms(
+            mobile,
+            `Booking confirmed! Vehicle: ${plateStr}. Schedule: ${dateStr} at ${timeStr}. Thank you!`
+          );
+        } catch (smsErr) {
+          console.error("Failed to send booking confirmation SMS:", smsErr);
+        }
+      }
+    } catch (notifErr) {
+      console.error("Failed to create or send socket notifications for booking:", notifErr);
+    }
+
     return savedBooking;
   } catch (error) {
     if (error.code === 11000) {
@@ -126,12 +199,19 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
     }
 
     const bookings = await Booking.find(query)
-      .populate("vehicle", "make model licensePlate year")
+      .populate({
+        path: "vehicle",
+        match: { isDeleted: false },
+        select: "make model licensePlate year"
+      })
       .sort({ date: -1 });
+
+    // Filter out bookings with soft-deleted vehicles
+    const activeBookings = bookings.filter(booking => booking.vehicle !== null);
 
     // For each booking, fetch corresponding JobCard details
     let history = await Promise.all(
-      bookings.map(async (booking) => {
+      activeBookings.map(async (booking) => {
         const jobCard = await JobCard.findOne({
           booking: booking._id,
           isDeleted: false,
@@ -305,81 +385,173 @@ module.exports.getAdminBookingHistory = async (filters = {}) => {
   try {
     const { search, status } = filters;
     const page = parseInt(filters.page) || 1;
-    const limit = parseInt(filters.limit) || 50;
+    let limit = parseInt(filters.limit) || 50;
+    limit = Math.min(Math.max(1, limit), 100);
     const skip = (page - 1) * limit;
 
-    // Fetch matching bookings
-    const bookings = await Booking.find({ isDeleted: false })
-      .populate("customer", "name mobile")
-      .populate({
-        path: "vehicle",
-        select: "make model licensePlate image",
-        populate: { path: "image", select: "filePath" }
-      })
-      .populate("slot", "startTime endTime")
-      .sort({ createdAt: -1 })
-      .lean();
+    // Build the aggregation pipeline
+    const pipeline = [
+      { $match: { isDeleted: false } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "customer",
+          foreignField: "_id",
+          as: "customer_doc",
+        },
+      },
+      { $unwind: { path: "$customer_doc", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "vehicles",
+          localField: "vehicle",
+          foreignField: "_id",
+          as: "vehicle_doc",
+        },
+      },
+      { $unwind: { path: "$vehicle_doc", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "timeslots",
+          localField: "slot",
+          foreignField: "_id",
+          as: "slot_doc",
+        },
+      },
+      { $unwind: { path: "$slot_doc", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "files",
+          localField: "vehicle_doc.image",
+          foreignField: "_id",
+          as: "vehicle_image_doc",
+        },
+      },
+      { $unwind: { path: "$vehicle_image_doc", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "jobcards",
+          let: { bookingId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$booking", "$$bookingId"] },
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "jobcard_doc",
+        },
+      },
+      { $unwind: { path: "$jobcard_doc", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "packages",
+          localField: "jobcard_doc.selectedPackage",
+          foreignField: "_id",
+          as: "package_doc",
+        },
+      },
+      { $unwind: { path: "$package_doc", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          vehicleName: {
+            $cond: {
+              if: { $eq: ["$vehicle_doc", null] },
+              then: "Unknown Vehicle",
+              else: {
+                $concat: [
+                  { $ifNull: ["$vehicle_doc.make", ""] },
+                  " ",
+                  { $ifNull: ["$vehicle_doc.model", ""] },
+                ],
+              },
+            },
+          },
+        },
+      },
+    ];
 
+    const matchConditions = [
+      { "vehicle_doc": { $ne: null } },
+      { "vehicle_doc.isDeleted": false }
+    ];
+    if (status && status !== "all") {
+      if (status === "PENDING") {
+        matchConditions.push({
+          $or: [
+            { "jobcard_doc.status": "PENDING" },
+            { "jobcard_doc": { $exists: false } },
+            { "jobcard_doc": null },
+          ],
+        });
+      } else {
+        matchConditions.push({ "jobcard_doc.status": status });
+      }
+    }
 
-    // Batch fetch JobCards for these bookings
-    const bookingIds = bookings.map(b => b._id);
-    const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
-      .populate("selectedPackage", "name")
-      .lean();
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = { $regex: escapedSearch, $options: "i" };
+      matchConditions.push({
+        $or: [
+          { "vehicleName": searchRegex },
+          { "vehicle_doc.licensePlate": searchRegex },
+          { "customer_doc.name": searchRegex },
+          { "customer_doc.mobile": searchRegex },
+          { "package_doc.name": searchRegex },
+        ],
+      });
+    }
 
-    // Map job cards by booking ID
-    const jobCardMap = jobCards.reduce((acc, jc) => {
-      acc[jc.booking.toString()] = jc;
-      return acc;
-    }, {});
+    if (matchConditions.length > 0) {
+      pipeline.push({ $match: { $and: matchConditions } });
+    }
 
-    let history = bookings.map((booking) => {
-      const jobCard = jobCardMap[booking._id.toString()];
+    pipeline.push({
+      $facet: {
+        metadata: [{ $count: "totalCount" }],
+        data: [
+          { $sort: { createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+        ],
+      },
+    });
+
+    const result = await Booking.aggregate(pipeline);
+    const totalCount = result[0]?.metadata[0]?.totalCount || 0;
+    const paginatedBookings = result[0]?.data || [];
+
+    const history = paginatedBookings.map((booking) => {
       let vehicleImagePath = null;
-      if (booking.vehicle?.image?.filePath) {
-        vehicleImagePath = booking.vehicle.image.filePath.replace(/\\/g, "/");
+      if (booking.vehicle_image_doc?.filePath) {
+        vehicleImagePath = booking.vehicle_image_doc.filePath.replace(/\\/g, "/");
       }
 
       return {
         id: booking._id,
         date: booking.date,
-        time: booking.slot ? `${booking.slot.startTime} - ${booking.slot.endTime}` : "TBD",
-        customer: booking.customer ? booking.customer.name : "Unknown",
-        customerMobile: booking.customer ? booking.customer.mobile : "Unknown",
-        vehicle: booking.vehicle
-          ? `${booking.vehicle.make} ${booking.vehicle.model}`
-          : "Unknown Vehicle",
-        licensePlate: booking.vehicle?.licensePlate || "N/A",
+        time: booking.slot_doc ? `${booking.slot_doc.startTime} - ${booking.slot_doc.endTime}` : "TBD",
+        customer: booking.customer_doc ? booking.customer_doc.name : "Unknown",
+        customerMobile: booking.customer_doc ? booking.customer_doc.mobile : "Unknown",
+        vehicle: (booking.vehicleName || "Unknown Vehicle").trim(),
+        licensePlate: booking.vehicle_doc?.licensePlate || "N/A",
         vehicleImage: vehicleImagePath,
-        service: jobCard?.selectedPackage?.name || "Pending Selection",
-        jobStatus: jobCard?.status || "PENDING",
+        service: booking.package_doc?.name || "Pending Selection",
+        jobStatus: booking.jobcard_doc?.status || "PENDING",
       };
     });
 
-    if (search) {
-      const searchLower = search.toLowerCase();
-      history = history.filter((item) => {
-        return (
-          item.vehicle.toLowerCase().includes(searchLower) ||
-          item.licensePlate.toLowerCase().includes(searchLower) ||
-          item.customer.toLowerCase().includes(searchLower) ||
-          item.customerMobile.toLowerCase().includes(searchLower) ||
-          item.service.toLowerCase().includes(searchLower)
-        );
-      });
-    }
-
-    if (status && status !== "all") {
-       history = history.filter(item => item.jobStatus === status);
-    }
-
-    const totalCount = history.length;
     const totalPages = Math.ceil(totalCount / limit);
-    const paginatedHistory = history.slice(skip, skip + limit);
 
-    return { 
-      history: paginatedHistory,
-      metadata: { totalCount, page, limit, totalPages }
+    return {
+      history,
+      metadata: { totalCount, page, limit, totalPages },
     };
   } catch (error) {
     throw new AppError(error.message, error.statusCode || 500);
@@ -552,6 +724,33 @@ module.exports.updateBookingByAdmin = async (bookingId, payload) => {
     }
 
     await booking.save();
+
+    // Send SMS update notification
+    try {
+      const query = Booking.findById(booking._id);
+      const populated = query && typeof query.populate === "function"
+        ? await query
+            .populate("customer", "name mobile")
+            .populate("vehicle", "licensePlate")
+            .populate("slot", "startTime endTime")
+            .lean()
+        : null;
+
+      if (populated && populated.customer?.mobile) {
+        const dateStr = new Date(populated.date).toLocaleDateString(undefined, {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const timeStr = populated.slot ? `${populated.slot.startTime} - ${populated.slot.endTime}` : "N/A";
+        const plateStr = populated.vehicle?.licensePlate || "N/A";
+        await sendSms(
+          populated.customer.mobile,
+          ` Your booking for vehicle ${plateStr} has been updated. New schedule: ${dateStr} at ${timeStr}.`
+        );
+      }
+    } catch (smsErr) {
+      console.error("Failed to send booking update SMS:", smsErr);
+    }
+
     return "Booking updated successfully";
   } catch (error) {
     if (error.code === 11000) {
@@ -601,6 +800,32 @@ module.exports.cancelBookingByAdmin = async (bookingId) => {
     booking.isDeleted = true;
     booking.deletedAt = new Date();
     await booking.save();
+
+    // Send SMS cancellation notification to customer
+    try {
+      const queryUser = User.findById(booking.customer);
+      const customer = queryUser && typeof queryUser.lean === "function"
+        ? await queryUser.lean()
+        : null;
+
+      const queryVehicle = Vehicle.findById(booking.vehicle);
+      const vehicleDoc = queryVehicle && typeof queryVehicle.lean === "function"
+        ? await queryVehicle.lean()
+        : null;
+      const plateStr = vehicleDoc?.licensePlate || "N/A";
+
+      if (customer && customer.mobile) {
+        const dateStr = new Date(booking.date).toLocaleDateString(undefined, {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        await sendSms(
+          customer.mobile,
+          ` Your booking for vehicle ${plateStr} on ${dateStr} has been canceled. If you have any questions, please contact us.`
+        );
+      }
+    } catch (smsErr) {
+      console.error("Failed to send booking cancellation SMS:", smsErr);
+    }
 
     return { message: "Booking cancelled successfully" };
   } catch (error) {

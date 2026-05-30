@@ -31,6 +31,8 @@ const purchaseOrderRouter = require("./routes/purchaseOrder.route");
 const inventoryAnalysisRouter = require("./routes/inventoryAnalysis.route");
 const inventoryLogsRouter = require("./routes/inventoryLogs.route");
 const galleryRouter = require("./routes/gallery.route");
+const smsNotificationRouter = require("./routes/smsNotification.route");
+const notificationRouter = require("./routes/notification.route");
 
 const app = express();
 connectDB();
@@ -82,7 +84,8 @@ app.use("/api/v1/invoice", invoiceRouter);
 app.use("/api/v1/inventory-analysis", inventoryAnalysisRouter);
 app.use("/api/v1/inventory-logs", inventoryLogsRouter);
 app.use("/api/v1/gallery", galleryRouter);
-
+app.use("/api/v1/sms", smsNotificationRouter);
+app.use("/api/v1/notifications", notificationRouter);
 // DEFAULT ROUTE
 app.use((req, res, next) => {
   next(

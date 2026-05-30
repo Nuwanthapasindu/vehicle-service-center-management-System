@@ -6,3 +6,6 @@ Dockerfile
 .gitignore
 README.md
 .env.copy
+.env
+.env.*
+tests

@@ -186,7 +186,7 @@ const Dashboard = () => {
                                 </div>
                                 <div className="booking-info-item">
                                     <i className="fa-solid fa-location-dot"></i>
-                                    <span>Main Facility</span>
+                                    <span>108 Old Kottawa Rd, Nugegoda</span>
                                 </div>
                             </div>
                             <div className="card-footer">
