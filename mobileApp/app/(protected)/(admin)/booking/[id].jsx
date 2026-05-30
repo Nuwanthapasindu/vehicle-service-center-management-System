@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, Dimensions, ActivityIndicator, Modal, FlatList, Linking
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+  ActivityIndicator,
+  Modal,
+  FlatList,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -48,7 +57,12 @@ export default function BookingDetails() {
     },
     validationSchema: createJobCardSchema,
     onSubmit: async (values) => {
-      if (!data?.customer?._id) return Toast.show({ type: "error", text1: "Error", text2: "Customer data not loaded" });
+      if (!data?.customer?._id)
+        return Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Customer data not loaded",
+        });
 
       try {
         setLoading(true);
@@ -65,7 +79,8 @@ export default function BookingDetails() {
           const jobResponse = await jobCardService.createJobCard(jobPayload);
           newJobId = jobResponse.data?.payload?.data?._id;
 
-          if (!newJobId) throw new Error("Failed to extract Job Card ID from server");
+          if (!newJobId)
+            throw new Error("Failed to extract Job Card ID from server");
 
           // 2. Assign Team
           if (values.assignedTeam) {
@@ -87,7 +102,8 @@ export default function BookingDetails() {
             },
           },
         };
-        const invoiceResponse = await invoiceService.createInvoice(invoicePayload);
+        const invoiceResponse =
+          await invoiceService.createInvoice(invoicePayload);
 
         Toast.show({
           type: "success",
@@ -97,19 +113,21 @@ export default function BookingDetails() {
 
         setIsGenerated(true);
         fetchData();
-
       } catch (err) {
         Toast.show({
           type: "error",
           text1: "Pipeline Error",
-          text2: err.response?.data?.payload?.message || err.response?.data?.message || err.message || "Operation failed",
+          text2:
+            err.response?.data?.payload?.message ||
+            err.response?.data?.message ||
+            err.message ||
+            "Operation failed",
         });
       } finally {
         setLoading(false);
       }
     },
   });
-
 
   useEffect(() => {
     fetchData();
@@ -128,14 +146,15 @@ export default function BookingDetails() {
       // Fetch Booking Details and Packages in parallel to reconcile them
       const [bookingResponse, allPackagesData] = await Promise.all([
         bookingService.getBookingDetailsAdmin(id),
-        packageService.fetchPackages()
+        packageService.fetchPackagesAdmin({ all: true }),
       ]);
       const details = bookingResponse.data?.payload?.data;
-      const allPackages = allPackagesData || [];
+      const allPackages = allPackagesData.data?.payload?.packages || [];
       setData(details);
       setPackages(allPackages);
 
-      if (details.assignedTeam) formik.setFieldValue("assignedTeam", details.assignedTeam);
+      if (details.assignedTeam)
+        formik.setFieldValue("assignedTeam", details.assignedTeam);
 
       // Hydrate selections using the full packages list to ensure pricingTiers are available
       if (details.service && details.service.package) {
@@ -143,39 +162,62 @@ export default function BookingDetails() {
 
         if (details.service.jobCardId) {
           try {
-            const invoiceRes = await invoiceService.fetchInvoiceByJobCard(details.service.jobCardId);
-            setInvoiceDetails(invoiceRes.data?.payload?.data || invoiceRes.data?.data);
+            const invoiceRes = await invoiceService.fetchInvoiceByJobCard(
+              details.service.jobCardId,
+            );
+            setInvoiceDetails(
+              invoiceRes.data?.payload?.data || invoiceRes.data?.data,
+            );
           } catch (e) {
             setInvoiceDetails(null);
           }
         }
 
-        if (details.service.milageCount !== undefined && details.service.milageCount !== null) {
-          formik.setFieldValue("milageCount", String(details.service.milageCount));
+        if (
+          details.service.milageCount !== undefined &&
+          details.service.milageCount !== null
+        ) {
+          formik.setFieldValue(
+            "milageCount",
+            String(details.service.milageCount),
+          );
         }
 
-        const fullPkg = allPackages.find(p => p.name === details.service.package);
+        const fullPkg = allPackages.find(
+          (p) => p.name === details.service.package,
+        );
         if (fullPkg) {
           formik.setFieldValue("selectedPackage", fullPkg._id);
           if (details.service.pricingTier) {
-            const fullTier = fullPkg.pricingTiers?.find(t => t.name === details.service.pricingTier);
+            const fullTier = fullPkg.pricingTiers?.find(
+              (t) => t.name === details.service.pricingTier,
+            );
             if (fullTier) {
               formik.setFieldValue("selectedTier", fullTier);
             }
           }
         } else {
           // Fallback if full package info is not found (Needs ID string)
-          const fallbackPkg = allPackages.find(p => p.name === details.service.package);
-          if (fallbackPkg) formik.setFieldValue("selectedPackage", String(fallbackPkg._id || fallbackPkg.id));
+          const fallbackPkg = allPackages.find(
+            (p) => p.name === details.service.package,
+          );
+          if (fallbackPkg)
+            formik.setFieldValue(
+              "selectedPackage",
+              String(fallbackPkg._id || fallbackPkg.id),
+            );
         }
-        setStatusZone(details.service.statusZone || enums.JOBCARD_STATUS.PENDING);
+        setStatusZone(
+          details.service.statusZone || enums.JOBCARD_STATUS.PENDING,
+        );
       }
-
     } catch (error) {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: error.response?.data?.payload?.message || "Failed to fetch booking details",
+        text2:
+          error.response?.data?.payload?.message ||
+          "Failed to fetch booking details",
       });
       router.push("/(protected)/(admin)/booking");
     } finally {
@@ -183,11 +225,14 @@ export default function BookingDetails() {
     }
   };
 
-
-
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color={colors.PRIMARY} />
       </View>
     );
@@ -195,21 +240,41 @@ export default function BookingDetails() {
 
   if (!data) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ fontSize: 16, color: colors.SECONDARY }}>Booking not found.</Text>
-        <TouchableOpacity onPress={() => router.push("/(protected)/(admin)/booking")} style={{ marginTop: 20 }}>
-          <Text style={{ color: colors.PRIMARY, fontWeight: 'bold' }}>Go Back</Text>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <Text style={{ fontSize: 16, color: colors.SECONDARY }}>
+          Booking not found.
+        </Text>
+        <TouchableOpacity
+          onPress={() => router.push("/(protected)/(admin)/booking")}
+          style={{ marginTop: 20 }}
+        >
+          <Text style={{ color: colors.PRIMARY, fontWeight: "bold" }}>
+            Go Back
+          </Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  const imagePath = typeof data.vehicle.image === 'object' ? data.vehicle.image?.filePath : data.vehicle.image;
-  const imgSource = imagePath ? { uri: getImageFullUrl(imagePath) } : FALLBACK_IMG;
+  const imagePath =
+    typeof data.vehicle.image === "object"
+      ? data.vehicle.image?.filePath
+      : data.vehicle.image;
+  const imgSource = imagePath
+    ? { uri: getImageFullUrl(imagePath) }
+    : FALLBACK_IMG;
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Schedule Info */}
         <View style={styles.section}>
           <Text style={styles.subtext}>SCHEDULED FOR</Text>
@@ -218,9 +283,31 @@ export default function BookingDetails() {
             <Ionicons name="time-outline" size={16} color={colors.SECONDARY} />
             <Text style={styles.timeText}>{data.time || "Unknown"}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusZone === enums.JOBCARD_STATUS.PENDING ? "#FEF3C7" : "#E0F2FE" }]}>
-            <View style={[styles.dot, { backgroundColor: getStatusColor(statusZone) }]} />
-            <Text style={[styles.statusBadgeText, { color: getStatusColor(statusZone) }]}>{statusZone}</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor:
+                  statusZone === enums.JOBCARD_STATUS.PENDING
+                    ? "#FEF3C7"
+                    : "#E0F2FE",
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.dot,
+                { backgroundColor: getStatusColor(statusZone) },
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusBadgeText,
+                { color: getStatusColor(statusZone) },
+              ]}
+            >
+              {statusZone}
+            </Text>
           </View>
         </View>
 
@@ -228,21 +315,32 @@ export default function BookingDetails() {
         <View style={styles.card}>
           <View style={styles.customerRow}>
             <View>
-              <Text style={styles.customerName}>{data.customer.name || "Unknown Customer"}</Text>
+              <Text style={styles.customerName}>
+                {data.customer.name || "Unknown Customer"}
+              </Text>
               <View style={styles.vehicleInfoRow}>
-                <Ionicons name="car-outline" size={14} color={colors.SECONDARY} />
+                <Ionicons
+                  name="car-outline"
+                  size={14}
+                  color={colors.SECONDARY}
+                />
                 <Text style={styles.vehicleInfoText}>
-                  {data.vehicle.name || "Unknown Vehicle"} • {data.vehicle.plate || "Unknown"}
+                  {data.vehicle.name || "Unknown Vehicle"} •{" "}
+                  {data.vehicle.plate || "Unknown"}
                 </Text>
               </View>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.callButton}
               onPress={() => {
                 if (data?.customer?.phone) {
                   Linking.openURL(`tel:${data.customer.phone}`);
                 } else {
-                  Toast.show({ type: "error", text1: "No Number", text2: "Customer mobile number not found" });
+                  Toast.show({
+                    type: "error",
+                    text1: "No Number",
+                    text2: "Customer mobile number not found",
+                  });
                 }
               }}
             >
@@ -268,7 +366,13 @@ export default function BookingDetails() {
             label="Vehicle Milage (km)"
             placeholder="e.g. 45000"
             keyboardType="numeric"
-            icon={<Ionicons name="speedometer-outline" size={18} color={colors.SECONDARY} />}
+            icon={
+              <Ionicons
+                name="speedometer-outline"
+                size={18}
+                color={colors.SECONDARY}
+              />
+            }
             value={String(formik.values.milageCount)}
             onChangeText={formik.handleChange("milageCount")}
             onBlur={formik.handleBlur("milageCount")}
@@ -279,13 +383,19 @@ export default function BookingDetails() {
 
           <Text style={styles.label}>Assign Package</Text>
           <DropdownInput
-            value={packages.find(p => String(p._id || p.id) === String(formik.values.selectedPackage))?.name || null}
-            options={packages.map(p => p.name)}
+            value={
+              packages.find(
+                (p) =>
+                  String(p._id || p.id) ===
+                  String(formik.values.selectedPackage),
+              )?.name || null
+            }
+            options={packages.map((p) => p.name)}
             placeholder="Pending Selection"
             modalTitle="Assign Package"
             disabled={isGenerated}
             onSelect={(name) => {
-              const pkg = packages.find(p => p.name === name);
+              const pkg = packages.find((p) => p.name === name);
               if (pkg) {
                 formik.setFieldValue("selectedPackage", String(pkg._id));
                 formik.setFieldTouched("selectedPackage", true, false);
@@ -294,29 +404,65 @@ export default function BookingDetails() {
             }}
           />
           {formik.touched.selectedPackage && formik.errors.selectedPackage && (
-            <Text style={{ color: colors.DANGER_COLOR, fontSize: 12, marginTop: -4 }}>{formik.errors.selectedPackage}</Text>
+            <Text
+              style={{
+                color: colors.DANGER_COLOR,
+                fontSize: 12,
+                marginTop: -4,
+              }}
+            >
+              {formik.errors.selectedPackage}
+            </Text>
           )}
 
           <Text style={styles.label}>Select Pricing tier</Text>
           <DropdownInput
-            value={formik.values.selectedTier ? (formik.values.selectedTier.price !== undefined ? `${formik.values.selectedTier.name} - LKR ${formik.values.selectedTier.price}` : formik.values.selectedTier.name) : null}
-            options={packages.find(p => String(p._id || p.id) === String(formik.values.selectedPackage))?.pricingTiers?.map(t => `${t.name} - LKR ${t.price}`) || []}
+            value={
+              formik.values.selectedTier
+                ? formik.values.selectedTier.price !== undefined
+                  ? `${formik.values.selectedTier.name} - LKR ${formik.values.selectedTier.price}`
+                  : formik.values.selectedTier.name
+                : null
+            }
+            options={
+              packages
+                .find(
+                  (p) =>
+                    String(p._id || p.id) ===
+                    String(formik.values.selectedPackage),
+                )
+                ?.pricingTiers?.map((t) => `${t.name} - LKR ${t.price}`) || []
+            }
             placeholder="Pending Selection"
             modalTitle="Select Pricing tier"
             disabled={isGenerated}
             onSelect={(str) => {
-              const selPkg = packages.find(p => String(p._id || p.id) === String(formik.values.selectedPackage));
+              const selPkg = packages.find(
+                (p) =>
+                  String(p._id || p.id) ===
+                  String(formik.values.selectedPackage),
+              );
               if (selPkg && selPkg.pricingTiers) {
-                const tr = selPkg.pricingTiers.find(t => `${t.name} - LKR ${t.price}` === str);
+                const tr = selPkg.pricingTiers.find(
+                  (t) => `${t.name} - LKR ${t.price}` === str,
+                );
                 if (tr) {
-                   formik.setFieldValue("selectedTier", tr);
-                   formik.setFieldTouched("selectedTier", true, false);
+                  formik.setFieldValue("selectedTier", tr);
+                  formik.setFieldTouched("selectedTier", true, false);
                 }
               }
             }}
           />
           {formik.touched.selectedTier && formik.errors.selectedTier && (
-            <Text style={{ color: colors.DANGER_COLOR, fontSize: 12, marginTop: -4 }}>{formik.errors.selectedTier}</Text>
+            <Text
+              style={{
+                color: colors.DANGER_COLOR,
+                fontSize: 12,
+                marginTop: -4,
+              }}
+            >
+              {formik.errors.selectedTier}
+            </Text>
           )}
         </View>
 
@@ -325,9 +471,18 @@ export default function BookingDetails() {
           <Ionicons name="people-outline" size={16} color={colors.SECONDARY} />
           <Text style={styles.sectionHeaderText}>TEAM ASSIGNMENT</Text>
         </View>
-        
+
         {formik.touched.assignedTeam && formik.errors.assignedTeam && (
-          <Text style={{ color: colors.DANGER_COLOR, fontSize: 13, alignSelf: 'center', marginBottom: 10 }}>{formik.errors.assignedTeam}</Text>
+          <Text
+            style={{
+              color: colors.DANGER_COLOR,
+              fontSize: 13,
+              alignSelf: "center",
+              marginBottom: 10,
+            }}
+          >
+            {formik.errors.assignedTeam}
+          </Text>
         )}
 
         <View style={styles.teamList}>
@@ -342,13 +497,20 @@ export default function BookingDetails() {
                 <View style={styles.teamInfo}>
                   <View style={styles.teamAvatar}>
                     <Text style={styles.teamAvatarText}>
-                      {team.name.split(" ").map(w => w.charAt(0)).join("").substring(0, 2).toUpperCase()}
+                      {team.name
+                        .split(" ")
+                        .map((w) => w.charAt(0))
+                        .join("")
+                        .substring(0, 2)
+                        .toUpperCase()}
                     </Text>
                   </View>
                   <View>
                     <Text style={styles.teamName}>{team.name}</Text>
                     <View style={styles.teamStatusRow}>
-                      <View style={[styles.dot, { backgroundColor: teamColor }]} />
+                      <View
+                        style={[styles.dot, { backgroundColor: teamColor }]}
+                      />
                       <Text style={styles.teamStatusText}>{teamStatus}</Text>
                     </View>
                   </View>
@@ -359,16 +521,22 @@ export default function BookingDetails() {
                     styles.assignButton,
                     isAssigned && styles.assignedButton,
                     isBusy && styles.disabledButton,
-                    isGenerated && styles.disabledButton
+                    isGenerated && styles.disabledButton,
                   ]}
                   disabled={isBusy || isGenerated}
-                  onPress={() => isAssigned ? formik.setFieldValue("assignedTeam", null) : formik.setFieldValue("assignedTeam", team.id)}
+                  onPress={() =>
+                    isAssigned
+                      ? formik.setFieldValue("assignedTeam", null)
+                      : formik.setFieldValue("assignedTeam", team.id)
+                  }
                 >
-                  <Text style={[
-                    styles.assignButtonText,
-                    isBusy && styles.disabledButtonText,
-                    isAssigned && styles.assignedButtonText
-                  ]}>
+                  <Text
+                    style={[
+                      styles.assignButtonText,
+                      isBusy && styles.disabledButtonText,
+                      isAssigned && styles.assignedButtonText,
+                    ]}
+                  >
                     {isAssigned ? "Assigned" : "Assign"}
                   </Text>
                 </TouchableOpacity>
@@ -381,47 +549,117 @@ export default function BookingDetails() {
         {isGenerated && invoiceDetails && (
           <View style={[styles.sectionHeaderRow, { marginTop: 24 }]}>
             <Ionicons name="receipt" size={16} color={colors.PRIMARY} />
-            <Text style={styles.sectionHeaderText}>GENERATED INVOICE RECORD</Text>
-          </View>
-        )}
-        
-        {isGenerated && invoiceDetails && (
-          <View style={[styles.card, { borderColor: colors.PRIMARY_LIGHT, borderWidth: 1 }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-               <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>Invoice ID</Text>
-               <Text style={{ fontFamily: "Outfit-Regular", color: colors.SECONDARY }}>{invoiceDetails.invoiceId || invoiceDetails._id}</Text>
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-               <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>Package Price</Text>
-               <Text style={{ fontFamily: "Outfit-Regular", color: colors.SECONDARY }}>LKR {invoiceDetails.selectedPackage?.selectedPackageTier?.price || "0"}</Text>
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-               <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>Job Status</Text>
-               <Text style={{ fontFamily: "Outfit-Bold", color: invoiceDetails.isCompleted ? "#10B981" : "#F59E0B" }}>
-                 {invoiceDetails.isCompleted ? "COMPLETED" : "IN PROGRESS"}
-               </Text>
-            </View>
+            <Text style={styles.sectionHeaderText}>
+              GENERATED INVOICE RECORD
+            </Text>
           </View>
         )}
 
+        {isGenerated && invoiceDetails && (
+          <View
+            style={[
+              styles.card,
+              { borderColor: colors.PRIMARY_LIGHT, borderWidth: 1 },
+            ]}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 10,
+              }}
+            >
+              <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>
+                Invoice ID
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Outfit-Regular",
+                  color: colors.SECONDARY,
+                }}
+              >
+                {invoiceDetails.invoiceId || invoiceDetails._id}
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 10,
+              }}
+            >
+              <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>
+                Package Price
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Outfit-Regular",
+                  color: colors.SECONDARY,
+                }}
+              >
+                LKR{" "}
+                {invoiceDetails.selectedPackage?.selectedPackageTier?.price ||
+                  "0"}
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 10,
+              }}
+            >
+              <Text style={{ fontFamily: "Outfit-Bold", color: colors.DARK }}>
+                Job Status
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Outfit-Bold",
+                  color: invoiceDetails.isCompleted ? "#10B981" : "#F59E0B",
+                }}
+              >
+                {invoiceDetails.isCompleted ? "COMPLETED" : "IN PROGRESS"}
+              </Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Footer Actions */}
       <View style={styles.footer}>
         {!invoiceDetails && statusZone !== enums.JOBCARD_STATUS.FINISH && (
-          <TouchableOpacity style={styles.saveButton} onPress={formik.handleSubmit}>
-            <Text style={styles.saveButtonText}>{isGenerated ? "GENERATE INVOICE" : "SAVE & GENERATE"}</Text>
-            <Ionicons name="checkmark-circle-outline" size={20} color={colors.DARK} style={{ marginLeft: 6 }} />
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={formik.handleSubmit}
+          >
+            <Text style={styles.saveButtonText}>
+              {isGenerated ? "GENERATE INVOICE" : "SAVE & GENERATE"}
+            </Text>
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={20}
+              color={colors.DARK}
+              style={{ marginLeft: 6 }}
+            />
           </TouchableOpacity>
         )}
         {invoiceDetails && (
-          <TouchableOpacity style={styles.invoiceButton} onPress={() => router.push(`/(protected)/(admin)/invoice/${invoiceDetails._id}`)}>
-            <Ionicons name="receipt-outline" size={20} color="#FFF" style={{ marginRight: 6 }} />
+          <TouchableOpacity
+            style={styles.invoiceButton}
+            onPress={() =>
+              router.push(`/(protected)/(admin)/invoice/${invoiceDetails._id}`)
+            }
+          >
+            <Ionicons
+              name="receipt-outline"
+              size={20}
+              color="#FFF"
+              style={{ marginRight: 6 }}
+            />
             <Text style={styles.invoiceButtonText}>View / Manage Invoice</Text>
           </TouchableOpacity>
         )}
       </View>
-
     </View>
   );
 }
@@ -528,7 +766,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 160,
     borderRadius: 12,
-    backgroundColor: colors.BORDER_COLOR // added background color so it doesn't look completely invisible while loading
+    backgroundColor: colors.BORDER_COLOR, // added background color so it doesn't look completely invisible while loading
   },
   sectionHeaderRow: {
     flexDirection: "row",
@@ -674,7 +912,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   modalContainer: {
     backgroundColor: colors.BACKGROUND_COLOR,
@@ -693,7 +931,7 @@ const styles = StyleSheet.create({
     height: 5,
     backgroundColor: colors.BORDER_COLOR,
     borderRadius: 3,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 12,
     marginBottom: 8,
   },
@@ -706,6 +944,6 @@ const styles = StyleSheet.create({
   dropdownOptionText: {
     fontSize: 16,
     color: colors.DARK,
-    fontWeight: '600'
-  }
+    fontWeight: "600",
+  },
 });

@@ -80,9 +80,33 @@ module.exports.getPackages = async (queryPayload) => {
       sortBy = "createdAt",
       sortOrder = "desc",
       isPublished,
+      all = false,
+
     } = queryPayload;
 
     const query = { isDeleted: false };
+
+    if (all) {
+      const packages = await Package.find(query)
+        .sort({createdAt: -1})
+        .select("-isDeleted -deletedAt")
+        .populate([
+          {
+            path: "servicesIncluded",
+            select: ["name", "description"],
+          },
+          {
+            path: "image",
+            select: ["filePath", "fileType"],
+          },
+        ]);
+
+      const total = await Package.countDocuments(query);
+
+      return {
+        packages,
+      };
+    }
 
     if (isPublished !== undefined) {
       query.isPublished = isPublished;

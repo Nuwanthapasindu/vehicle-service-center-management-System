@@ -224,6 +224,9 @@ const queryPackageValidationSchema = joi
     isPublished: joi.boolean().optional().messages({
       "boolean.base": "isPublished must be a boolean value",
     }),
+    all: joi.boolean().optional().default(false).messages({
+      "boolean.base": "All must be a boolean value",
+    })
   })
   .custom((value, helpers) => {
     // Validate that minPrice is not greater than maxPrice overall
