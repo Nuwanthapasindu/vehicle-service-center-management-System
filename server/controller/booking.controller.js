@@ -199,12 +199,19 @@ module.exports.getBookingHistory = async (mobile, filters = {}) => {
     }
 
     const bookings = await Booking.find(query)
-      .populate("vehicle", "make model licensePlate year")
+      .populate({
+        path: "vehicle",
+        match: { isDeleted: false },
+        select: "make model licensePlate year"
+      })
       .sort({ date: -1 });
+
+    // Filter out bookings with soft-deleted vehicles
+    const activeBookings = bookings.filter(booking => booking.vehicle !== null);
 
     // For each booking, fetch corresponding JobCard details
     let history = await Promise.all(
-      bookings.map(async (booking) => {
+      activeBookings.map(async (booking) => {
         const jobCard = await JobCard.findOne({
           booking: booking._id,
           isDeleted: false,
@@ -469,7 +476,10 @@ module.exports.getAdminBookingHistory = async (filters = {}) => {
       },
     ];
 
-    const matchConditions = [];
+    const matchConditions = [
+      { "vehicle_doc": { $ne: null } },
+      { "vehicle_doc.isDeleted": false }
+    ];
     if (status && status !== "all") {
       if (status === "PENDING") {
         matchConditions.push({
