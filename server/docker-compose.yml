@@ -19,6 +19,10 @@ services:
       - "4000:4000"
     env_file:
       - .env
+    environment:
+      - RUN_SEED=true
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-password123}
     restart: always
     networks:
       - app_network

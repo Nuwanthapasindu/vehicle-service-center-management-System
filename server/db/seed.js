@@ -17,16 +17,26 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_DB_URL);
     console.log("MongoDB connected");
   } catch (err) {
-    console.log(err);
-    process.exit(1);
+    console.error("MongoDB connection error:", err);
+    throw err;
   }
 };
 
 const seedAdminUser = async () => {
   try {
+    const adminUsername = process.env.ADMIN_USERNAME || "admin";
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      throw new Error("ADMIN_PASSWORD environment variable is required for seeding the admin user.");
+    }
+
     // Check if admin auth already exists
-    const existingAdminAuth = await Auth.findOne({ userName: "admin" });
-    if (existingAdminAuth) return;
+    const existingAdminAuth = await Auth.findOne({ userName: adminUsername });
+    if (existingAdminAuth) {
+      console.log(`Admin user '${adminUsername}' already exists. Skipping seeding.`);
+      return;
+    }
 
     // 1. Create User
     const adminUser = new User({
@@ -41,11 +51,11 @@ const seedAdminUser = async () => {
 
     // 2. Create Auth
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash("password123", salt);
+    const hashedPassword = await bcrypt.hash(adminPassword, salt);
 
     const adminAuth = new Auth({
       user: savedUser._id,
-      userName: "admin",
+      userName: adminUsername,
       password: hashedPassword,
     });
     await adminAuth.save();
@@ -63,6 +73,7 @@ const seedAdminUser = async () => {
     console.log("Admin user created successfully");
   } catch (error) {
     console.error("Error seeding admin user:", error);
+    throw error;
   }
 };
 
@@ -81,19 +92,22 @@ const seedTimeslots = async () => {
     console.log("Timeslots seeded successfully");
   } catch (error) {
     console.error("Error seeding timeslots:", error);
+    throw error;
   }
 };
 
 async function main() {
+  let hasError = false;
   try {
     await connectDB();
     await seedAdminUser();
     await seedTimeslots();
   } catch (error) {
     console.error("Error during seeding:", error);
+    hasError = true;
   } finally {
     await mongoose.connection.close();
-    process.exit(0);
+    process.exit(hasError ? 1 : 0);
   }
 }
 

@@ -66,7 +66,7 @@ module.exports.createPackage = async (payload) => {
  * @returns {Promise<Object>} - Paginated packages
  */
 module.exports.getPackages = async (queryPayload) => {
-  const { error } = validatedQueryPackages(queryPayload);
+  const { value, error } = validatedQueryPackages(queryPayload);
   if (error) throw new AppError(error.details[0].message, 400);
 
   try {
@@ -75,20 +75,19 @@ module.exports.getPackages = async (queryPayload) => {
       model,
       minPrice,
       maxPrice,
-      page = 1,
-      limit = 10,
-      sortBy = "createdAt",
-      sortOrder = "desc",
+      page,
+      limit,
+      sortBy,
+      sortOrder,
       isPublished,
-      all = false,
-
-    } = queryPayload;
+      all,
+    } = value;
 
     const query = { isDeleted: false };
 
     if (all) {
       const packages = await Package.find(query)
-        .sort({createdAt: -1})
+        .sort({ createdAt: -1 })
         .select("-isDeleted -deletedAt")
         .populate([
           {
@@ -101,10 +100,11 @@ module.exports.getPackages = async (queryPayload) => {
           },
         ]);
 
-      const total = await Package.countDocuments(query);
-
       return {
         packages,
+        total: packages.length,
+        page: 1,
+        pages: 1,
       };
     }
 

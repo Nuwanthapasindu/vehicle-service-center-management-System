@@ -81,7 +81,9 @@ This project consists of a comprehensive backend API, a modern web dashboard for
    ```bash
    cd server
    npm install
-   # Create a .env file with JWT_SECRET, MONGO_URI, and PORT
+   # Create a .env file (see .env.copy for a template)
+   # Required: MONGO_DB_URL, JWT_SECRET, REFRESH_TOKEN_SECRET
+   # Seeding Config (Optional): RUN_SEED=true, ADMIN_USERNAME=admin, ADMIN_PASSWORD=yoursecurepassword
    npm run dev
    ```
 
