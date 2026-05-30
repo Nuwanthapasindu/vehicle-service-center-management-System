@@ -20,15 +20,15 @@ function Header() {
 
                 <nav className={`header-nav ${isMobileMenuOpen ? 'active' : ''}`}>
                     <Link to="/" className="nav-link">Home</Link>
-                    <Link to="/about" className="nav-link">About us</Link>
-                    <Link to="/contact" className="nav-link">Contact us</Link>
-                    <Link to="/reviews" className="nav-link">Reviews</Link>
                     <Link to="/gallery" className="nav-link">Gallery</Link>
+                    <Link to="/reviews" className="nav-link">Reviews</Link>
+                    <Link to="/about" className="nav-link">About Us</Link>
+                    <Link to="/contact" className="nav-link">Contact Us</Link>
                 </nav>
 
                 <div className="header-actions">
                     <Link to="/login" className="login-btn">Log In</Link>
-                    <button className="book-btn">BOOK A SLOT</button>
+                    <Link to="/customer/service-booking" className="book-btn" style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>BOOK A SLOT</Link>
 
                     <button
                         className="mobile-toggle"

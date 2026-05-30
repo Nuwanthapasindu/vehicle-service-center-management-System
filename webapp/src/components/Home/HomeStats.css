@@ -1,8 +1,6 @@
-.home-stats {
+.home-stats-ribbon {
     background-color: #FFFFFF;
-    padding: 3rem 2rem;
-    display: flex;
-    justify-content: center;
+    padding: 2rem 0;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
     position: relative;
     z-index: 20;
@@ -12,69 +10,110 @@
     margin-left: auto;
     margin-right: auto;
     border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #E2E8F0;
 }
 
-.stats-inner {
+.ribbon-title {
+    margin-bottom: 1.25rem;
+}
+
+.ribbon-title span {
+    font-size: 0.75rem;
+    font-weight: 850;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.slider {
     width: 100%;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
-}
-
-.stat-card {
+    overflow: hidden;
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding: 1rem;
-    border-right: 1px solid #F1F5F9;
 }
 
-.stat-card:last-child {
-    border-right: none;
+.slider::before,
+.slider::after {
+    background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+    content: "";
+    height: 100%;
+    position: absolute;
+    width: 15%;
+    z-index: 2;
+    pointer-events: none;
 }
 
-.stat-icon {
-    font-size: 1.5rem;
-    color: #8EDB00;
+.slider::before {
+    left: 0;
+    top: 0;
 }
 
-.stat-info h3 {
-    font-size: 1.5rem;
-    font-weight: 950;
-    color: #1A1D23;
-    line-height: 1;
-    margin-bottom: 0.25rem;
+.slider::after {
+    right: 0;
+    top: 0;
+    transform: rotateZ(180deg);
 }
 
-.stat-info span {
-    font-size: 0.65rem;
-    font-weight: 850;
-    color: #94A3B8;
+.slide-track {
+    display: flex;
+    width: max-content;
+    animation: scroll 35s linear infinite;
+}
+
+.slide {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 2.5rem;
+}
+
+.brand-name {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #475569;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
-@media (max-width: 1024px) {
-    .stats-inner {
-        grid-template-columns: repeat(2, 1fr);
+.brand-dot {
+    margin-left: 2.5rem;
+    color: #8EDB00;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.slider:hover .slide-track {
+    animation-play-state: paused;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
     }
-    .stat-card:nth-child(2) {
-        border-right: none;
+    100% {
+        transform: translateX(-50%);
     }
 }
 
 @media (max-width: 768px) {
-    .stats-inner {
-        grid-template-columns: 1fr;
-    }
-    .stat-card {
-        border-right: none;
-        border-bottom: 1px solid #F1F5F9;
-    }
-    .stat-card:last-child {
-        border-bottom: none;
-    }
-    .home-stats {
+    .home-stats-ribbon {
         margin-top: -30px;
+        padding: 1.5rem 0;
+    }
+    .brand-name {
+        font-size: 1rem;
+    }
+    .brand-dot {
+        margin-left: 1.5rem;
+        font-size: 1.25rem;
+    }
+    .slide {
+        padding-left: 1.5rem;
     }
 }

@@ -322,11 +322,11 @@ const ServiceHistory = () => {
             <div className="features-info-grid">
                 <div className="feature-info-card certified">
                     <div className="info-icon-box">
-                        <i className="fa-solid fa-certificate"></i>
+                        <i className="fa-solid fa-shield-halved"></i>
                     </div>
                     <div className="info-text-box">
-                        <h4>Certified Detailing</h4>
-                        <p>Every service record is cryptographically signed for resale value protection.</p>
+                        <h4>Official Records</h4>
+                        <p>Access official service records and billing details registered securely under your customer profile.</p>
                     </div>
                 </div>
 
@@ -339,9 +339,9 @@ const ServiceHistory = () => {
                         <i className="fa-regular fa-file-pdf"></i>
                     </div>
                     <div className="info-text-box">
-                        <h4>Export History</h4>
+                        <h4>Export PDF History</h4>
                         {historyData.length > 0 ? (
-                            <p>Download a full PDF report of your vehicle's care history for insurance or sales.</p>
+                            <p>Download a complete, beautifully formatted PDF report of your vehicle's service history.</p>
                         ) : (
                             <p>No records available to export at this time.</p>
                         )}
@@ -350,11 +350,11 @@ const ServiceHistory = () => {
 
                 <div className="feature-info-card">
                     <div className="info-icon-box purple">
-                        <i className="fa-regular fa-bell"></i>
+                        <i className="fa-solid fa-calendar-check"></i>
                     </div>
                     <div className="info-text-box">
-                        <h4>Service Alerts</h4>
-                        <p>Receive smart reminders based on your vehicle's specific ceramic coating lifespan.</p>
+                        <h4>Booking Notifications</h4>
+                        <p>Receive automatic SMS alerts on time slot reservations, reschedules, or cancellations.</p>
                     </div>
                 </div>
             </div>
