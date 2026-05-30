@@ -1,8 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Footer.css";
+import serviceService from "../../services/serviceService";
 
 function Footer() {
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await serviceService.getPublicServices();
+        const fetchedServices = response.data?.payload?.services || [];
+        setServices(fetchedServices.slice(0, 4));
+      } catch (error) {
+        console.error("Error fetching services for footer:", error);
+      }
+    };
+    fetchServices();
+  }, []);
+
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -23,11 +39,11 @@ function Footer() {
               passion, and perfection is our only metric.
             </p>
             <div className="footer-social">
-              <a href="#" className="social-icon">
-                <i className="fa-brands fa-instagram"></i>
+              <a href="https://www.facebook.com/shinedepotlk/" target="_blank" rel="noopener noreferrer" className="social-icon">
+                <i className="fa-brands fa-facebook-f"></i>
               </a>
-              <a href="#" className="social-icon">
-                <i className="fa-solid fa-camera"></i>
+              <a href="https://www.instagram.com/shinedepotlk/" target="_blank" rel="noopener noreferrer" className="social-icon">
+                <i className="fa-brands fa-instagram"></i>
               </a>
             </div>
           </div>
@@ -37,9 +53,10 @@ function Footer() {
             <h4 className="footer-heading">COMPANY</h4>
             <div className="footer-links">
               <Link to="/">Home</Link>
-              <Link to="/about">About us</Link>
-              <Link to="/contact">Contact us</Link>
+              <Link to="/gallery">Gallery</Link>
               <Link to="/reviews">Reviews</Link>
+              <Link to="/about">About Us</Link>
+              <Link to="/contact">Contact Us</Link>
             </div>
           </div>
 
@@ -47,10 +64,20 @@ function Footer() {
           <div className="footer-links-section">
             <h4 className="footer-heading">SERVICES</h4>
             <div className="footer-links">
-              <Link to="#">Ceramic Coating</Link>
-              <Link to="#">Paint Correction</Link>
-              <Link to="#">Interior Restoration</Link>
-              <Link to="#">Full Detailing</Link>
+              {services.length > 0 ? (
+                services.map((service) => (
+                  <Link key={service._id} to="/customer/service-booking">
+                    {service.name}
+                  </Link>
+                ))
+              ) : (
+                <>
+                  <Link to="/customer/service-booking">Ceramic Coating</Link>
+                  <Link to="/customer/service-booking">Paint Correction</Link>
+                  <Link to="/customer/service-booking">Interior Restoration</Link>
+                  <Link to="/customer/service-booking">Full Detailing</Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -74,7 +101,7 @@ function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; 2024 Shine Depot Management. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Shine Depot Management. All rights reserved.</p>
         </div>
       </div>
     </footer>

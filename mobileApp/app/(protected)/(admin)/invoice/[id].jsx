@@ -130,6 +130,29 @@ export default function ViewInvoice() {
     }
   };
 
+  const updateInvoiceService = async (targetId, newCharge) => {
+    try {
+      setLoading(true);
+      const payload = {
+        type: 'SERVICE',
+        data: {
+          service: targetId,
+          charge: Number(newCharge),
+        }
+      };
+      await invoiceService.addInvoiceItem(id, payload);
+      await fetchInvoiceDetails();
+    } catch (error) {
+       Toast.show({
+        type: 'error',
+        text1: 'Update Failed',
+        text2: error?.response?.data?.payload?.message || "Failed to update service charge",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
 
   const handleCompleteInvoice = () => {
@@ -292,6 +315,10 @@ export default function ViewInvoice() {
             price={formatPrice(service.charge)}
             onDelete={() => handleRemoveItem('SERVICE', service.service?._id)}
             disabled={isPaid}
+            quantity={service.charge}
+            onUpdateQuantity={(newCharge) => updateInvoiceService(service.service?._id, newCharge)}
+            isPrice={true}
+            pricingTiers={service.service?.prices}
           />
         ))}
 

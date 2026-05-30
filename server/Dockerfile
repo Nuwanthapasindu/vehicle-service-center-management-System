@@ -24,4 +24,4 @@ USER node
 EXPOSE 4000
 
 # Start script
-CMD ["sh", "-c", "node ./db/seed.js && node server.js"]
+CMD ["sh", "-c", "if [ \"$RUN_SEED\" = \"true\" ]; then node ./db/seed.js || exit 1; fi && node server.js"]

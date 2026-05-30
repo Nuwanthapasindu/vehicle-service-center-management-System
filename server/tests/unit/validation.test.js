@@ -3,6 +3,9 @@ const {
   validatedUpdateService,
   validatedQueryServices,
 } = require("../../validation/service.validation");
+const {
+  validatedQueryPackages,
+} = require("../../validation/package.validation");
 
 describe("Service Validation Unit Tests", () => {
   describe("createService Validation", () => {
@@ -80,6 +83,40 @@ describe("Service Validation Unit Tests", () => {
       expect(error).toBeUndefined();
       expect(value.page).toBe(2);
       expect(value.limit).toBe(20);
+    });
+  });
+
+  describe("queryPackages Validation", () => {
+    test("should fail if maxPrice is less than minPrice", () => {
+      const invalidQuery = {
+        minPrice: 500,
+        maxPrice: 300,
+      };
+      const { error } = validatedQueryPackages(invalidQuery);
+      expect(error).toBeDefined();
+      expect(error.details[0].message).toBe("Minimum price must be less than maximum price");
+    });
+
+    test("should pass and coerce string parameters to correct types", () => {
+      const queryParams = {
+        page: "3",
+        limit: "15",
+        all: "false",
+      };
+      const { value, error } = validatedQueryPackages(queryParams);
+      expect(error).toBeUndefined();
+      expect(value.page).toBe(3);
+      expect(value.limit).toBe(15);
+      expect(value.all).toBe(false);
+    });
+
+    test("should coerce all='true' to boolean true", () => {
+      const queryParams = {
+        all: "true",
+      };
+      const { value, error } = validatedQueryPackages(queryParams);
+      expect(error).toBeUndefined();
+      expect(value.all).toBe(true);
     });
   });
 });

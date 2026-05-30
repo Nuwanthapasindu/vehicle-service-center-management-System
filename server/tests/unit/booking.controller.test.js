@@ -16,6 +16,7 @@ const {
   createBooking,
   getBookingHistory,
   getDashboardData,
+  getAdminBookingHistory,
 } = require("../../controller/booking.controller");
 const AppError = require("../../error/AppError");
 
@@ -200,6 +201,46 @@ describe("Booking Controller Tests", () => {
       expect(data.stats.totalVehicles).toBe(1);
       expect(data.stats.totalBookings).toBe(1);
       expect(data.recentVehicles.length).toBe(1);
+    });
+  });
+
+  describe("getAdminBookingHistory", () => {
+    test("should return paginated admin history with correct filters", async () => {
+      const booking = await new Booking({
+        customer: mockUser._id,
+        vehicle: mockVehicle._id,
+        slot: mockSlot._id,
+        date: new Date(),
+      }).save();
+
+      await new JobCard({
+        booking: booking._id,
+        status: "PENDING",
+        isDeleted: false,
+      }).save();
+
+      // Test with empty filter
+      let result = await getAdminBookingHistory({});
+      expect(result.history.length).toBe(1);
+      expect(result.history[0].customer).toBe(mockUser.name);
+      expect(result.history[0].vehicle).toBe(`${mockVehicle.make} ${mockVehicle.model}`);
+      expect(result.history[0].jobStatus).toBe("PENDING");
+      expect(result.metadata.totalCount).toBe(1);
+
+      // Test searching make
+      result = await getAdminBookingHistory({ search: "Toyota" });
+      expect(result.history.length).toBe(1);
+
+      // Test searching something non-existent
+      result = await getAdminBookingHistory({ search: "Honda" });
+      expect(result.history.length).toBe(0);
+
+      // Test status filter
+      result = await getAdminBookingHistory({ status: "PENDING" });
+      expect(result.history.length).toBe(1);
+
+      result = await getAdminBookingHistory({ status: "IN_PROGRESS" });
+      expect(result.history.length).toBe(0);
     });
   });
 });

@@ -8,7 +8,8 @@ jest.mock('../../middleware/auth', () => ({
   authTokenMiddleware: (req, res, next) => {
     req.user = { mobile: '0771234567', role: 'CUSTOMER' };
     next();
-  }
+  },
+  accessControl: () => (req, res, next) => next()
 }));
 
 jest.mock('../../model/Vehicle', () => ({

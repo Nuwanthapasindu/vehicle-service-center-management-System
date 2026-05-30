@@ -261,11 +261,30 @@ export default function AdminDrawerLayout() {
           }}
         />
 
+        <Drawer.Screen
+          name="smsCampaign"
+          options={{
+            headerShown: false,
+            drawerLabel: "SMS Campaigns",
+            title: "SMS Campaigns",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="mail-outline" size={size} color={color} />
+            ),
+          }}
+        />
+
         {/* Hidden Screens */}
         <Drawer.Screen
           name="revenue"
           options={{
             headerShown: false,
+          }}
+        />
+        <Drawer.Screen
+          name="notifications"
+          options={{
+            title: "Notifications",
+            headerShown: true,
           }}
         />
         <Drawer.Screen

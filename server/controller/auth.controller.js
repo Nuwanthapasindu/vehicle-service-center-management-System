@@ -44,7 +44,10 @@ module.exports.register = async (payload) => {
 
     // Send OTP via SMS
     try {
-      await sendSms(savedUser.mobile, `Your verification code is: ${otp}`);
+      await sendSms(
+        savedUser.mobile,
+        ` Welcome! Your verification code is:  ${otp}. Use this code to verify your mobile number. Thank you!`,
+      );
     } catch (smsError) {
       // role back auth and user
       await Promise.all([
@@ -175,7 +178,10 @@ module.exports.resendAccountVerification = async (payload) => {
 
     // SEND SMS
     try {
-      await sendSms(user.mobile, `Your verification code is: ${otp}`);
+      await sendSms(
+        user.mobile,
+        ` Welcome! Your verification code is: ${otp}. Use this code to verify your mobile number. Thank you!`,
+      );
     } catch (smsError) {
       throw smsError;
     }
@@ -214,7 +220,10 @@ module.exports.forgotPassword = async (payload) => {
 
     // SEND SMS
     try {
-      await sendSms(user.mobile, `Your password reset code is: ${otp}`);
+      await sendSms(
+        user.mobile,
+        ` Hi! A password reset was requested. Your verification code is: ${otp}. If this wasn't you, please ignore this.`,
+      );
     } catch (smsError) {
       // role back auth and user
       auth.verificationOtp = null;
@@ -254,7 +263,7 @@ module.exports.resetPassword = async (payload) => {
     try {
       await sendSms(
         auth.user.mobile,
-        "Your password has been reset successfully.",
+        " Success! Your password has been reset. If you did not make this change, please contact us immediately.",
       );
     } catch (smsError) {
       // Handle SMS notification failure

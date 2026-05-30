@@ -4,6 +4,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import colors from '../constants/colors';
 import enums from '../constants/enums';
+import formatPrice from '../utils/formatPrice';
 
 export default function SwipeableItemCard({ 
   title,
@@ -14,7 +15,9 @@ export default function SwipeableItemCard({
   disabled = false,
   quantity,
   onUpdateQuantity,
-  unit
+  unit,
+  isPrice = false,
+  pricingTiers = []
 }) {
   const [localQty, setLocalQty] = React.useState(quantity?.toString());
   const [modalVisible, setModalVisible] = React.useState(false);
@@ -41,39 +44,92 @@ export default function SwipeableItemCard({
     );
   };
 
+  const hasEditableInput = quantity !== undefined && onUpdateQuantity;
+
   return (
     <Swipeable 
       renderRightActions={renderRightActions} 
       overshootRight={false}
       enabled={!disabled && !!onDelete}
     >
-      <View style={styles.billedItemCard}>
-        {icon && (
-          <View style={styles.itemIconContainer}>
-            <MaterialCommunityIcons name={icon} size={24} color={colors.PRIMARY} />
-          </View>
-        )}
-        <View style={styles.itemMain}>
-          <Text style={styles.itemTitle}>{title}</Text>
-          <Text style={styles.itemSubtitle}>{subtitle}</Text>
-        </View>
+      <View style={[styles.billedItemCard, hasEditableInput && styles.billedItemCardVertical]}>
+        {!hasEditableInput ? (
+          <>
+            {icon && (
+              <View style={styles.itemIconContainer}>
+                <MaterialCommunityIcons name={icon} size={24} color={colors.PRIMARY} />
+              </View>
+            )}
+            <View style={styles.itemMain}>
+              <Text style={styles.itemTitle}>{title}</Text>
+              <Text style={styles.itemSubtitle}>{subtitle}</Text>
+            </View>
+            <View style={styles.priceContainer}>
+               <Text style={styles.itemPrice}>{price}</Text>
+            </View>
+          </>
+        ) : (
+          <View style={styles.cardContent}>
+            {/* Row 1: Left side service name (keep it), Right corner editable input */}
+            <View style={styles.rowOne}>
+              <View style={styles.leftGroup}>
+                {icon && (
+                  <View style={styles.itemIconContainer}>
+                    <MaterialCommunityIcons name={icon} size={24} color={colors.PRIMARY} />
+                  </View>
+                )}
+                <View style={styles.itemMain}>
+                  <Text style={styles.itemTitle}>{title}</Text>
+                  <Text style={styles.itemSubtitle}>{subtitle}</Text>
+                </View>
+              </View>
 
-        {quantity !== undefined && onUpdateQuantity && (
-          <View style={styles.inputArea}>
-             <TextInput 
-                style={styles.qtyInputField}
-                value={localQty}
-                onChangeText={setLocalQty}
-                onBlur={handleQtyBlur}
-                keyboardType="numeric"
-                editable={!disabled}
-                placeholder="0"
-             />
+              <View style={styles.inputArea}>
+                 <TextInput 
+                    style={[styles.qtyInputField, isPrice && { width: 85 }]}
+                    value={localQty}
+                    onChangeText={setLocalQty}
+                    onBlur={handleQtyBlur}
+                    keyboardType="numeric"
+                    editable={!disabled}
+                    placeholder="0"
+                 />
+              </View>
+            </View>
+
+            {/* Pricing Tiers Badge Row (if any available) */}
+            {pricingTiers && pricingTiers.length > 0 && (
+              <View style={styles.tiersContainer}>
+                <Text style={styles.tiersTitle}>Select Pricing Tier (Tap to Apply)</Text>
+                <View style={styles.tiersList}>
+                  {pricingTiers.map((tier, idx) => (
+                    <TouchableOpacity 
+                      key={idx} 
+                      style={styles.tierPill}
+                      onPress={() => {
+                        if (!disabled && onUpdateQuantity) {
+                          setLocalQty(tier.price.toString());
+                          onUpdateQuantity(tier.price);
+                        }
+                      }}
+                      disabled={disabled}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.tierModelText}>{tier.model}: </Text>
+                      <Text style={styles.tierPriceText}>{formatPrice(tier.price)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Row 2: Complete row to show price in text */}
+            <View style={styles.rowTwo}>
+              <Text style={styles.rowTwoLabel}>{isPrice ? "Service Price" : "Total Price"}</Text>
+              <Text style={styles.itemPrice}>{price}</Text>
+            </View>
           </View>
         )}
-        <View style={styles.priceContainer}>
-           <Text style={styles.itemPrice}>{price}</Text>
-        </View>
       </View>
     </Swipeable>
   );
@@ -180,5 +236,77 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
     marginLeft: 8,
+  },
+  billedItemCardVertical: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
+  cardContent: {
+    width: '100%',
+  },
+  rowOne: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  leftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
+  },
+  rowTwo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.BORDER_COLOR,
+  },
+  rowTwoLabel: {
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '700',
+  },
+  tiersContainer: {
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  tiersTitle: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  tiersList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  tierPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+  },
+  tierModelText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  tierPriceText: {
+    fontSize: 11,
+    fontWeight: '950',
+    color: colors.DARK,
   },
 });
