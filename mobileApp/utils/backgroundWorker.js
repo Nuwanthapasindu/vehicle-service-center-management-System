@@ -32,6 +32,11 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async () => {
       },
     });
 
+    if (response.status === 401 || response.status === 403) {
+      // If the request fails due to authorization, return Success to prevent repeated failure reports
+      return BackgroundTask.BackgroundTaskResult.Success;
+    }
+
     if (!response.ok) {
       return BackgroundTask.BackgroundTaskResult.Failed;
     }
@@ -100,5 +105,18 @@ export async function registerBackgroundNotificationTask() {
     }
   } catch (err) {
     console.error("Failed to register Background Notification Task:", err);
+  }
+}
+
+// Helper to unregister background task
+export async function unregisterBackgroundNotificationTask() {
+  try {
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_NOTIFICATION_TASK);
+    if (isRegistered) {
+      await BackgroundTask.unregisterTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+      console.log("Background Notification Task unregistered successfully");
+    }
+  } catch (err) {
+    console.error("Failed to unregister Background Notification Task:", err);
   }
 }

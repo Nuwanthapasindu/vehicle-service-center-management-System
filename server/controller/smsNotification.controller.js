@@ -3,7 +3,7 @@ const User = require('../model/User');
 const SmsCampaign = require('../model/SmsCampaign');
 const AppError = require('../error/AppError');
 const { USER_ROLES } = require('../util/constants');
-const { validatedCreateSmsCampaign } = require('../validation/smsCampaign.validation');
+const { validatedCreateSmsCampaign, validatedQuerySmsCampaigns } = require('../validation/smsCampaign.validation');
 
 module.exports.fetchSmsAccountStatus = async () => {
     try {
@@ -64,9 +64,13 @@ module.exports.createSmsCampaign = async (payload, senderMobile) => {
 };
 
 module.exports.getSmsCampaigns = async (page = 1, limit = 10) => {
+    const { value, error } = validatedQuerySmsCampaigns({ page, limit });
+    if (error) {
+        throw new AppError(error.details[0].message, 400);
+    }
+
     try {
-        const pageNum = parseInt(page, 10) || 1;
-        const limitNum = parseInt(limit, 10) || 10;
+        const { page: pageNum, limit: limitNum } = value;
         const skip = (pageNum - 1) * limitNum;
 
         const campaigns = await SmsCampaign.find()
@@ -75,7 +79,19 @@ module.exports.getSmsCampaigns = async (page = 1, limit = 10) => {
             .skip(skip)
             .limit(limitNum)
             .lean();
-        return campaigns;
+
+        const totalCount = await SmsCampaign.countDocuments();
+        const totalPages = Math.ceil(totalCount / limitNum);
+
+        return {
+            campaigns,
+            metadata: {
+                totalCount,
+                page: pageNum,
+                limit: limitNum,
+                totalPages
+            }
+        };
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500);
     }

@@ -31,7 +31,6 @@ export default function RootLayout() {
   const router = useRouter();
   useEffect(() => {
     ensureUploadDir();
-    registerBackgroundNotificationTask();
   }, []);
   useEffect(() => {
     const checkOnboardingStatus = async () => {
