@@ -33,7 +33,21 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async () => {
     });
 
     if (response.status === 401 || response.status === 403) {
-      // If the request fails due to authorization, return Success to prevent repeated failure reports
+      console.warn("Background notification task unauthorized (401/403). Cleaning up and unregistering task.");
+      try {
+        await SecureStore.deleteItemAsync(storageKeys.PERSONAL_ACCESS_TOKEN);
+        await SecureStore.deleteItemAsync(storageKeys.REFRESH_TOKEN);
+      } catch (err) {
+        console.error("Failed to delete tokens in background task:", err);
+      }
+      try {
+        const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_NOTIFICATION_TASK);
+        if (isRegistered) {
+          await BackgroundTask.unregisterTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+        }
+      } catch (err) {
+        console.error("Failed to unregister background task during auth cleanup:", err);
+      }
       return BackgroundTask.BackgroundTaskResult.Success;
     }
 
