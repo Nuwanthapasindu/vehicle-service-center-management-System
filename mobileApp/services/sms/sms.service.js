@@ -13,6 +13,10 @@ export const smsService = {
     const response = await axios.get(`/sms/campaigns`,{
       params: { page, limit }
     });
-    return response?.data?.payload || [];
+    const payload = response?.data?.payload;
+    if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+      return payload.campaigns || [];
+    }
+    return payload || [];
   },
 };

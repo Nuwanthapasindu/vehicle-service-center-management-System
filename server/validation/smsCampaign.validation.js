@@ -20,3 +20,17 @@ const createSmsCampaignValidationSchema = joi.object({
 });
 
 module.exports.validatedCreateSmsCampaign = validator(createSmsCampaignValidationSchema);
+
+const querySmsCampaignValidationSchema = joi.object({
+  page: joi.number().integer().positive().optional().default(1).messages({
+    "number.integer": "Page must be a whole number",
+    "number.positive": "Page must be a positive number",
+  }),
+  limit: joi.number().integer().positive().max(100).optional().default(10).messages({
+    "number.integer": "Limit must be a whole number",
+    "number.positive": "Limit must be a positive number",
+    "number.max": "Limit cannot exceed 100",
+  }),
+});
+
+module.exports.validatedQuerySmsCampaigns = validator(querySmsCampaignValidationSchema);

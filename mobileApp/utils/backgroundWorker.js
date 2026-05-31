@@ -32,6 +32,25 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async () => {
       },
     });
 
+    if (response.status === 401 || response.status === 403) {
+      console.warn("Background notification task unauthorized (401/403). Cleaning up and unregistering task.");
+      try {
+        await SecureStore.deleteItemAsync(storageKeys.PERSONAL_ACCESS_TOKEN);
+        await SecureStore.deleteItemAsync(storageKeys.REFRESH_TOKEN);
+      } catch (err) {
+        console.error("Failed to delete tokens in background task:", err);
+      }
+      try {
+        const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_NOTIFICATION_TASK);
+        if (isRegistered) {
+          await BackgroundTask.unregisterTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+        }
+      } catch (err) {
+        console.error("Failed to unregister background task during auth cleanup:", err);
+      }
+      return BackgroundTask.BackgroundTaskResult.Success;
+    }
+
     if (!response.ok) {
       return BackgroundTask.BackgroundTaskResult.Failed;
     }
@@ -100,5 +119,18 @@ export async function registerBackgroundNotificationTask() {
     }
   } catch (err) {
     console.error("Failed to register Background Notification Task:", err);
+  }
+}
+
+// Helper to unregister background task
+export async function unregisterBackgroundNotificationTask() {
+  try {
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_NOTIFICATION_TASK);
+    if (isRegistered) {
+      await BackgroundTask.unregisterTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+      console.log("Background Notification Task unregistered successfully");
+    }
+  } catch (err) {
+    console.error("Failed to unregister Background Notification Task:", err);
   }
 }

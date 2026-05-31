@@ -1,9 +1,13 @@
 import { useRouter } from "expo-router";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import storageKeys from "../constants/storageKeys";
 import useSecureStorage from "../hooks/useSecureStorage";
 import { setToken, setUser } from "../store/slices/authSlice";
+import {
+  registerBackgroundNotificationTask,
+  unregisterBackgroundNotificationTask,
+} from "../utils/backgroundWorker";
 
 const initialAuthConfiguration = {
   isAuthenticated: false,
@@ -18,6 +22,15 @@ export default function AuthProvider({ children }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const { user } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (user && user.role === "ADMIN") {
+      registerBackgroundNotificationTask();
+    } else {
+      unregisterBackgroundNotificationTask();
+    }
+  }, [user]);
+
   const logout = useCallback(async () => {
     await deleteItem(storageKeys.PERSONAL_ACCESS_TOKEN);
     await deleteItem(storageKeys.REFRESH_TOKEN);

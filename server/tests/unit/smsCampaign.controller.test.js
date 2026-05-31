@@ -148,11 +148,13 @@ describe("SMS Campaign Controller Tests", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
       await c2.save();
 
-      const campaigns = await getSmsCampaigns();
+      const res = await getSmsCampaigns();
+      const campaigns = res.campaigns;
       expect(campaigns.length).toBe(2);
       expect(campaigns[0].title).toBe("Alert 2"); // newer first
       expect(campaigns[0].sentBy.name).toBe("Admin User"); // populated
       expect(campaigns[1].title).toBe("Promo 1");
+      expect(res.metadata.totalCount).toBe(2);
     });
 
     test("should return paginated campaigns", async () => {
@@ -170,12 +172,15 @@ describe("SMS Campaign Controller Tests", () => {
       }
 
       // Fetch page 1 with limit 10
-      const page1 = await getSmsCampaigns(1, 10);
+      const res1 = await getSmsCampaigns(1, 10);
+      const page1 = res1.campaigns;
       expect(page1.length).toBe(10);
       expect(page1[0].title).toBe("Promo 15"); // newest first
+      expect(res1.metadata.totalPages).toBe(2);
 
       // Fetch page 2 with limit 10
-      const page2 = await getSmsCampaigns(2, 10);
+      const res2 = await getSmsCampaigns(2, 10);
+      const page2 = res2.campaigns;
       expect(page2.length).toBe(5);
       expect(page2[0].title).toBe("Promo 5");
     });
