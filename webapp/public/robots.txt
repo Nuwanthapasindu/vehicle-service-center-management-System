@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /contact
+Allow: /reviews
+Allow: /gallery
+Disallow: /customer/
+Disallow: /login
+Disallow: /register
+Disallow: /verify-otp
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://shinedepot.lk/sitemap.xml

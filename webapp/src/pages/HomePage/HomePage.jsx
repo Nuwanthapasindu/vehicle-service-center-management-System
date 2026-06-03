@@ -10,6 +10,8 @@ import serviceService from '../../services/serviceService';
 import packageService from '../../services/packageService';
 import './HomePage.css';
 
+import SEO from '../../components/SEO/SEO';
+
 function HomePage() {
     const [services, setServices] = useState([]);
     const [packages, setPackages] = useState([]);
@@ -32,6 +34,7 @@ function HomePage() {
 
     return (
         <div className="home-page-wrapper">
+            <SEO path="/" services={services} />
             <Header />
             <main>
                 <HomeHero />
