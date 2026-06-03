@@ -1,17 +1,24 @@
 import React from 'react';
+import defaultOgImage from '../../assets/imgs/about/about_hero.png';
 
 const SEO = ({ 
     title, 
     description, 
     keywords, 
     path = '', 
-    image = 'https://shinedepot.lk/assets/imgs/about/about_hero.png',
+    image,
     schema,
     services = []
 }) => {
     const siteName = 'Shine Depot';
     const baseUrl = 'https://shinedepot.lk'; // Replace with actual production URL if known
     const canonicalUrl = `${baseUrl}${path}`;
+    
+    // Resolve absolute image URL at runtime
+    const origin = typeof window !== 'undefined' ? window.location.origin : baseUrl;
+    const finalImage = image
+        ? (image.startsWith('http') ? image : new URL(image, origin).toString())
+        : new URL(defaultOgImage, origin).toString();
     
     // Default meta values
     const defaultTitle = 'Shine Depot | Premium Car Wash, Detailing & Servicing in Nugegoda';
@@ -30,7 +37,7 @@ const SEO = ({
         'name': 'Shine Depot',
         'alternateName': 'Shine Depot Car Detailing & Service Center',
         'description': defaultDescription,
-        'image': image,
+        'image': finalImage,
         '@id': `${baseUrl}/#organization`,
         'url': baseUrl,
         'telephone': '+94 76 315 3797',
@@ -99,7 +106,7 @@ const SEO = ({
             <meta property="og:type" content="website" />
             <meta property="og:title" content={displayTitle} />
             <meta property="og:description" content={displayDescription} />
-            <meta property="og:image" content={image} />
+            <meta property="og:image" content={finalImage} />
             <meta property="og:url" content={canonicalUrl} />
             <meta property="og:site_name" content={siteName} />
 
@@ -107,7 +114,7 @@ const SEO = ({
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content={displayTitle} />
             <meta name="twitter:description" content={displayDescription} />
-            <meta name="twitter:image" content={image} />
+            <meta name="twitter:image" content={finalImage} />
 
             {/* Structured Schema Markup (JSON-LD) */}
             <script type="application/ld+json">
