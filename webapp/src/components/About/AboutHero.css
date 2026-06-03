@@ -12,31 +12,7 @@
     flex: 1;
 }
 
-.about-hero-stats {
-    display: flex;
-    gap: 4rem;
-}
 
-.about-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.stat-val {
-    font-size: 2.25rem;
-    font-weight: 950;
-    color: #1A1D23;
-    letter-spacing: -1px;
-}
-
-.stat-lab {
-    font-size: 0.7rem;
-    font-weight: 850;
-    color: #CBD5E1;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
 
 .about-hero-right {
     flex: 1.1;
@@ -64,9 +40,5 @@
     }
     .about-hero-left p {
         margin: 0 auto;
-        margin-bottom: 4rem;
-    }
-    .about-hero-stats {
-        justify-content: center;
     }
 }

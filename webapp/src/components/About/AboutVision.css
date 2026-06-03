@@ -42,11 +42,16 @@
 }
 
 .v-m-item p {
-    font-size: 1.45rem;
+    font-size: 1.25rem;
     line-height: 1.8;
     color: #64748B;
-    font-style: italic;
+    font-style: normal;
     font-weight: 500;
+    margin-bottom: 2rem;
+}
+
+.v-m-item p:last-child {
+    margin-bottom: 0;
 }
 
 @media (max-width: 768px) {
@@ -54,7 +59,7 @@
         font-size: 2.25rem;
     }
     .v-m-item p {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
     }
     .vision-mission-section {
         gap: 8rem;
