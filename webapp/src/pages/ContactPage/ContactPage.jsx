@@ -1,11 +1,18 @@
 import React from "react";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
+import SEO from "../../components/SEO/SEO";
 import "./ContactPage.css";
 
 function ContactPage() {
   return (
     <div className="contact-page-wrapper">
+      <SEO 
+        title="Contact Us & Location"
+        description="Get in touch with Shine Depot Support. Visit our center at 108 Old Kottawa Rd, Nugegoda. Call us at +94 76 315 3797 or email info@shinedepot.lk."
+        keywords="Shine Depot contact, Shine Depot phone number, Shine Depot location, car wash Nugegoda address, auto service booking"
+        path="/contact"
+      />
       <Header />
 
       <main>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
+import SEO from '../../components/SEO/SEO';
 import reviewService from '../../services/reviewService';
 import { formatTimeAgo } from '../../util/dateFormatter';
 import './ReviewsPage.css';
@@ -91,6 +92,12 @@ function ReviewsPage() {
 
     return (
         <div className="reviews-page-wrapper">
+            <SEO 
+                title="Customer Reviews & Testimonials"
+                description="Read verified reviews from Shine Depot customers. Discover what vehicle owners say about our premium detailing, car washing, and mechanical servicing in Nugegoda."
+                keywords="Shine Depot reviews, car wash reviews Nugegoda, detailing testimonials, customer feedback Shine Depot, best auto detailer reviews"
+                path="/reviews"
+            />
             <Header />
 
             <main>

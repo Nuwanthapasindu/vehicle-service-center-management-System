@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getGalleryImages } from "../../services/galleryService";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
+import SEO from "../../components/SEO/SEO";
 import getImageUrl from "../../util/getImageUrl";
 import "./GalleryPage.css";
 
@@ -70,6 +71,12 @@ const GalleryPage = () => {
 
   return (
     <div className="gallery-page-wrapper">
+      <SEO 
+        title="Work Gallery & Transformations"
+        description="Explore our work gallery showing stunning car detailing transformations, exterior paint correction, premium ceramic coating, and professional car wash results at Shine Depot Nugegoda."
+        keywords="Shine Depot gallery, car detailing portfolio, ceramic coating showcase, before and after car detailing, luxury car wash gallery"
+        path="/gallery"
+      />
       <Header />
       <main>
         {/* Hero Section */}
