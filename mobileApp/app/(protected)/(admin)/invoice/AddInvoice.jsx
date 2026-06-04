@@ -38,7 +38,7 @@ export default function AddInvoice() {
       invoiceItems: [],
       discount: 0,
       markPaid: false,
-      date: new Date().toISOString().split("T")[0],
+      date: new Date(),
     },
     validationSchema: CreateInvoiceSchema,
     onSubmit: async (values, { setSubmitting }) => {
@@ -283,7 +283,7 @@ export default function AddInvoice() {
       // 1. Create the Base Invoice
       const createPayload = {
         customer: values.customer?._id,
-        date: values.date,
+        date: values.date ? new Date(values.date).toISOString() : new Date().toISOString(),
       };
 
       if (values.selectedPackage) {
@@ -375,7 +375,7 @@ export default function AddInvoice() {
         >
           <Ionicons name="calendar-outline" size={20} color={colors.PRIMARY} style={{ marginRight: 10 }} />
           <Text style={styles.dateSelectorText}>
-            {date || "Select Invoice Date"}
+            {date ? new Date(date).toLocaleDateString() : "Select Invoice Date"}
           </Text>
         </TouchableOpacity>
 
@@ -387,8 +387,7 @@ export default function AddInvoice() {
             onChange={(event, selectedDate) => {
               setShowDatePicker(false);
               if (event.type === "set" && selectedDate) {
-                const formattedDate = selectedDate.toISOString().split("T")[0];
-                setFieldValue("date", formattedDate);
+                setFieldValue("date", selectedDate);
               }
             }}
           />
@@ -570,7 +569,7 @@ export default function AddInvoice() {
               price: t.price,
             }))}
             onUpdateQuantity={updatePackagePrice}
-            onDelete={() => setSelectedPackage(null)}
+            onDelete={() => setFieldValue("selectedPackage", null)}
           />
         )}
 
