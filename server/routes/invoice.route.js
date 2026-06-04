@@ -7,6 +7,7 @@ const {
   removeInvoiceItem,
   completeInvoice,
   getInvoiceByJobCard,
+  deleteInvoice,
 } = require("../controller/invoice.controller");
 const { getIncomeReport } = require("../controller/report.controller");
 const { authTokenMiddleware, accessControl } = require("../middleware/auth");
@@ -377,6 +378,41 @@ router.get("/jobcard/:jobCardId", authTokenMiddleware, accessControl([USER_ROLES
       rs.buildResponse({ data });
     })
     .catch((error) => next(error));
+});
+
+/**
+ * @swagger
+ * /api/v1/invoice/{id}:
+ *   delete:
+ *     summary: Soft delete an unpaid invoice
+ *     tags: [Invoice]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The invoice ID
+ *     responses:
+ *       200:
+ *         description: Successfully deleted the invoice
+ *       400:
+ *         description: Cannot delete a completed invoice or invalid ID
+ *       404:
+ *         description: Invoice not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/:id", authTokenMiddleware, accessControl([USER_ROLES.ADMIN]), (req, res, next) => {
+  const builder = new responseBuilder(res);
+  deleteInvoice(req.params.id)
+    .then((message) => {
+      builder.setStatus(200);
+      builder.buildResponse({ message });
+    })
+    .catch(next);
 });
 
 module.exports = router;

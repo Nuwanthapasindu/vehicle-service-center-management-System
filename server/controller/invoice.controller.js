@@ -561,3 +561,37 @@ exports.completeInvoice = async (invoiceId, authUser) => {
     );
   }
 };
+
+/**
+ * Soft delete an invoice if it is not completed (unpaid).
+ * 
+ * @param {string} invoiceId - MongoDB Object ID of the invoice
+ * @returns {Promise<string>} - Success message
+ * @throws {AppError} - Throws 400 if invoice is completed, 404 if not found
+ */
+exports.deleteInvoice = async (invoiceId) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+      throw new AppError("Invalid invoice ID provided", 400);
+    }
+
+    const invoice = await Invoice.findOne({ _id: invoiceId, isDeleted: false });
+    if (!invoice) {
+      throw new AppError("Invoice not found", 404);
+    }
+
+    if (invoice.isCompleted) {
+      throw new AppError("Cannot delete a completed invoice", 400);
+    }
+
+    invoice.isDeleted = true;
+    invoice.deletedAt = new Date();
+    await invoice.save();
+
+    return `${invoice.invoiceId || "Invoice"} deleted successfully`;
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError("Failed to delete the invoice", 500);
+  }
+};
+

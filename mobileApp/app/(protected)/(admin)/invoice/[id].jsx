@@ -190,6 +190,41 @@ export default function ViewInvoice() {
     );
   };
 
+  const handleDeleteInvoice = () => {
+    Alert.alert(
+      "Delete Invoice",
+      "Are you sure you want to delete this invoice? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await invoiceService.deleteInvoice(id);
+              Toast.show({
+                type: 'success',
+                text1: 'Invoice Deleted',
+                text2: 'The invoice has been successfully deleted.',
+              });
+              router.replace("/(protected)/(admin)/invoice");
+            } catch (error) {
+              console.error("Error deleting invoice:", error);
+              Toast.show({
+                type: 'error',
+                text1: 'Deletion Failed',
+                text2: error?.response?.data?.payload?.message || error?.message || "Failed to delete invoice",
+              });
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleRemoveItem = async (type, targetId) => {
     try {
       setLoading(true);
@@ -251,6 +286,15 @@ export default function ViewInvoice() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen 
+        options={{
+          headerRight: () => !isPaid ? (
+            <TouchableOpacity onPress={handleDeleteInvoice} style={{ paddingRight: 10 }}>
+              <Ionicons name="trash-outline" size={24} color={colors.DANGER_COLOR || "#EF4444"} />
+            </TouchableOpacity>
+          ) : null
+        }}
+      />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         {/* WIP Header Card */}

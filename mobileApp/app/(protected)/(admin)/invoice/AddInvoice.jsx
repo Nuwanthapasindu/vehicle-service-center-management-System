@@ -22,15 +22,40 @@ import CustomerSearchResult from "../../../../components/CustomerSearchResult";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../../../../constants/colors";
 import DropdownInput from "../../../../components/DropdownInput";
+import { packageService } from "../../../../services/package/package.service";
+import { useFormik } from "formik";
+import { CreateInvoiceSchema } from "../../../../schema/invoice.schema";
 
 
 export default function AddInvoice() {
   const router = useRouter();
+
+  const formik = useFormik({
+    initialValues: {
+      customer: null,
+      selectedPackage: null,
+      invoiceItems: [],
+      discount: 0,
+      markPaid: false,
+    },
+    validationSchema: CreateInvoiceSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      await handleGenerateInvoice(values, { setSubmitting });
+    },
+  });
+
+  const { values, errors, touched, setFieldValue, handleSubmit } = formik;
+  const { customer, selectedPackage, invoiceItems, discount } = values;
+
   const [service, setService] = useState("");
   const [inventory, setInventory] = useState("");
   const [loading, setLoading] = useState(false);
   const [availableServices, setAvailableServices] = useState([]);
   const [availableInventory, setAvailableInventory] = useState([]);
+
+  // Package Selection States
+  const [selectedPkgName, setSelectedPkgName] = useState("");
+  const [availablePackages, setAvailablePackages] = useState([]);
 
   // Customer Search States
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,7 +63,6 @@ export default function AddInvoice() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [discount, setDiscount] = useState(0);
   const [showDiscountInput, setShowDiscountInput] = useState(false);
 
   // Load Search History on Mount
@@ -71,20 +95,20 @@ export default function AddInvoice() {
     }
   };
 
-  const [customer, setCustomer] = useState(null);
-  const [invoiceItems, setInvoiceItems] = useState([]);
-
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [servicesData, inventoryData] = await Promise.all([
+        const [servicesData, inventoryData, packagesData] = await Promise.all([
           serviceService.fetchServices(),
           inventoryService.fetchInventory(),
+          packageService.fetchPackagesAdmin({ limit: 100 }),
         ]);
         setAvailableServices(Array.isArray(servicesData) ? servicesData : []);
         setAvailableInventory(
           Array.isArray(inventoryData) ? inventoryData : [],
         );
+        const fetchedPackages = packagesData?.data?.payload?.packages || [];
+        setAvailablePackages(Array.isArray(fetchedPackages) ? fetchedPackages : []);
       } catch (err) {
         if (err.response) {
           console.error("Error Status:", err.response.status);
@@ -125,7 +149,7 @@ export default function AddInvoice() {
   };
 
   const handleSelectCustomer = (selectedCust) => {
-    setCustomer(selectedCust);
+    setFieldValue("customer", selectedCust);
     setSearchQuery(selectedCust.mobile);
     setShowSuggestions(false);
 
@@ -145,10 +169,11 @@ export default function AddInvoice() {
         type: "service",
         name: srv.name,
         price: srv.prices[0]?.price || 0,
+        prices: srv.prices || [],
         quantity: 1,
         icon: "cog-outline",
       };
-      setInvoiceItems([...invoiceItems, newItem]);
+      setFieldValue("invoiceItems", [...invoiceItems, newItem]);
       setService(""); // local UI state for dropdown reset remains
     }
   };
@@ -165,7 +190,7 @@ export default function AddInvoice() {
         quantity: 1,
         icon: "cube-outline",
       };
-      setInvoiceItems([...invoiceItems, newItem]);
+      setFieldValue("invoiceItems", [...invoiceItems, newItem]);
       setInventory("");
     }
   };
@@ -174,21 +199,71 @@ export default function AddInvoice() {
     const updatedItems = invoiceItems.map((item) =>
       item.id === id ? { ...item, quantity: newQty } : item,
     );
-    setInvoiceItems(updatedItems);
+    setFieldValue("invoiceItems", updatedItems);
+  };
+
+  const updateItemPrice = (id, newPrice) => {
+    const updatedItems = invoiceItems.map((item) =>
+      item.id === id ? { ...item, price: newPrice } : item,
+    );
+    setFieldValue("invoiceItems", updatedItems);
+  };
+
+  const updatePackagePrice = (newPrice) => {
+    if (selectedPackage) {
+      const pkg = availablePackages.find(p => p._id === selectedPackage.packageId || p.id === selectedPackage.packageId);
+      let tierName = selectedPackage.tierName;
+      if (pkg && pkg.pricingTiers) {
+        const matchingTier = pkg.pricingTiers.find(t => t.price === newPrice);
+        if (matchingTier) {
+          tierName = matchingTier.name;
+        }
+      }
+      setFieldValue("selectedPackage", { ...selectedPackage, price: newPrice, tierName });
+    }
   };
 
   const removeItem = (id) => {
     const updatedItems = invoiceItems.filter(
       (item) => item.id !== id,
     );
-    setInvoiceItems(updatedItems);
+    setFieldValue("invoiceItems", updatedItems);
+  };
+
+  const handleSelectPackage = (name) => {
+    const pkg = availablePackages.find((p) => p.name === name);
+    if (pkg) {
+      if (pkg.pricingTiers && pkg.pricingTiers.length > 0) {
+        const firstTier = pkg.pricingTiers[0];
+        const newItem = {
+          id: `pkg-${Date.now()}`,
+          packageId: pkg._id || pkg.id,
+          packageName: pkg.name,
+          tierName: firstTier.name,
+          price: firstTier.price,
+          allTiers: pkg.pricingTiers,
+          icon: "package-variant-closed"
+        };
+        setFieldValue("selectedPackage", newItem);
+        setSelectedPkgName("");
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "This package does not have any pricing tiers.",
+        });
+      }
+    }
   };
 
   const calculateTotal = () => {
-    const itemsTotal = invoiceItems.reduce(
+    let itemsTotal = invoiceItems.reduce(
       (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
       0,
     );
+    if (selectedPackage) {
+      itemsTotal += (selectedPackage.price || 0);
+    }
     return Math.max(0, itemsTotal - discount);
   };
 
@@ -197,28 +272,28 @@ export default function AddInvoice() {
   };
 
   // Core Submission API Integration
-  const handleGenerateInvoice = async (markPaid) => {
+  const handleGenerateInvoice = async (values, { setSubmitting }) => {
     try {
-      if (!customer || !customer.mobile || customer.mobile.length !== 10) {
-        Toast.show({
-          type: "error",
-          text1: "Validation Error",
-          text2: "A valid 10-digit customer mobile number is required.",
-          position: "top",
-        });
-        return;
-      }
-
       setLoading(true);
 
       // 1. Create the Base Invoice
       const createPayload = {
-        customer: customer?._id,
+        customer: values.customer?._id,
       };
 
+      if (values.selectedPackage) {
+        createPayload.selectedPackage = {
+          package: values.selectedPackage.packageId,
+          selectedPackageTier: {
+            name: values.selectedPackage.tierName,
+            price: values.selectedPackage.price
+          }
+        };
+      }
+
       // Consolidate additionalItems and additionalServices natively into the payload
-      if (invoiceItems && invoiceItems.length > 0) {
-        createPayload.additionalItems = invoiceItems
+      if (values.invoiceItems && values.invoiceItems.length > 0) {
+        createPayload.additionalItems = values.invoiceItems
           .filter((item) => item.type !== "service")
           .map((item) => ({
             item: item.dbId,
@@ -226,7 +301,7 @@ export default function AddInvoice() {
             sellingPrice: item.price,
           }));
 
-        createPayload.additionalServices = invoiceItems
+        createPayload.additionalServices = values.invoiceItems
           .filter((item) => item.type === "service")
           .map((item) => ({
             service: item.dbId,
@@ -245,7 +320,7 @@ export default function AddInvoice() {
       }
 
       // 3. Mark paid if requested
-      if (markPaid) {
+      if (values.markPaid) {
         await invoiceService.completeInvoice(invoiceId);
         Toast.show({
           type: "success",
@@ -276,6 +351,7 @@ export default function AddInvoice() {
       });
     } finally {
       setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -364,7 +440,7 @@ export default function AddInvoice() {
               </Text>
             </View>
             <TouchableOpacity
-              onPress={() => setCustomer(null)}
+              onPress={() => setFieldValue("customer", null)}
             >
               <Ionicons
                 name="close-circle"
@@ -374,8 +450,27 @@ export default function AddInvoice() {
             </TouchableOpacity>
           </View>
         )}
+        {touched.customer && errors.customer && (
+          <Text style={[styles.errorText, { marginTop: -10, marginBottom: 15 }]}>
+            {typeof errors.customer === "string" ? errors.customer : errors.customer.mobile}
+          </Text>
+        )}
 
         <View style={{ height: 8 }} />
+
+        {/* Package Selector */}
+        <Text style={styles.sectionHeader}>PACKAGE SELECTOR</Text>
+        <DropdownInput
+          value={selectedPkgName}
+          options={(availablePackages || [])
+            .filter((p) => p.name)
+            .map((p) => p.name)}
+          onSelect={handleSelectPackage}
+          placeholder={selectedPackage ? "Package Already Selected" : "Select Package"}
+          disabled={!!selectedPackage}
+        />
+
+        <View style={{ height: 16 }} />
 
         {/* Service Selector */}
         <Text style={styles.sectionHeader}>ADDITIONAL SERVICE SELECTOR</Text>
@@ -409,10 +504,27 @@ export default function AddInvoice() {
         <View style={styles.itemsHeaderRow}>
           <Text style={styles.sectionHeader}>ADDED ITEMS & SERVICES</Text>
           <Text style={styles.itemsCountText}>
-            {invoiceItems.length}{" "}
+            {(invoiceItems.length + (selectedPackage ? 1 : 0))}{" "}
             Items Added
           </Text>
         </View>
+
+        {selectedPackage && (
+          <SwipeableItemCard
+            title={selectedPackage.packageName}
+            subtitle={`Package - ${selectedPackage.tierName}`}
+            price={`Rs. ${formatPrice(selectedPackage.price)}`}
+            icon="package-variant-closed"
+            quantity={selectedPackage.price}
+            isPrice={true}
+            pricingTiers={(selectedPackage.allTiers || []).map((t) => ({
+              model: t.name,
+              price: t.price,
+            }))}
+            onUpdateQuantity={updatePackagePrice}
+            onDelete={() => setSelectedPackage(null)}
+          />
+        )}
 
         {invoiceItems.map((item) => (
           <SwipeableItemCard
@@ -423,17 +535,25 @@ export default function AddInvoice() {
             }
             price={`Rs. ${formatPrice(item.price * item.quantity)}`}
             icon={item.icon}
-            quantity={item.type === "service" ? undefined : item.quantity}
-            onUpdateQuantity={
+            quantity={item.type === "service" ? item.price : item.quantity}
+            isPrice={item.type === "service"}
+            pricingTiers={
               item.type === "service"
-                ? undefined
-                : (newQty) => updateItemQuantity(item.id, newQty)
+                ? (item.prices || []).map((p) => ({ model: p.model, price: p.price }))
+                : []
             }
+            onUpdateQuantity={(newVal) => {
+              if (item.type === "service") {
+                updateItemPrice(item.id, newVal);
+              } else {
+                updateItemQuantity(item.id, newVal);
+              }
+            }}
             onDelete={() => removeItem(item.id)}
           />
         ))}
 
-        {invoiceItems.length === 0 && (
+        {invoiceItems.length === 0 && !selectedPackage && (
           <View style={{ padding: 40, alignItems: "center" }}>
             <Text style={{ color: colors.SECONDARY, fontSize: 13 }}>
               No items added yet
@@ -494,7 +614,7 @@ export default function AddInvoice() {
               placeholder="Enter Discount (Rs.)"
               keyboardType="numeric"
               value={discount.toString()}
-              onChangeText={(text) => setDiscount(Number(text) || 0)}
+              onChangeText={(text) => setFieldValue("discount", Number(text) || 0)}
               autoFocus
             />
             <TouchableOpacity
@@ -508,7 +628,10 @@ export default function AddInvoice() {
 
         <TouchableOpacity
           style={styles.saveDraftBtn}
-          onPress={() => handleGenerateInvoice(false)}
+          onPress={async () => {
+            await setFieldValue("markPaid", false);
+            handleSubmit();
+          }}
           disabled={loading}
         >
           {loading ? (
@@ -523,7 +646,10 @@ export default function AddInvoice() {
 
         <TouchableOpacity
           style={styles.generateBtn}
-          onPress={() => handleGenerateInvoice(true)}
+          onPress={async () => {
+            await setFieldValue("markPaid", true);
+            handleSubmit();
+          }}
           disabled={loading}
         >
           {loading ? (
@@ -776,5 +902,38 @@ const styles = StyleSheet.create({
   applyDiscountText: {
     color: colors.DARK,
     fontWeight: "700",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: colors.LIGHT,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "50%",
+  },
+  modalHeader: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: colors.SECONDARY,
+    marginBottom: 16,
+    textAlign: "center",
+    letterSpacing: 1,
+  },
+  optItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.BORDER_COLOR + "40",
+  },
+  optText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.DARK,
   },
 });
