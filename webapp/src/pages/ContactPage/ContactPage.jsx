@@ -113,12 +113,12 @@ function ContactPage() {
             <div className="opening-hours-grid">
               <div className="hour-item">
                 <span>TUESDAY - SATURDAY</span>
-                <h4>8:00 AM - 7:00 PM</h4>
+                <h4>8:30 AM - 6:00 PM</h4>
               </div>
               <div className="hour-divider"></div>
               <div className="hour-item">
                 <span> SUNDAY</span>
-                <h4>9:00 AM - 5:00 PM</h4>
+                <h4>8:30 AM - 6:00 PM</h4>
               </div>
               <div className="hour-divider"></div>
               <div className="hour-item">
