@@ -13,8 +13,8 @@ export const CONTACT_INFO = {
     },
     EMAIL: {
         label: "EMAIL US",
-        value: "info@shinedepot.lk",
-        link: "mailto:info@shinedepot.lk",
+        value: "shinedepotlk@gmail.com",
+        link: "mailto:shinedepotlk@gmail.com",
         icon: "fa-solid fa-envelope",
     },
     LOCATION: {

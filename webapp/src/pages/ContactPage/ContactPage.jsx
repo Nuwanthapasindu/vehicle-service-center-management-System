@@ -9,7 +9,7 @@ function ContactPage() {
     <div className="contact-page-wrapper">
       <SEO 
         title="Contact Us & Location"
-        description="Get in touch with Shine Depot Support. Visit our center at 108 Old Kottawa Rd, Nugegoda. Call us at +94 76 315 3797 or email info@shinedepot.lk."
+        description="Get in touch with Shine Depot Support. Visit our center at 108 Old Kottawa Rd, Nugegoda. Call us at +94 76 315 3797 or email shinedepotlk@gmail.com."
         keywords="Shine Depot contact, Shine Depot phone number, Shine Depot location, car wash Nugegoda address, auto service booking"
         path="/contact"
       />
@@ -59,7 +59,7 @@ function ContactPage() {
                     </div>
                     <div className="method-info">
                       <span>EMAIL US</span>
-                      <h4>info@shinedepot.lk</h4>
+                      <h4>shinedepotlk@gmail.com</h4>
                     </div>
                   </div>
                   <div className="contact-method-card shadow-sm">
