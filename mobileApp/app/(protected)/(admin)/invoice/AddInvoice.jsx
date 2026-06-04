@@ -22,15 +22,42 @@ import CustomerSearchResult from "../../../../components/CustomerSearchResult";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../../../../constants/colors";
 import DropdownInput from "../../../../components/DropdownInput";
+import { packageService } from "../../../../services/package/package.service";
+import { useFormik } from "formik";
+import { CreateInvoiceSchema } from "../../../../schema/invoice.schema";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 
 export default function AddInvoice() {
   const router = useRouter();
+
+  const formik = useFormik({
+    initialValues: {
+      customer: null,
+      selectedPackage: null,
+      invoiceItems: [],
+      discount: 0,
+      markPaid: false,
+      date: new Date(),
+    },
+    validationSchema: CreateInvoiceSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      await handleGenerateInvoice(values, { setSubmitting });
+    },
+  });
+
+  const { values, errors, touched, setFieldValue, handleSubmit } = formik;
+  const { customer, selectedPackage, invoiceItems, discount, date } = values;
+
   const [service, setService] = useState("");
   const [inventory, setInventory] = useState("");
   const [loading, setLoading] = useState(false);
   const [availableServices, setAvailableServices] = useState([]);
   const [availableInventory, setAvailableInventory] = useState([]);
+
+  // Package Selection States
+  const [selectedPkgName, setSelectedPkgName] = useState("");
+  const [availablePackages, setAvailablePackages] = useState([]);
 
   // Customer Search States
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,8 +65,9 @@ export default function AddInvoice() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [discount, setDiscount] = useState(0);
   const [showDiscountInput, setShowDiscountInput] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Load Search History on Mount
   useEffect(() => {
@@ -71,20 +99,20 @@ export default function AddInvoice() {
     }
   };
 
-  const [customer, setCustomer] = useState(null);
-  const [invoiceItems, setInvoiceItems] = useState([]);
-
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [servicesData, inventoryData] = await Promise.all([
+        const [servicesData, inventoryData, packagesData] = await Promise.all([
           serviceService.fetchServices(),
           inventoryService.fetchInventory(),
+          packageService.fetchPackagesAdmin({ limit: 100 }),
         ]);
         setAvailableServices(Array.isArray(servicesData) ? servicesData : []);
         setAvailableInventory(
           Array.isArray(inventoryData) ? inventoryData : [],
         );
+        const fetchedPackages = packagesData?.data?.payload?.packages || [];
+        setAvailablePackages(Array.isArray(fetchedPackages) ? fetchedPackages : []);
       } catch (err) {
         if (err.response) {
           console.error("Error Status:", err.response.status);
@@ -125,7 +153,7 @@ export default function AddInvoice() {
   };
 
   const handleSelectCustomer = (selectedCust) => {
-    setCustomer(selectedCust);
+    setFieldValue("customer", selectedCust);
     setSearchQuery(selectedCust.mobile);
     setShowSuggestions(false);
 
@@ -145,10 +173,11 @@ export default function AddInvoice() {
         type: "service",
         name: srv.name,
         price: srv.prices[0]?.price || 0,
+        prices: srv.prices || [],
         quantity: 1,
         icon: "cog-outline",
       };
-      setInvoiceItems([...invoiceItems, newItem]);
+      setFieldValue("invoiceItems", [...invoiceItems, newItem]);
       setService(""); // local UI state for dropdown reset remains
     }
   };
@@ -165,7 +194,7 @@ export default function AddInvoice() {
         quantity: 1,
         icon: "cube-outline",
       };
-      setInvoiceItems([...invoiceItems, newItem]);
+      setFieldValue("invoiceItems", [...invoiceItems, newItem]);
       setInventory("");
     }
   };
@@ -174,21 +203,71 @@ export default function AddInvoice() {
     const updatedItems = invoiceItems.map((item) =>
       item.id === id ? { ...item, quantity: newQty } : item,
     );
-    setInvoiceItems(updatedItems);
+    setFieldValue("invoiceItems", updatedItems);
+  };
+
+  const updateItemPrice = (id, newPrice) => {
+    const updatedItems = invoiceItems.map((item) =>
+      item.id === id ? { ...item, price: newPrice } : item,
+    );
+    setFieldValue("invoiceItems", updatedItems);
+  };
+
+  const updatePackagePrice = (newPrice) => {
+    if (selectedPackage) {
+      const pkg = availablePackages.find(p => p._id === selectedPackage.packageId || p.id === selectedPackage.packageId);
+      let tierName = selectedPackage.tierName;
+      if (pkg && pkg.pricingTiers) {
+        const matchingTier = pkg.pricingTiers.find(t => t.price === newPrice);
+        if (matchingTier) {
+          tierName = matchingTier.name;
+        }
+      }
+      setFieldValue("selectedPackage", { ...selectedPackage, price: newPrice, tierName });
+    }
   };
 
   const removeItem = (id) => {
     const updatedItems = invoiceItems.filter(
       (item) => item.id !== id,
     );
-    setInvoiceItems(updatedItems);
+    setFieldValue("invoiceItems", updatedItems);
+  };
+
+  const handleSelectPackage = (name) => {
+    const pkg = availablePackages.find((p) => p.name === name);
+    if (pkg) {
+      if (pkg.pricingTiers && pkg.pricingTiers.length > 0) {
+        const firstTier = pkg.pricingTiers[0];
+        const newItem = {
+          id: `pkg-${Date.now()}`,
+          packageId: pkg._id || pkg.id,
+          packageName: pkg.name,
+          tierName: firstTier.name,
+          price: firstTier.price,
+          allTiers: pkg.pricingTiers,
+          icon: "package-variant-closed"
+        };
+        setFieldValue("selectedPackage", newItem);
+        setSelectedPkgName("");
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "This package does not have any pricing tiers.",
+        });
+      }
+    }
   };
 
   const calculateTotal = () => {
-    const itemsTotal = invoiceItems.reduce(
+    let itemsTotal = invoiceItems.reduce(
       (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
       0,
     );
+    if (selectedPackage) {
+      itemsTotal += (selectedPackage.price || 0);
+    }
     return Math.max(0, itemsTotal - discount);
   };
 
@@ -197,28 +276,29 @@ export default function AddInvoice() {
   };
 
   // Core Submission API Integration
-  const handleGenerateInvoice = async (markPaid) => {
+  const handleGenerateInvoice = async (values, { setSubmitting }) => {
     try {
-      if (!customer || !customer.mobile || customer.mobile.length !== 10) {
-        Toast.show({
-          type: "error",
-          text1: "Validation Error",
-          text2: "A valid 10-digit customer mobile number is required.",
-          position: "top",
-        });
-        return;
-      }
-
       setLoading(true);
 
       // 1. Create the Base Invoice
       const createPayload = {
-        customer: customer?._id,
+        customer: values.customer?._id,
+        date: values.date ? new Date(values.date).toISOString() : new Date().toISOString(),
       };
 
+      if (values.selectedPackage) {
+        createPayload.selectedPackage = {
+          package: values.selectedPackage.packageId,
+          selectedPackageTier: {
+            name: values.selectedPackage.tierName,
+            price: values.selectedPackage.price
+          }
+        };
+      }
+
       // Consolidate additionalItems and additionalServices natively into the payload
-      if (invoiceItems && invoiceItems.length > 0) {
-        createPayload.additionalItems = invoiceItems
+      if (values.invoiceItems && values.invoiceItems.length > 0) {
+        createPayload.additionalItems = values.invoiceItems
           .filter((item) => item.type !== "service")
           .map((item) => ({
             item: item.dbId,
@@ -226,7 +306,7 @@ export default function AddInvoice() {
             sellingPrice: item.price,
           }));
 
-        createPayload.additionalServices = invoiceItems
+        createPayload.additionalServices = values.invoiceItems
           .filter((item) => item.type === "service")
           .map((item) => ({
             service: item.dbId,
@@ -245,7 +325,7 @@ export default function AddInvoice() {
       }
 
       // 3. Mark paid if requested
-      if (markPaid) {
+      if (values.markPaid) {
         await invoiceService.completeInvoice(invoiceId);
         Toast.show({
           type: "success",
@@ -276,6 +356,7 @@ export default function AddInvoice() {
       });
     } finally {
       setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -285,11 +366,40 @@ export default function AddInvoice() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Invoice Date */}
+        <Text style={styles.sectionHeader}>INVOICE DATE</Text>
+        <TouchableOpacity
+          style={styles.dateSelectorContainer}
+          onPress={() => setShowDatePicker(true)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="calendar-outline" size={20} color={colors.PRIMARY} style={{ marginRight: 10 }} />
+          <Text style={styles.dateSelectorText}>
+            {date ? new Date(date).toLocaleDateString() : "Select Invoice Date"}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={date ? new Date(date) : new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (event.type === "set" && selectedDate) {
+                setFieldValue("date", selectedDate);
+              }
+            }}
+          />
+        )}
+
+        <View style={{ height: 20 }} />
+
         {/* Customer Details */}
         <Text style={styles.sectionHeader}>CUSTOMER DETAILS</Text>
         <View style={styles.customer_container}>
           <View style={styles.customerRow}>
-            <View style={styles.searchContainer}>
+            <View style={[styles.searchContainer, isSearchFocused && styles.searchContainerFocused]}>
               <Ionicons
                 name="search-outline"
                 size={20}
@@ -305,7 +415,11 @@ export default function AddInvoice() {
                   setSearchQuery(text);
                   setShowSuggestions(true);
                 }}
-                onFocus={() => setShowSuggestions(true)}
+                onFocus={() => {
+                  setShowSuggestions(true);
+                  setIsSearchFocused(true);
+                }}
+                onBlur={() => setIsSearchFocused(false)}
               />
               {isSearching && (
                 <ActivityIndicator
@@ -355,6 +469,9 @@ export default function AddInvoice() {
         </View>
         {customer && (
           <View style={styles.selectedCustomerCard}>
+            <View style={styles.selectedCustomerAvatar}>
+              <Ionicons name="person" size={20} color={colors.PRIMARY} />
+            </View>
             <View style={styles.selectedCustomerInfo}>
               <Text style={styles.selectedCustomerName}>
                 {customer.name}
@@ -364,55 +481,97 @@ export default function AddInvoice() {
               </Text>
             </View>
             <TouchableOpacity
-              onPress={() => setCustomer(null)}
+              style={styles.removeCustomerBtn}
+              onPress={() => setFieldValue("customer", null)}
             >
               <Ionicons
-                name="close-circle"
-                size={20}
-                color={colors.DANGER_COLOR}
+                name="close"
+                size={18}
+                color={colors.SECONDARY}
               />
             </TouchableOpacity>
           </View>
         )}
+        {touched.customer && errors.customer && (
+          <Text style={[styles.errorText, { marginTop: -10, marginBottom: 15 }]}>
+            {typeof errors.customer === "string" ? errors.customer : errors.customer.mobile}
+          </Text>
+        )}
 
         <View style={{ height: 8 }} />
 
-        {/* Service Selector */}
-        <Text style={styles.sectionHeader}>ADDITIONAL SERVICE SELECTOR</Text>
-        <DropdownInput
-          value={service}
-          options={(availableServices || [])
-            .filter((s) => s.name)
-            .map((s) => s.name)}
-          onSelect={addAdditionalService}
-          placeholder="Add Additional Service"
-        />
+        {/* Selector Section Card */}
+        <View style={styles.selectorCard}>
+          <View style={styles.selectorCardHeader}>
+            <MaterialCommunityIcons name="playlist-plus" size={22} color={colors.PRIMARY} />
+            <Text style={styles.selectorCardTitle}>ADD SERVICES & INVENTORY</Text>
+          </View>
+          
+          <View style={styles.selectorItem}>
+            <Text style={styles.selectorItemLabel}>Service Package</Text>
+            <DropdownInput
+              value={selectedPkgName}
+              options={(availablePackages || [])
+                .filter((p) => p.name)
+                .map((p) => p.name)}
+              onSelect={handleSelectPackage}
+              placeholder={selectedPackage ? "Package Already Selected" : "Select Package"}
+              disabled={!!selectedPackage}
+            />
+          </View>
+
+          <View style={styles.selectorItem}>
+            <Text style={styles.selectorItemLabel}>Additional Service</Text>
+            <DropdownInput
+              value={service}
+              options={(availableServices || [])
+                .filter((s) => s.name)
+                .map((s) => s.name)}
+              onSelect={addAdditionalService}
+              placeholder="Select Additional Service"
+            />
+          </View>
+
+          <View style={styles.selectorItem}>
+            <Text style={styles.selectorItemLabel}>Parts & Fluids</Text>
+            <DropdownInput
+              value={inventory}
+              options={(availableInventory || [])
+                .filter((i) => i.name)
+                .map((i) => i.name)}
+              onSelect={addInventoryItem}
+              placeholder="Select Inventory Parts / Fluids"
+            />
+          </View>
+        </View>
 
         <View style={{ height: 16 }} />
-
-        {/* Inventory Selector */}
-        <Text style={styles.sectionHeader}>
-          ADDITIONAL INVENTORY ITEM SELECTOR
-        </Text>
-        <DropdownInput
-          value={inventory}
-          options={(availableInventory || [])
-            .filter((i) => i.name)
-            .map((i) => i.name)}
-          onSelect={addInventoryItem}
-          placeholder="Add Additional Parts & Fluids"
-        />
-
-        <View style={{ height: 24 }} />
 
         {/* Invoice Items */}
         <View style={styles.itemsHeaderRow}>
           <Text style={styles.sectionHeader}>ADDED ITEMS & SERVICES</Text>
           <Text style={styles.itemsCountText}>
-            {invoiceItems.length}{" "}
+            {(invoiceItems.length + (selectedPackage ? 1 : 0))}{" "}
             Items Added
           </Text>
         </View>
+
+        {selectedPackage && (
+          <SwipeableItemCard
+            title={selectedPackage.packageName}
+            subtitle={`Package - ${selectedPackage.tierName}`}
+            price={`Rs. ${formatPrice(selectedPackage.price)}`}
+            icon="package-variant-closed"
+            quantity={selectedPackage.price}
+            isPrice={true}
+            pricingTiers={(selectedPackage.allTiers || []).map((t) => ({
+              model: t.name,
+              price: t.price,
+            }))}
+            onUpdateQuantity={updatePackagePrice}
+            onDelete={() => setFieldValue("selectedPackage", null)}
+          />
+        )}
 
         {invoiceItems.map((item) => (
           <SwipeableItemCard
@@ -423,20 +582,29 @@ export default function AddInvoice() {
             }
             price={`Rs. ${formatPrice(item.price * item.quantity)}`}
             icon={item.icon}
-            quantity={item.type === "service" ? undefined : item.quantity}
-            onUpdateQuantity={
+            quantity={item.type === "service" ? item.price : item.quantity}
+            isPrice={item.type === "service"}
+            pricingTiers={
               item.type === "service"
-                ? undefined
-                : (newQty) => updateItemQuantity(item.id, newQty)
+                ? (item.prices || []).map((p) => ({ model: p.model, price: p.price }))
+                : []
             }
+            onUpdateQuantity={(newVal) => {
+              if (item.type === "service") {
+                updateItemPrice(item.id, newVal);
+              } else {
+                updateItemQuantity(item.id, newVal);
+              }
+            }}
             onDelete={() => removeItem(item.id)}
           />
         ))}
 
-        {invoiceItems.length === 0 && (
-          <View style={{ padding: 40, alignItems: "center" }}>
-            <Text style={{ color: colors.SECONDARY, fontSize: 13 }}>
-              No items added yet
+        {invoiceItems.length === 0 && !selectedPackage && (
+          <View style={styles.emptyStateContainer}>
+            <Ionicons name="cart-outline" size={32} color="#CBD5E1" />
+            <Text style={styles.emptyStateText}>
+              Billed items list is empty. Add a package or additional services/parts above.
             </Text>
           </View>
         )}
@@ -494,7 +662,7 @@ export default function AddInvoice() {
               placeholder="Enter Discount (Rs.)"
               keyboardType="numeric"
               value={discount.toString()}
-              onChangeText={(text) => setDiscount(Number(text) || 0)}
+              onChangeText={(text) => setFieldValue("discount", Number(text) || 0)}
               autoFocus
             />
             <TouchableOpacity
@@ -506,39 +674,47 @@ export default function AddInvoice() {
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.saveDraftBtn}
-          onPress={() => handleGenerateInvoice(false)}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={colors.LIGHT} />
-          ) : (
-            <>
-              <Ionicons name="mail-outline" size={20} color={colors.LIGHT} />
-              <Text style={styles.saveDraftText}>Save as Draft</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <View style={styles.actionRowButtons}>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.saveDraftBtn]}
+            onPress={async () => {
+              await setFieldValue("markPaid", false);
+              handleSubmit();
+            }}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={colors.LIGHT} />
+            ) : (
+              <>
+                <Ionicons name="mail-outline" size={18} color={colors.LIGHT} />
+                <Text style={styles.actionBtnText}>Save Draft</Text>
+              </>
+            )}
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.generateBtn}
-          onPress={() => handleGenerateInvoice(true)}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={colors.DARK} />
-          ) : (
-            <>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={22}
-                color={colors.DARK}
-              />
-              <Text style={styles.generateBtnText}>Generate & Mark Paid</Text>
-            </>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.generateBtn]}
+            onPress={async () => {
+              await setFieldValue("markPaid", true);
+              handleSubmit();
+            }}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={colors.DARK} />
+            ) : (
+              <>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color={colors.DARK}
+                />
+                <Text style={[styles.actionBtnText, { color: colors.DARK }]}>Generate</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -621,11 +797,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.LIGHT,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.BORDER_COLOR,
-    height: 48,
-    paddingHorizontal: 12,
+    height: 52,
+    paddingHorizontal: 16,
+  },
+  searchContainerFocused: {
+    borderColor: colors.PRIMARY,
+    borderWidth: 1.5,
   },
   searchIcon: {
     marginRight: 8,
@@ -714,33 +894,108 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   saveDraftBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
     backgroundColor: colors.DARK,
-    height: 54,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  saveDraftText: {
-    color: colors.LIGHT,
-    fontSize: 16,
-    fontWeight: "700",
-    marginLeft: 8,
   },
   generateBtn: {
+    backgroundColor: colors.PRIMARY,
+  },
+  actionRowButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 8,
+  },
+  actionBtn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.PRIMARY,
-    height: 54,
+    height: 52,
     borderRadius: 12,
   },
-  generateBtnText: {
-    color: colors.DARK,
-    fontSize: 16,
+  actionBtnText: {
+    color: colors.LIGHT,
+    fontSize: 14,
     fontWeight: "800",
-    marginLeft: 8,
+    marginLeft: 6,
+  },
+  selectedCustomerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(142, 219, 0, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  removeCustomerBtn: {
+    padding: 6,
+    borderRadius: 12,
+    backgroundColor: "#F1F5F9",
+  },
+  selectorCard: {
+    backgroundColor: colors.LIGHT,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  selectorCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+    paddingBottom: 10,
+  },
+  selectorCardTitle: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: colors.DARK,
+    letterSpacing: 0.5,
+  },
+  selectorItem: {
+    marginBottom: 14,
+  },
+  selectorItemLabel: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: colors.SECONDARY,
+    marginBottom: 6,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  emptyStateContainer: {
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    backgroundColor: colors.LIGHT,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    borderStyle: "dashed",
+    marginTop: 4,
+  },
+  emptyStateText: {
+    color: colors.SECONDARY,
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 8,
+    lineHeight: 18,
+    fontWeight: "500",
   },
   errorText: {
     color: colors.DANGER_COLOR,
@@ -774,6 +1029,55 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   applyDiscountText: {
+    color: colors.DARK,
+    fontWeight: "700",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: colors.LIGHT,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "50%",
+  },
+  modalHeader: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: colors.SECONDARY,
+    marginBottom: 16,
+    textAlign: "center",
+    letterSpacing: 1,
+  },
+  optItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.BORDER_COLOR + "40",
+  },
+  optText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.DARK,
+  },
+  dateSelectorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.LIGHT,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.BORDER_COLOR,
+    height: 52,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  dateSelectorText: {
+    fontSize: 15,
     color: colors.DARK,
     fontWeight: "700",
   },

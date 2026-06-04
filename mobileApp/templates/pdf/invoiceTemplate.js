@@ -8,7 +8,7 @@ export const getInvoiceTemplate = (invoice = {}) => {
 
     const vehicle = invoice.jobCard?.booking?.vehicle || {};
     
-    const invoiceDate = new Date(invoice.createdAt).toLocaleDateString();
+    const invoiceDate = new Date(invoice.date || invoice.createdAt).toLocaleDateString();
     const vehicleMakeModel = `${vehicle.make || 'Unknown'} ${vehicle.model || ''}`.trim();
     const vehicleYear = vehicle.year || 'N/A';
     const vehicleNumber = vehicle.licensePlate || 'N/A';
@@ -118,7 +118,7 @@ export const getInvoiceTemplate = (invoice = {}) => {
         <div class="company-details">
           <div class="company-name">SHINE DEPOT</div>
           <div class="company-info">108 Old Kottawa Rd, Nugegoda</div>
-          <div class="company-info">Hotline: +94 76 315 3797 | Email: info@shinedepot.lk</div>
+          <div class="company-info">Hotline: +94 76 315 3797 | Email: shinedepotlk@gmail.com</div>
         </div>
       </div>
       <div class="header-right">
@@ -176,7 +176,7 @@ export const getInvoiceTemplate = (invoice = {}) => {
     
     <div class="footer">
       Thank you for choosing Shine Depot!<br>
-      For any inquiries, contact support at +94 76 315 3797 | info@shinedepot.lk
+      For any inquiries, contact support at +94 76 315 3797 | shinedepotlk@gmail.com
     </div>
   </body>
 </html>

@@ -47,7 +47,7 @@ export default function AllInvoice() {
 
   const renderItem = ({ item }) => {
     const isPaid = item.isCompleted;
-    const dateStr = new Date(item.createdAt).toLocaleDateString();
+    const dateStr = new Date(item.date || item.createdAt).toLocaleDateString();
     // Default to LKR for formatting
     const totalAmount = item.totalPrice ? `LKR ${item.totalPrice.toFixed(2)}` : 'LKR 0.00';
     const customerName = item.customer?.name || 'Walk-in Customer';

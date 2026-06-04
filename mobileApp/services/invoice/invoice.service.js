@@ -18,6 +18,9 @@ export const invoiceService = {
   completeInvoice: async (id) => {
     return await axios.patch(`/invoice/${id}/complete`);
   },
+  deleteInvoice: async (id) => {
+    return await axios.delete(`/invoice/${id}`);
+  },
   createInvoice: async (payload) => {
     return await axios.post('/invoice', payload);
   },

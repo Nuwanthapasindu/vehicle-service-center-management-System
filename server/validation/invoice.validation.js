@@ -62,6 +62,9 @@ const createInvoiceSchema = Joi.object({
       }),
     )
     .optional(),
+  date: Joi.date().iso().optional().messages({
+    "date.format": "Invoice date must be a valid ISO date",
+  }),
 })
   .xor("jobCard", "customer")
   .messages({

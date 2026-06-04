@@ -50,7 +50,7 @@ export const exportHistoryToPDF = async (historyData, vehicle = null, filters = 
         doc.setFontSize(9);
         doc.setTextColor(100, 110, 120);
         doc.text("108 Old Kottawa Rd, Nugegoda", textX, 23);
-        doc.text("Hotline: +94 76 315 3797 | Email: info@shinedepot.lk", textX, 28);
+        doc.text("Hotline: +94 76 315 3797 | Email: shinedepotlk@gmail.com", textX, 28);
 
         // Draw Document Title on the right side
         doc.setFont("helvetica", "bold");

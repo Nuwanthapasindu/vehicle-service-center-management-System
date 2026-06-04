@@ -9,7 +9,7 @@ export default function CustomerVehiclesTab() {
   const { details } = useCustomerDetails();
   const [expandedVehicleId, setExpandedVehicleId] = useState(null);
 
-  const { vehicles, bookings, jobCards } = details;
+  const { vehicles, bookings, jobCards, invoices = [] } = details;
 
   const toggleExpand = (vId) => {
     setExpandedVehicleId(expandedVehicleId === vId ? null : vId);
@@ -33,10 +33,11 @@ export default function CustomerVehiclesTab() {
             vehicleBookings.forEach(b => {
               const jc = jobCards.find(j => j.booking?._id === b._id || j.booking === b._id);
               if (jc) {
-                vehicleJobCards.push({ booking: b, jobCard: jc });
+                const inv = invoices.find(i => i.jobCard?._id === jc._id || i.jobCard === jc._id || i.jobCard?.id === jc._id);
+                vehicleJobCards.push({ booking: b, jobCard: jc, invoice: inv });
                 if (jc.milageCount > maxMileage) maxMileage = jc.milageCount;
               } else {
-                vehicleJobCards.push({ booking: b, jobCard: null });
+                vehicleJobCards.push({ booking: b, jobCard: null, invoice: null });
               }
             });
 

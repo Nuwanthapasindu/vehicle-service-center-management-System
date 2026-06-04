@@ -295,7 +295,7 @@ module.exports.getVehicleDetailsAdmin = async (vehicleId) => {
 
       return {
         jobCardId: jc._id,
-        date: booking ? booking.date : jc.createdAt,
+        date: invoice && invoice.date ? invoice.date : (booking ? booking.date : jc.createdAt),
         status: jc.status,
         milageCount: jc.milageCount || 0,
         packageName: jc.selectedPackage ? jc.selectedPackage.name : "N/A",
