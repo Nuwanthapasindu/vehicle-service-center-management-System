@@ -8,7 +8,7 @@ export const getInvoiceTemplate = (invoice = {}) => {
 
     const vehicle = invoice.jobCard?.booking?.vehicle || {};
     
-    const invoiceDate = new Date(invoice.createdAt).toLocaleDateString();
+    const invoiceDate = new Date(invoice.date || invoice.createdAt).toLocaleDateString();
     const vehicleMakeModel = `${vehicle.make || 'Unknown'} ${vehicle.model || ''}`.trim();
     const vehicleYear = vehicle.year || 'N/A';
     const vehicleNumber = vehicle.licensePlate || 'N/A';

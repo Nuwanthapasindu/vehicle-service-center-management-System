@@ -126,6 +126,10 @@ exports.createInvoice = async (payload) => {
       saveData.additionalServices = value.additionalServices;
     }
 
+    if (value.date) {
+      saveData.date = value.date;
+    }
+
     const newInvoice = new Invoice({
       ...saveData,
     });

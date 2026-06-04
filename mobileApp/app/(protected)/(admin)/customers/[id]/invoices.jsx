@@ -22,7 +22,7 @@ export default function CustomerInvoicesTab() {
         <View style={styles.cardsWrapper}>
           {invoices.map((invoice) => {
             const isPaid = invoice.isCompleted;
-            const dateStr = new Date(invoice.createdAt).toLocaleDateString();
+            const dateStr = new Date(invoice.date || invoice.createdAt).toLocaleDateString();
             const totalAmount = invoice.totalPrice ? `LKR ${invoice.totalPrice.toFixed(2)}` : 'LKR 0.00';
             const plateno = invoice.jobCard?.booking?.vehicle?.licensePlate || 'N/A';
 

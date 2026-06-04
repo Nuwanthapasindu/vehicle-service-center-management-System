@@ -60,6 +60,10 @@ const invoiceSchema = new Schema(
         charge: { type: Number },
       },
     ],
+    date: {
+      type: Date,
+      default: Date.now,
+    },
     isCompleted: {
       type: Boolean,
       default: false,

@@ -52,12 +52,12 @@ export default function VehicleExpandableCard({
         <View style={styles.expandedSection}>
           <Text style={styles.historyTitle}>Service History ({vehicleJobCards.length})</Text>
           {vehicleJobCards.length > 0 ? (
-            vehicleJobCards.map(({ booking: b, jobCard: jc }) => (
+            vehicleJobCards.map(({ booking: b, jobCard: jc, invoice: inv }) => (
               <View key={b._id} style={styles.historyCard}>
                 <View style={styles.historyHeaderRow}>
                   <View style={styles.dateRow}>
                     <Calendar size={14} color={colors.PRIMARY} />
-                    <Text style={styles.dateText}>{new Date(b.date).toLocaleDateString()}</Text>
+                    <Text style={styles.dateText}>{new Date(inv?.date || b.date).toLocaleDateString()}</Text>
                   </View>
                   {jc && (
                     <View style={[styles.statusBadge, { backgroundColor: jc.status === 'FINISH' ? '#E8F5E9' : '#FFF3E0' }]}>
