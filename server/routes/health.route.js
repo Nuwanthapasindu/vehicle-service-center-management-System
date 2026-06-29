@@ -46,8 +46,6 @@ router.get("/", (req, res) => {
     },
     database: {
       status: dbStateMap[dbState] || "Unknown",
-      host: mongoose.connection.host || "N/A",
-      name: mongoose.connection.name || "N/A",
     },
     memory: {
       rss: formatBytes(process.memoryUsage().rss),
