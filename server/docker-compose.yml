@@ -21,7 +21,7 @@ services:
       - .env
     environment:
       - RUN_SEED=true
-      - ADMIN_USERNAME=admin
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-password123}
     restart: always
     networks:
