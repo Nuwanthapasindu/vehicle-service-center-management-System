@@ -337,13 +337,33 @@ module.exports.getDashboardData = async (mobile) => {
     const upcomingBooking = activeBookingsList[0] || null;
 
     // Recent Vehicles (max 4)
-    const recentVehicles = await Vehicle.find({
+    const recentVehiclesDocs = await Vehicle.find({
       ownerId: owner._id,
       isDeleted: false,
     })
       .populate("image", "filePath")
       .sort({ createdAt: -1 })
       .limit(4);
+
+    const recentVehicles = await Promise.all(
+      recentVehiclesDocs.map(async (v) => {
+        const bookings = await Booking.find({ vehicle: v._id }).select("_id");
+        const bookingIds = bookings.map((b) => b._id);
+
+        const latestJobCard = await JobCard.findOne({
+          booking: { $in: bookingIds },
+          isDeleted: false,
+        })
+          .sort({ createdAt: -1 })
+          .select("nextServiceDate nextServiceMileage");
+
+        return {
+          ...v.toObject(),
+          nextServiceDate: latestJobCard ? latestJobCard.nextServiceDate : null,
+          nextServiceMileage: latestJobCard ? latestJobCard.nextServiceMileage : null,
+        };
+      })
+    );
 
     // Recent History (max 5)
     const historyRes = await this.getBookingHistory(mobile);
@@ -581,7 +601,7 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
       booking: bookingId,
       isDeleted: false,
     })
-      .select("selectedPackage team status milageCount")
+      .select("selectedPackage team status milageCount nextServiceDate nextServiceMileage")
       .populate("selectedPackage", "name")
       .populate("team", "name");
 
@@ -635,6 +655,8 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
         statusZone: statusZ,
         jobCardId: jobCard ? jobCard._id : null,
         milageCount: jobCard ? jobCard.milageCount : null,
+        nextServiceDate: jobCard ? jobCard.nextServiceDate : null,
+        nextServiceMileage: jobCard ? jobCard.nextServiceMileage : null,
       },
       assignedTeam: assignedT,
       teams: formattedTeams,

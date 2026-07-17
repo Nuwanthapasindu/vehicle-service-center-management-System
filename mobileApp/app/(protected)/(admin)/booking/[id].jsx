@@ -26,6 +26,7 @@ import CustomInput from "../../../../components/CustomInput";
 import { useFormik } from "formik";
 import { createJobCardSchema } from "../../../../schema/jobCardSchema";
 import Toast from "react-native-toast-message";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import enums from "../../../../constants/enums";
 import FALLBACK_IMG from "../../../../assets/default-car.png";
 
@@ -44,6 +45,7 @@ export default function BookingDetails() {
   const [statusZone, setStatusZone] = useState(enums.JOBCARD_STATUS.PENDING);
   const [isGenerated, setIsGenerated] = useState(false);
   const [invoiceDetails, setInvoiceDetails] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Formik for Input Validation
   const formik = useFormik({
@@ -51,6 +53,8 @@ export default function BookingDetails() {
     initialValues: {
       booking: id || "",
       milageCount: "",
+      nextServiceDate: null,
+      nextServiceMileage: "",
       selectedPackage: "",
       selectedTier: null,
       assignedTeam: null,
@@ -75,6 +79,8 @@ export default function BookingDetails() {
             booking: id,
             selectedPackage: values.selectedPackage,
             milageCount: Number(values.milageCount),
+            nextServiceDate: values.nextServiceDate || null,
+            nextServiceMileage: values.nextServiceMileage ? Number(values.nextServiceMileage) : null,
           };
           const jobResponse = await jobCardService.createJobCard(jobPayload);
           newJobId = jobResponse.data?.payload?.data?._id;
@@ -181,6 +187,14 @@ export default function BookingDetails() {
             "milageCount",
             String(details.service.milageCount),
           );
+        }
+
+        if (details.service.nextServiceDate) {
+          formik.setFieldValue("nextServiceDate", new Date(details.service.nextServiceDate));
+        }
+
+        if (details.service.nextServiceMileage !== undefined && details.service.nextServiceMileage !== null) {
+          formik.setFieldValue("nextServiceMileage", String(details.service.nextServiceMileage));
         }
 
         const fullPkg = allPackages.find(
@@ -378,6 +392,51 @@ export default function BookingDetails() {
             onBlur={formik.handleBlur("milageCount")}
             error={formik.errors.milageCount}
             touched={formik.touched.milageCount}
+            editable={!isGenerated}
+          />
+
+          <Text style={styles.label}>Next Service Date (Optional)</Text>
+          <TouchableOpacity
+            style={[styles.dropdownInput, { marginBottom: 16 }]}
+            onPress={() => !isGenerated && setShowDatePicker(true)}
+            disabled={isGenerated}
+          >
+            <Ionicons name="calendar-outline" size={18} color={colors.SECONDARY} style={{ marginRight: 8 }} />
+            <Text style={{ color: formik.values.nextServiceDate ? colors.DARK : colors.SECONDARY, flex: 1 }}>
+              {formik.values.nextServiceDate ? formik.values.nextServiceDate.toDateString() : "Select Date"}
+            </Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={formik.values.nextServiceDate || new Date()}
+              mode="date"
+              display="default"
+              minimumDate={new Date()}
+              onChange={(event, date) => {
+                setShowDatePicker(false);
+                if (event.type === "set" && date) {
+                  formik.setFieldValue("nextServiceDate", date);
+                }
+              }}
+            />
+          )}
+
+          <CustomInput
+            label="Next Service Mileage (Optional)"
+            placeholder="e.g. 50000"
+            keyboardType="numeric"
+            icon={
+              <Ionicons
+                name="speedometer-outline"
+                size={18}
+                color={colors.SECONDARY}
+              />
+            }
+            value={formik.values.nextServiceMileage ? String(formik.values.nextServiceMileage) : ""}
+            onChangeText={formik.handleChange("nextServiceMileage")}
+            onBlur={formik.handleBlur("nextServiceMileage")}
+            error={formik.errors.nextServiceMileage}
+            touched={formik.touched.nextServiceMileage}
             editable={!isGenerated}
           />
 

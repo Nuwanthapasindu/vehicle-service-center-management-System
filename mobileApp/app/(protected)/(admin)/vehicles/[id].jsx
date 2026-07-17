@@ -45,7 +45,7 @@ export default function VehicleDetails() {
     try {
       const data = await vehicleService.getVehicleDetailsAdmin(id);
       setDetails(data);
-    } catch (error) {
+     } catch (error) {
       Toast.show({
         type: "error",
         text1: "Error",
@@ -87,7 +87,7 @@ export default function VehicleDetails() {
     );
   }
 
-  const { vehicle, totalExpenditure, serviceHistory = [] } = details;
+  const { vehicle, totalExpenditure, serviceHistory = [], nextServiceDate, nextServiceMileage } = details;
   const isDeleted = vehicle.isDeleted || vehicle.licensePlate?.includes("-deleted-");
   const displayPlate = vehicle.licensePlate?.split("-deleted-")[0] || vehicle.licensePlate;
 
@@ -226,6 +226,31 @@ export default function VehicleDetails() {
               </View>
             )}
           </View>
+
+          {/* NEXT SERVICE INFO */}
+          {(nextServiceDate || nextServiceMileage) && (
+            <>
+              <Text style={styles.sectionHeader}>Next Service Details</Text>
+              <View style={styles.ownerCard}>
+                {nextServiceDate && (
+                  <View style={[styles.ownerDetailRow, { marginBottom: nextServiceMileage ? 8 : 0 }]}>
+                    <Calendar size={16} color={colors.PRIMARY} />
+                    <Text style={[styles.ownerDetailText, { fontSize: 16, marginLeft: 8, color: colors.DARK }]}>
+                      Date: {new Date(nextServiceDate).toLocaleDateString()}
+                    </Text>
+                  </View>
+                )}
+                {nextServiceMileage && (
+                  <View style={styles.ownerDetailRow}>
+                    <Activity size={16} color={colors.PRIMARY} />
+                    <Text style={[styles.ownerDetailText, { fontSize: 16, marginLeft: 8, color: colors.DARK }]}>
+                      Mileage: {nextServiceMileage?.toLocaleString()} km
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </>
+          )}
 
           {/* SERVICE HISTORY TIMELINE */}
           <Text style={styles.sectionHeader}>Service History ({serviceHistory.length})</Text>

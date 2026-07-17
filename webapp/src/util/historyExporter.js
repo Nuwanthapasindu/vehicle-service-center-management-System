@@ -85,7 +85,19 @@ export const exportHistoryToPDF = async (historyData, vehicle = null, filters = 
             doc.text(`License Plate: ${vehicle.licensePlate}`, 14, startY + 12);
             doc.text(`Vehicle Type: ${vehicle.type}`, 14, startY + 18);
             doc.text(`Manufacture Year: ${vehicle.year || 'N/A'}`, 14, startY + 24);
-            startY += 32;
+            
+            let yOffset = 30;
+            if (vehicle.nextServiceDate) {
+                const nsDate = new Date(vehicle.nextServiceDate).toLocaleDateString();
+                doc.text(`Next Service Date: ${nsDate}`, 14, startY + yOffset);
+                yOffset += 6;
+            }
+            if (vehicle.nextServiceMileage) {
+                doc.text(`Next Service Mileage: ${vehicle.nextServiceMileage.toLocaleString()} km`, 14, startY + yOffset);
+                yOffset += 6;
+            }
+            
+            startY += yOffset + 2;
         }
 
         // 2.2 FILTERS INFO

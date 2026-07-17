@@ -68,7 +68,27 @@ module.exports.getMyVehicles = async (mobile) => {
       .populate("image")
       .sort({ createdAt: -1 });
 
-    return vehicles;
+    const populatedVehicles = await Promise.all(
+      vehicles.map(async (v) => {
+        const bookings = await Booking.find({ vehicle: v._id }).select("_id");
+        const bookingIds = bookings.map((b) => b._id);
+
+        const latestJobCard = await JobCard.findOne({
+          booking: { $in: bookingIds },
+          isDeleted: false,
+        })
+          .sort({ createdAt: -1 })
+          .select("nextServiceDate nextServiceMileage");
+
+        return {
+          ...v.toObject(),
+          nextServiceDate: latestJobCard ? latestJobCard.nextServiceDate : null,
+          nextServiceMileage: latestJobCard ? latestJobCard.nextServiceMileage : null,
+        };
+      })
+    );
+
+    return populatedVehicles;
   } catch (error) {
     if (error instanceof AppError) throw error;
     throw new AppError(
@@ -151,7 +171,21 @@ module.exports.getVehicleById = async (vehicleId, mobile) => {
     }).populate("image");
     if (!vehicle) throw new AppError("Vehicle not found", 404);
 
-    return vehicle;
+    const bookings = await Booking.find({ vehicle: vehicle._id }).select("_id");
+    const bookingIds = bookings.map((b) => b._id);
+
+    const latestJobCard = await JobCard.findOne({
+      booking: { $in: bookingIds },
+      isDeleted: false,
+    })
+      .sort({ createdAt: -1 })
+      .select("nextServiceDate nextServiceMileage");
+
+    const vehicleData = vehicle.toObject();
+    vehicleData.nextServiceDate = latestJobCard ? latestJobCard.nextServiceDate : null;
+    vehicleData.nextServiceMileage = latestJobCard ? latestJobCard.nextServiceMileage : null;
+
+    return vehicleData;
   } catch (error) {
     if (error instanceof AppError) throw error;
     throw new AppError(
@@ -298,6 +332,8 @@ module.exports.getVehicleDetailsAdmin = async (vehicleId) => {
         date: invoice && invoice.date ? invoice.date : (booking ? booking.date : jc.createdAt),
         status: jc.status,
         milageCount: jc.milageCount || 0,
+        nextServiceDate: jc.nextServiceDate || null,
+        nextServiceMileage: jc.nextServiceMileage || null,
         packageName: jc.selectedPackage ? jc.selectedPackage.name : "N/A",
         packageDescription: jc.selectedPackage ? jc.selectedPackage.description : "",
         services: jc.selectedPackage && jc.selectedPackage.servicesIncluded 
@@ -311,10 +347,20 @@ module.exports.getVehicleDetailsAdmin = async (vehicleId) => {
     // Sort service history by date descending
     serviceHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    // Top level next service info
+    let nextServiceDate = null;
+    let nextServiceMileage = null;
+    if (serviceHistory.length > 0) {
+      nextServiceDate = serviceHistory[serviceHistory.length - 1].nextServiceDate;
+      nextServiceMileage = serviceHistory[serviceHistory.length - 1].nextServiceMileage;
+    }
+
     return {
       vehicle,
       totalExpenditure,
-      serviceHistory
+      serviceHistory,
+      nextServiceDate,
+      nextServiceMileage
     };
   } catch (error) {
     if (error instanceof AppError) throw error;
