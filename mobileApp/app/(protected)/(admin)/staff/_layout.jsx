@@ -1,9 +1,12 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "../../../../constants/colors";
 
 export default function StaffLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -14,8 +17,8 @@ export default function StaffLayout() {
           backgroundColor: colors.LIGHT,
           borderTopWidth: 1,
           borderTopColor: colors.BORDER_COLOR,
-          height: 60,
-          paddingBottom: 10,
+          height: 60 + insets.bottom,
+          paddingBottom: 10 + insets.bottom,
         },
         headerStyle: {
           backgroundColor: colors.LIGHT,
