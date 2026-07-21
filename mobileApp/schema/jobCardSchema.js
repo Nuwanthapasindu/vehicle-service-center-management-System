@@ -20,6 +20,7 @@ export const createJobCardSchema = Yup.object().shape({
   nextServiceDate: Yup.date().nullable(),
 
   nextServiceMileage: Yup.number()
+    .transform((value, originalValue) => (originalValue === '' ? null : value))
     .typeError("Next service mileage must be a number")
     .integer("Must be an integer")
     .min(0, "Cannot be negative")
