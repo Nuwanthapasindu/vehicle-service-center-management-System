@@ -86,7 +86,7 @@ export default function BookingDetails() {
             selectedPackage: values.selectedPackage,
             milageCount: Number(values.milageCount),
             nextServiceDate: normalizedNextServiceDate,
-            nextServiceMileage: values.nextServiceMileage ? Number(values.nextServiceMileage) : null,
+            nextServiceMileage: values.nextServiceMileage != null && values.nextServiceMileage !== '' ? Number(values.nextServiceMileage) : null,
           };
           const jobResponse = await jobCardService.createJobCard(jobPayload);
           newJobId = jobResponse.data?.payload?.data?._id;

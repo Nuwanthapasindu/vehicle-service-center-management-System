@@ -120,7 +120,7 @@ export const getInvoiceTemplate = (invoice = {}) => {
   <body>
     <div class="header">
       <div class="header-left">
-        <img src="https://shinedepot.lk/logo.jpeg" class="logo" alt="Logo" />
+        <img src="${logoUri}" class="logo" alt="Logo" />
         <div class="company-details">
           <div class="company-name">SHINE DEPOT</div>
           <div class="company-info">108 Old Kottawa Rd, Nugegoda</div>

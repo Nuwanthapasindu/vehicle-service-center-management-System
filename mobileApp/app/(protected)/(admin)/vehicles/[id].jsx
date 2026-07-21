@@ -228,19 +228,19 @@ export default function VehicleDetails() {
           </View>
 
           {/* NEXT SERVICE INFO */}
-          {(nextServiceDate || nextServiceMileage) && (
+          {(nextServiceDate || nextServiceMileage != null) && (
             <>
               <Text style={styles.sectionHeader}>Next Service Details</Text>
               <View style={styles.ownerCard}>
                 {nextServiceDate && (
-                  <View style={[styles.ownerDetailRow, { marginBottom: nextServiceMileage ? 8 : 0 }]}>
+                  <View style={[styles.ownerDetailRow, { marginBottom: nextServiceMileage != null ? 8 : 0 }]}>
                     <Calendar size={16} color={colors.PRIMARY} />
                     <Text style={[styles.ownerDetailText, { fontSize: 16, marginLeft: 8, color: colors.DARK }]}>
                       Date: {new Date(nextServiceDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}
                     </Text>
                   </View>
                 )}
-                {nextServiceMileage && (
+                {nextServiceMileage != null && (
                   <View style={styles.ownerDetailRow}>
                     <Activity size={16} color={colors.PRIMARY} />
                     <Text style={[styles.ownerDetailText, { fontSize: 16, marginLeft: 8, color: colors.DARK }]}>

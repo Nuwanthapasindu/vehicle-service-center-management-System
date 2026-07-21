@@ -30,7 +30,7 @@ exports.createJobCard = async (payload) => {
     selectedPackage: value.selectedPackage,
     milageCount: value.milageCount,
     nextServiceDate: value.nextServiceDate || null,
-    nextServiceMileage: value.nextServiceMileage || null,
+    nextServiceMileage: value.nextServiceMileage ?? null,
     status: JOBCARD_STATUS.PENDING,
   });
 

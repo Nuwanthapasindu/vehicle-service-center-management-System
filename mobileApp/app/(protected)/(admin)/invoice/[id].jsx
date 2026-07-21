@@ -318,7 +318,7 @@ export default function ViewInvoice() {
           </View>
         </View>
 
-        {(invoice.jobCard?.nextServiceDate || invoice.jobCard?.nextServiceMileage) && (
+        {(invoice.jobCard?.nextServiceDate || invoice.jobCard?.nextServiceMileage != null) && (
           <View style={styles.nextServiceCard}>
             <View style={styles.nsRow}>
               {invoice.jobCard?.nextServiceDate && (
@@ -327,7 +327,7 @@ export default function ViewInvoice() {
                   <Text style={styles.nsValue}>{new Date(invoice.jobCard.nextServiceDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}</Text>
                 </View>
               )}
-              {invoice.jobCard?.nextServiceMileage && (
+              {invoice.jobCard?.nextServiceMileage != null && (
                 <View style={styles.nsCol}>
                   <Text style={styles.nsLabel}>NEXT SERVICE MILEAGE</Text>
                   <Text style={styles.nsValue}>{invoice.jobCard.nextServiceMileage.toLocaleString()} km</Text>
