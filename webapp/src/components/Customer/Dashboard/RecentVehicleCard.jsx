@@ -12,6 +12,11 @@ const RecentVehicleCard = ({ vehicle }) => {
             <div className="vehicle-details">
                 <h5 className="vehicle-name">{vehicle.make} {vehicle.model}</h5>
                 <span className="vehicle-year">{vehicle.year || 'N/A'} • {vehicle.licensePlate}</span>
+                {vehicle.nextServiceDate && (
+                    <div style={{ fontSize: '12px', color: '#f39c12', marginTop: '4px' }}>
+                        Next Service: {new Date(vehicle.nextServiceDate).toLocaleDateString()}
+                    </div>
+                )}
             </div>
             <div className="service-status">
                 <span className="dot"></span>

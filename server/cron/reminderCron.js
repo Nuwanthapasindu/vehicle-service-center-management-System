@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const Booking = require('../model/Booking');
+const JobCard = require('../model/JobCard');
 const { sendSms } = require('../util/smsSender');
 
 
@@ -17,9 +17,9 @@ const initAutomatedReminders = (isTestMode = false) => {
         try {
             console.log('[ Automated Reminders ] Running scheduled job...');
 
-            // Calculate the exact date 90 days ago relative to right now
+            // Calculate the exact date 7 days from right now
             const now = new Date();
-            now.setDate(now.getDate() - 90);
+            now.setDate(now.getDate() + 7);
 
             const startOfDay = new Date(now);
             startOfDay.setUTCHours(0, 0, 0, 0);
@@ -27,36 +27,39 @@ const initAutomatedReminders = (isTestMode = false) => {
             const endOfDay = new Date(now);
             endOfDay.setUTCHours(23, 59, 59, 999);
 
-            // Execute query finding bookings covering the full target day in UTC
-            const bookings = await Booking.find({
-                date: { $gte: startOfDay, $lte: endOfDay },
+            // Execute query finding JobCards where nextServiceDate falls on the target day in UTC
+            const jobCards = await JobCard.find({
+                nextServiceDate: { $gte: startOfDay, $lte: endOfDay },
                 isDeleted: false
-            })
-                .populate('customer', 'name mobile')
-                .populate('vehicle', 'make model licensePlate');
+            }).populate({
+                path: 'booking',
+                populate: [
+                    { path: 'customer', select: 'name mobile' },
+                    { path: 'vehicle', select: 'make model licensePlate' }
+                ]
+            });
 
 
-            if (bookings.length === 0) {
+            if (jobCards.length === 0) {
                 console.log('[ Automated Reminders ] No reminders to send today.');
                 return;
             }
 
-            console.log(`[ Automated Reminders ] Found ${bookings.length} bookings from 90 days ago. Dispatching messages...`);
+            console.log(`[ Automated Reminders ] Found ${jobCards.length} vehicles due for service in 7 days. Dispatching messages...`);
 
-            for (const booking of bookings) {
+            for (const jobCard of jobCards) {
+                const booking = jobCard.booking;
+                if (!booking) continue; // Safety check
+
                 const customerName = booking.customer?.name || 'Customer';
                 const vehicleName = booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model}` : 'Your Vehicle';
                 const licensePlate = booking.vehicle?.licensePlate || 'XXX-0000';
                 const mobile = booking.customer?.mobile;
+                const formattedDate = new Date(jobCard.nextServiceDate).toLocaleDateString();
 
                 if (!mobile) continue;
 
-                const message = `Dear${customerName},\n\n
-                This is a courtesy reminder from Shine Depot that your ${vehicleName} (${licensePlate}) is due for its routine service.\n\n
-                Regular servicing helps maintain your vehicle's performance and longevity. We'd be happy to schedule an appointment at your earliest convenience.\n\n
-
-                📞${mobile}\n
-                Shine Depot`;
+                const message = `Dear ${customerName},\n\nJust a friendly reminder from Shine Depot that your ${vehicleName} (${licensePlate}) is due for its next service on ${formattedDate}.\n\nPlease log in to your account to book your next appointment!\n\n📞 +94 76 315 3797\nShine Depot`;
 
                 try {
                     await sendSms(mobile, message);

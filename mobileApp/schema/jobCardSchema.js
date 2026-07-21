@@ -17,6 +17,15 @@ export const createJobCardSchema = Yup.object().shape({
     .min(0, "Mileage cannot be negative")
     .required("Mileage is required"),
 
+  nextServiceDate: Yup.date().nullable(),
+
+  nextServiceMileage: Yup.number()
+    .transform((value, originalValue) => (originalValue === '' ? null : value))
+    .typeError("Next service mileage must be a number")
+    .integer("Must be an integer")
+    .min(0, "Cannot be negative")
+    .nullable(),
+
   selectedTier: Yup.object()
     .nullable()
     .required("A pricing tier must be selected"),

@@ -337,13 +337,45 @@ module.exports.getDashboardData = async (mobile) => {
     const upcomingBooking = activeBookingsList[0] || null;
 
     // Recent Vehicles (max 4)
-    const recentVehicles = await Vehicle.find({
+    const recentVehiclesDocs = await Vehicle.find({
       ownerId: owner._id,
       isDeleted: false,
     })
       .populate("image", "filePath")
       .sort({ createdAt: -1 })
       .limit(4);
+
+    const vehicleIds = recentVehiclesDocs.map(v => v._id);
+
+    const bookings = await Booking.find({ vehicle: { $in: vehicleIds }, isDeleted: false }).select("_id vehicle");
+    
+    const bookingToVehicleMap = {};
+    const bookingIds = [];
+    bookings.forEach(b => {
+      bookingIds.push(b._id);
+      bookingToVehicleMap[b._id.toString()] = b.vehicle.toString();
+    });
+
+    const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
+      .sort({ createdAt: -1 })
+      .select("booking nextServiceDate nextServiceMileage");
+
+    const latestJobCardPerVehicle = {};
+    jobCards.forEach(jc => {
+      const vId = bookingToVehicleMap[jc.booking.toString()];
+      if (vId && !latestJobCardPerVehicle[vId]) {
+        latestJobCardPerVehicle[vId] = jc;
+      }
+    });
+
+    const recentVehicles = recentVehiclesDocs.map(v => {
+      const latestJobCard = latestJobCardPerVehicle[v._id.toString()];
+      return {
+        ...v.toObject(),
+        nextServiceDate: latestJobCard ? latestJobCard.nextServiceDate : null,
+        nextServiceMileage: latestJobCard ? latestJobCard.nextServiceMileage : null,
+      };
+    });
 
     // Recent History (max 5)
     const historyRes = await this.getBookingHistory(mobile);
@@ -581,7 +613,7 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
       booking: bookingId,
       isDeleted: false,
     })
-      .select("selectedPackage team status milageCount")
+      .select("selectedPackage team status milageCount nextServiceDate nextServiceMileage")
       .populate("selectedPackage", "name")
       .populate("team", "name");
 
@@ -635,6 +667,8 @@ module.exports.getAdminBookingDetails = async (bookingId) => {
         statusZone: statusZ,
         jobCardId: jobCard ? jobCard._id : null,
         milageCount: jobCard ? jobCard.milageCount : null,
+        nextServiceDate: jobCard ? jobCard.nextServiceDate : null,
+        nextServiceMileage: jobCard ? jobCard.nextServiceMileage : null,
       },
       assignedTeam: assignedT,
       teams: formattedTeams,
