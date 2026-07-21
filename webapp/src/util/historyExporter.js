@@ -92,7 +92,7 @@ export const exportHistoryToPDF = async (historyData, vehicle = null, filters = 
                 doc.text(`Next Service Date: ${nsDate}`, 14, startY + yOffset);
                 yOffset += 6;
             }
-            if (vehicle.nextServiceMileage) {
+            if (vehicle.nextServiceMileage != null) {
                 doc.text(`Next Service Mileage: ${vehicle.nextServiceMileage.toLocaleString()} km`, 14, startY + yOffset);
                 yOffset += 6;
             }

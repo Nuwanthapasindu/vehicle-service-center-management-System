@@ -12,9 +12,9 @@ export const getInvoiceTemplate = (invoice = {}) => {
     const vehicleMakeModel = `${vehicle.make || 'Unknown'} ${vehicle.model || ''}`.trim();
     const vehicleYear = vehicle.year || 'N/A';
     const vehicleNumber = vehicle.licensePlate || 'N/A';
-    const currentMileage = invoice.jobCard?.milageCount ? `${invoice.jobCard.milageCount} km` : 'N/A';
+    const currentMileage = invoice.jobCard?.milageCount != null ? `${invoice.jobCard.milageCount} km` : 'N/A';
     const nextServiceDate = invoice.jobCard?.nextServiceDate ? new Date(invoice.jobCard.nextServiceDate).toLocaleDateString(undefined, { timeZone: 'UTC' }) : null;
-    const nextServiceMileage = invoice.jobCard?.nextServiceMileage ? `${invoice.jobCard.nextServiceMileage.toLocaleString()} km` : null;
+    const nextServiceMileage = invoice.jobCard?.nextServiceMileage != null ? `${invoice.jobCard.nextServiceMileage.toLocaleString()} km` : null;
     const status = invoice.isCompleted ? enums.INVOICE_STATUS.COMPLETED : enums.INVOICE_STATUS.WORK_IN_PROGRESS;
     const checkStatusColor = invoice.isCompleted ? '#22C55E' : '#F59E0B';
     const totalAmount = formatPrice(invoice.totalPrice);

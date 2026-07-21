@@ -347,25 +347,31 @@ module.exports.getDashboardData = async (mobile) => {
 
     const vehicleIds = recentVehiclesDocs.map(v => v._id);
 
-    const bookings = await Booking.find({ vehicle: { $in: vehicleIds }, isDeleted: false }).select("_id vehicle");
-    
-    const bookingToVehicleMap = {};
-    const bookingIds = [];
-    bookings.forEach(b => {
-      bookingIds.push(b._id);
-      bookingToVehicleMap[b._id.toString()] = b.vehicle.toString();
-    });
-
-    const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
-      .sort({ createdAt: -1 })
-      .select("booking nextServiceDate nextServiceMileage");
+    const latestJobCards = await Booking.aggregate([
+      { $match: { vehicle: { $in: vehicleIds }, isDeleted: false } },
+      {
+        $lookup: {
+          from: "jobcards",
+          localField: "_id",
+          foreignField: "booking",
+          as: "jobCard"
+        }
+      },
+      { $unwind: "$jobCard" },
+      { $match: { "jobCard.isDeleted": false } },
+      { $sort: { "jobCard.createdAt": -1 } },
+      {
+        $group: {
+          _id: "$vehicle",
+          nextServiceDate: { $first: "$jobCard.nextServiceDate" },
+          nextServiceMileage: { $first: "$jobCard.nextServiceMileage" }
+        }
+      }
+    ]);
 
     const latestJobCardPerVehicle = {};
-    jobCards.forEach(jc => {
-      const vId = bookingToVehicleMap[jc.booking.toString()];
-      if (vId && !latestJobCardPerVehicle[vId]) {
-        latestJobCardPerVehicle[vId] = jc;
-      }
+    latestJobCards.forEach(jc => {
+      latestJobCardPerVehicle[jc._id.toString()] = jc;
     });
 
     const recentVehicles = recentVehiclesDocs.map(v => {

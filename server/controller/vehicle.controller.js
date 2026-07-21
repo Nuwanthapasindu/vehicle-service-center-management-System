@@ -70,25 +70,31 @@ module.exports.getMyVehicles = async (mobile) => {
 
     const vehicleIds = vehicles.map(v => v._id);
 
-    const bookings = await Booking.find({ vehicle: { $in: vehicleIds }, isDeleted: false }).select("_id vehicle");
-    
-    const bookingToVehicleMap = {};
-    const bookingIds = [];
-    bookings.forEach(b => {
-      bookingIds.push(b._id);
-      bookingToVehicleMap[b._id.toString()] = b.vehicle.toString();
-    });
-
-    const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
-      .sort({ createdAt: -1 })
-      .select("booking nextServiceDate nextServiceMileage");
+    const latestJobCards = await Booking.aggregate([
+      { $match: { vehicle: { $in: vehicleIds }, isDeleted: false } },
+      {
+        $lookup: {
+          from: "jobcards",
+          localField: "_id",
+          foreignField: "booking",
+          as: "jobCard"
+        }
+      },
+      { $unwind: "$jobCard" },
+      { $match: { "jobCard.isDeleted": false } },
+      { $sort: { "jobCard.createdAt": -1 } },
+      {
+        $group: {
+          _id: "$vehicle",
+          nextServiceDate: { $first: "$jobCard.nextServiceDate" },
+          nextServiceMileage: { $first: "$jobCard.nextServiceMileage" }
+        }
+      }
+    ]);
 
     const latestJobCardPerVehicle = {};
-    jobCards.forEach(jc => {
-      const vId = bookingToVehicleMap[jc.booking.toString()];
-      if (vId && !latestJobCardPerVehicle[vId]) {
-        latestJobCardPerVehicle[vId] = jc;
-      }
+    latestJobCards.forEach(jc => {
+      latestJobCardPerVehicle[jc._id.toString()] = jc;
     });
 
     const populatedVehicles = vehicles.map(v => {
@@ -183,7 +189,7 @@ module.exports.getVehicleById = async (vehicleId, mobile) => {
     }).populate("image");
     if (!vehicle) throw new AppError("Vehicle not found", 404);
 
-    const bookings = await Booking.find({ vehicle: vehicle._id }).select("_id");
+    const bookings = await Booking.find({ vehicle: vehicle._id, isDeleted: false }).select("_id");
     const bookingIds = bookings.map((b) => b._id);
 
     const latestJobCard = await JobCard.findOne({
@@ -345,7 +351,7 @@ module.exports.getVehicleDetailsAdmin = async (vehicleId) => {
         status: jc.status,
         milageCount: jc.milageCount || 0,
         nextServiceDate: jc.nextServiceDate || null,
-        nextServiceMileage: jc.nextServiceMileage || null,
+        nextServiceMileage: jc.nextServiceMileage ?? null,
         packageName: jc.selectedPackage ? jc.selectedPackage.name : "N/A",
         packageDescription: jc.selectedPackage ? jc.selectedPackage.description : "",
         services: jc.selectedPackage && jc.selectedPackage.servicesIncluded 

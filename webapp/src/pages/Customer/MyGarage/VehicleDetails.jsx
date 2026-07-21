@@ -239,7 +239,7 @@ const VehicleDetails = () => {
                                         <span className="spec-value">{formatDate(vehicle.nextServiceDate)}</span>
                                     </div>
                                 )}
-                                {vehicle.nextServiceMileage && (
+                                {vehicle.nextServiceMileage != null && (
                                     <div className="spec-item">
                                         <span className="spec-label">Next Service Mileage</span>
                                         <span className="spec-value">{vehicle.nextServiceMileage.toLocaleString()} km</span>
