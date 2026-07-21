@@ -74,12 +74,18 @@ export default function BookingDetails() {
         let newJobId = data?.service?.jobCardId;
 
         if (!newJobId) {
+          let normalizedNextServiceDate = null;
+          if (values.nextServiceDate) {
+            const d = new Date(values.nextServiceDate);
+            normalizedNextServiceDate = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString();
+          }
+
           // 1. Create Job Card
           const jobPayload = {
             booking: id,
             selectedPackage: values.selectedPackage,
             milageCount: Number(values.milageCount),
-            nextServiceDate: values.nextServiceDate || null,
+            nextServiceDate: normalizedNextServiceDate,
             nextServiceMileage: values.nextServiceMileage ? Number(values.nextServiceMileage) : null,
           };
           const jobResponse = await jobCardService.createJobCard(jobPayload);
@@ -190,7 +196,9 @@ export default function BookingDetails() {
         }
 
         if (details.service.nextServiceDate) {
-          formik.setFieldValue("nextServiceDate", new Date(details.service.nextServiceDate));
+          const utcDate = new Date(details.service.nextServiceDate);
+          const localDate = new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
+          formik.setFieldValue("nextServiceDate", localDate);
         }
 
         if (details.service.nextServiceMileage !== undefined && details.service.nextServiceMileage !== null) {

@@ -324,7 +324,7 @@ export default function ViewInvoice() {
               {invoice.jobCard?.nextServiceDate && (
                 <View style={styles.nsCol}>
                   <Text style={styles.nsLabel}>NEXT SERVICE DATE</Text>
-                  <Text style={styles.nsValue}>{new Date(invoice.jobCard.nextServiceDate).toLocaleDateString()}</Text>
+                  <Text style={styles.nsValue}>{new Date(invoice.jobCard.nextServiceDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}</Text>
                 </View>
               )}
               {invoice.jobCard?.nextServiceMileage && (

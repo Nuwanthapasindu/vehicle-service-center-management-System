@@ -236,7 +236,7 @@ export default function VehicleDetails() {
                   <View style={[styles.ownerDetailRow, { marginBottom: nextServiceMileage ? 8 : 0 }]}>
                     <Calendar size={16} color={colors.PRIMARY} />
                     <Text style={[styles.ownerDetailText, { fontSize: 16, marginLeft: 8, color: colors.DARK }]}>
-                      Date: {new Date(nextServiceDate).toLocaleDateString()}
+                      Date: {new Date(nextServiceDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}
                     </Text>
                   </View>
                 )}
