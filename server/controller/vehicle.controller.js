@@ -351,8 +351,8 @@ module.exports.getVehicleDetailsAdmin = async (vehicleId) => {
     let nextServiceDate = null;
     let nextServiceMileage = null;
     if (serviceHistory.length > 0) {
-      nextServiceDate = serviceHistory[serviceHistory.length - 1].nextServiceDate;
-      nextServiceMileage = serviceHistory[serviceHistory.length - 1].nextServiceMileage;
+      nextServiceDate = serviceHistory[0].nextServiceDate;
+      nextServiceMileage = serviceHistory[0].nextServiceMileage;
     }
 
     return {
