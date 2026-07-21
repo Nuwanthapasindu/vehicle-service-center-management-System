@@ -26,6 +26,12 @@ const jobCardSchema = new Schema(
       type: Number,
       default: 0
     },
+    nextServiceDate: {
+      type: Date,
+    },
+    nextServiceMileage: {
+      type: Number,
+    },
     startTime: {
       type: Date,
     },

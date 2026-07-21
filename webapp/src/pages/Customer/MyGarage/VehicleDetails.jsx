@@ -233,6 +233,18 @@ const VehicleDetails = () => {
                                     <span className="spec-label">Manufacture Year</span>
                                     <span className="spec-value">{vehicle.year || 'N/A'}</span>
                                 </div>
+                                {vehicle.nextServiceDate && (
+                                    <div className="spec-item">
+                                        <span className="spec-label">Next Service Date</span>
+                                        <span className="spec-value">{formatDate(vehicle.nextServiceDate)}</span>
+                                    </div>
+                                )}
+                                {vehicle.nextServiceMileage && (
+                                    <div className="spec-item">
+                                        <span className="spec-label">Next Service Mileage</span>
+                                        <span className="spec-value">{vehicle.nextServiceMileage.toLocaleString()} km</span>
+                                    </div>
+                                )}
                                 <div className="spec-item border-none">
                                     <span className="spec-label">Date Added</span>
                                     <span className="spec-value">{formatDate(vehicle.createdAt)}</span>

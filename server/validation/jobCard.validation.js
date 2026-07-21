@@ -17,6 +17,15 @@ exports.createJobCardSchema = Joi.object({
     "number.base": "Mileage must be a number",
     "number.min": "Mileage cannot be negative",
     "any.required": "Mileage is required"
+  }),
+
+  nextServiceDate: Joi.date().iso().allow(null, "").optional().messages({
+    "date.base": "Next service date must be a valid date",
+  }),
+
+  nextServiceMileage: Joi.number().integer().min(0).allow(null, "").optional().messages({
+    "number.base": "Next service mileage must be a number",
+    "number.min": "Next service mileage cannot be negative"
   })
 });
 

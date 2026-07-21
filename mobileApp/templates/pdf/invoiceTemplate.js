@@ -13,6 +13,8 @@ export const getInvoiceTemplate = (invoice = {}) => {
     const vehicleYear = vehicle.year || 'N/A';
     const vehicleNumber = vehicle.licensePlate || 'N/A';
     const currentMileage = invoice.jobCard?.milageCount ? `${invoice.jobCard.milageCount} km` : 'N/A';
+    const nextServiceDate = invoice.jobCard?.nextServiceDate ? new Date(invoice.jobCard.nextServiceDate).toLocaleDateString(undefined, { timeZone: 'UTC' }) : null;
+    const nextServiceMileage = invoice.jobCard?.nextServiceMileage ? `${invoice.jobCard.nextServiceMileage.toLocaleString()} km` : null;
     const status = invoice.isCompleted ? enums.INVOICE_STATUS.COMPLETED : enums.INVOICE_STATUS.WORK_IN_PROGRESS;
     const checkStatusColor = invoice.isCompleted ? '#22C55E' : '#F59E0B';
     const totalAmount = formatPrice(invoice.totalPrice);
@@ -90,6 +92,10 @@ export const getInvoiceTemplate = (invoice = {}) => {
       .card { background-color: ${colors.LIGHT}; border: 1px solid ${colors.BORDER_COLOR}; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
       .wip-tag { color: ${checkStatusColor}; font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
       
+      .next-service-card { background-color: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 12px; padding: 20px; margin-bottom: 20px; display: flex; gap: 20px; }
+      .ns-label { font-size: 11px; color: #4F46E5; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; letter-spacing: 0.5px; }
+      .ns-value { font-size: 15px; color: #3730A3; font-weight: bold; }
+      
       .info-grid { display: flex; flex-wrap: wrap; margin-bottom: -15px; }
       .info-item { width: 50%; margin-bottom: 15px; }
       .info-label { font-size: 11px; color: ${colors.SECONDARY}; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; letter-spacing: 0.5px; }
@@ -153,6 +159,13 @@ export const getInvoiceTemplate = (invoice = {}) => {
         </div>
       </div>
     </div>
+    
+    ${(nextServiceDate || nextServiceMileage) ? `
+    <div class="next-service-card">
+      ${nextServiceDate ? `<div><div class="ns-label">Next Service Date</div><div class="ns-value">${nextServiceDate}</div></div>` : ''}
+      ${nextServiceMileage ? `<div><div class="ns-label">Next Service Mileage</div><div class="ns-value">${nextServiceMileage}</div></div>` : ''}
+    </div>
+    ` : ''}
 
     <div class="section-title">Billed Items</div>
     <table>

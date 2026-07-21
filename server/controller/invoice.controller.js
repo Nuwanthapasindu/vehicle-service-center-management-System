@@ -222,7 +222,7 @@ exports.getAllInvoices = async (queryOptions = {}) => {
         },
         {
           path: "jobCard",
-          select: ["booking", "-_id"],
+          select: ["booking", "nextServiceDate", "nextServiceMileage", "-_id"],
           populate: {
             path: "booking",
             select: ["vehicle", "-_id"],
@@ -274,7 +274,7 @@ exports.getInvoiceById = async (invoiceId) => {
         },
         {
           path: "jobCard",
-          select: ["status", "booking", "milageCount", "-_id"],
+          select: ["status", "booking", "milageCount", "nextServiceDate", "nextServiceMileage", "-_id"],
           populate: {
             path: "booking",
             select: ["vehicle", "-_id"],
