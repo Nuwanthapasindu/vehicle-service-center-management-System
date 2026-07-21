@@ -318,6 +318,25 @@ export default function ViewInvoice() {
           </View>
         </View>
 
+        {(invoice.jobCard?.nextServiceDate || invoice.jobCard?.nextServiceMileage) && (
+          <View style={styles.nextServiceCard}>
+            <View style={styles.nsRow}>
+              {invoice.jobCard?.nextServiceDate && (
+                <View style={styles.nsCol}>
+                  <Text style={styles.nsLabel}>NEXT SERVICE DATE</Text>
+                  <Text style={styles.nsValue}>{new Date(invoice.jobCard.nextServiceDate).toLocaleDateString()}</Text>
+                </View>
+              )}
+              {invoice.jobCard?.nextServiceMileage && (
+                <View style={styles.nsCol}>
+                  <Text style={styles.nsLabel}>NEXT SERVICE MILEAGE</Text>
+                  <Text style={styles.nsValue}>{invoice.jobCard.nextServiceMileage.toLocaleString()} km</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
         <Text style={styles.sectionTitle}>BILLED ITEMS</Text>
 
         {/* Selected Package */}
@@ -478,9 +497,37 @@ const styles = StyleSheet.create({
   orangeDot: {
     width: 6,
     height: 6,
-    borderRadius: 3,
+    borderRadius: 50,
     backgroundColor: '#F59E0B',
     marginRight: 6,
+  },
+  nextServiceCard: {
+    backgroundColor: '#EEF2FF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  nsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  nsCol: {
+    flex: 1,
+  },
+  nsLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#4F46E5',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  nsValue: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#3730A3',
   },
   wipText: {
     color: '#F59E0B',
