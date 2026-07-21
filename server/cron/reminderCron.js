@@ -55,7 +55,7 @@ const initAutomatedReminders = (isTestMode = false) => {
                 const vehicleName = booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model}` : 'Your Vehicle';
                 const licensePlate = booking.vehicle?.licensePlate || 'XXX-0000';
                 const mobile = booking.customer?.mobile;
-                const formattedDate = new Date(jobCard.nextServiceDate).toLocaleDateString();
+                const formattedDate = new Date(jobCard.nextServiceDate).toLocaleDateString("en-US", { timeZone: "UTC" });
 
                 if (!mobile) continue;
 

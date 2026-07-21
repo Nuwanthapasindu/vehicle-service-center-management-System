@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import getImageUrl from '../../../util/getImageUrl';
 import defaultCarImg from '../../../assets/imgs/default-car.png';
 
+import { formatUTCDate } from '../../../util/dateFormatter';
+
 const RecentVehicleCard = ({ vehicle }) => {
     return (
         <Link to={`/customer/my-garage/${vehicle._id}`} className="vehicle-item-card" key={vehicle._id} style={{ textDecoration: 'none' }}>
@@ -14,7 +16,7 @@ const RecentVehicleCard = ({ vehicle }) => {
                 <span className="vehicle-year">{vehicle.year || 'N/A'} • {vehicle.licensePlate}</span>
                 {vehicle.nextServiceDate && (
                     <div style={{ fontSize: '12px', color: '#f39c12', marginTop: '4px' }}>
-                        Next Service: {new Date(vehicle.nextServiceDate).toLocaleDateString()}
+                        Next Service: {formatUTCDate(vehicle.nextServiceDate)}
                     </div>
                 )}
             </div>

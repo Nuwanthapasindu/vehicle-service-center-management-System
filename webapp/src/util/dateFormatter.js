@@ -16,6 +16,24 @@ export const formatDate = (date) => {
 };
 
 /**
+ * Formats a date string or object strictly in UTC timezone.
+ * Useful for Date-only fields like nextServiceDate that are stored as UTC midnight.
+ * @param {string|Date} date - The date to format.
+ * @returns {string} - The formatted date string (e.g., 1/25/2026).
+ */
+export const formatUTCDate = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const options = {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        timeZone: 'UTC'
+    };
+    return d.toLocaleDateString('en-US', options);
+};
+
+/**
  * Formats a date into a long format using Sri Lankan timezone.
  * @param {string|Date} date - The date to format.
  * @returns {string} - The long formatted date string (e.g., Sunday, January 25, 2026).

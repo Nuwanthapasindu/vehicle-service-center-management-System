@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { formatShortDate } from "./dateFormatter";
+import { formatShortDate, formatLongDate, formatUTCDate } from "./dateFormatter";
 import { toast } from "react-toastify";
 
 const loadImage = (src) => {
@@ -88,7 +88,7 @@ export const exportHistoryToPDF = async (historyData, vehicle = null, filters = 
             
             let yOffset = 30;
             if (vehicle.nextServiceDate) {
-                const nsDate = new Date(vehicle.nextServiceDate).toLocaleDateString();
+                const nsDate = formatUTCDate(vehicle.nextServiceDate);
                 doc.text(`Next Service Date: ${nsDate}`, 14, startY + yOffset);
                 yOffset += 6;
             }
