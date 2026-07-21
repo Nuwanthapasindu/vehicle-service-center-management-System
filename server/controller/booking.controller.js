@@ -345,25 +345,37 @@ module.exports.getDashboardData = async (mobile) => {
       .sort({ createdAt: -1 })
       .limit(4);
 
-    const recentVehicles = await Promise.all(
-      recentVehiclesDocs.map(async (v) => {
-        const bookings = await Booking.find({ vehicle: v._id }).select("_id");
-        const bookingIds = bookings.map((b) => b._id);
+    const vehicleIds = recentVehiclesDocs.map(v => v._id);
 
-        const latestJobCard = await JobCard.findOne({
-          booking: { $in: bookingIds },
-          isDeleted: false,
-        })
-          .sort({ createdAt: -1 })
-          .select("nextServiceDate nextServiceMileage");
+    const bookings = await Booking.find({ vehicle: { $in: vehicleIds }, isDeleted: false }).select("_id vehicle");
+    
+    const bookingToVehicleMap = {};
+    const bookingIds = [];
+    bookings.forEach(b => {
+      bookingIds.push(b._id);
+      bookingToVehicleMap[b._id.toString()] = b.vehicle.toString();
+    });
 
-        return {
-          ...v.toObject(),
-          nextServiceDate: latestJobCard ? latestJobCard.nextServiceDate : null,
-          nextServiceMileage: latestJobCard ? latestJobCard.nextServiceMileage : null,
-        };
-      })
-    );
+    const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
+      .sort({ createdAt: -1 })
+      .select("booking nextServiceDate nextServiceMileage");
+
+    const latestJobCardPerVehicle = {};
+    jobCards.forEach(jc => {
+      const vId = bookingToVehicleMap[jc.booking.toString()];
+      if (vId && !latestJobCardPerVehicle[vId]) {
+        latestJobCardPerVehicle[vId] = jc;
+      }
+    });
+
+    const recentVehicles = recentVehiclesDocs.map(v => {
+      const latestJobCard = latestJobCardPerVehicle[v._id.toString()];
+      return {
+        ...v.toObject(),
+        nextServiceDate: latestJobCard ? latestJobCard.nextServiceDate : null,
+        nextServiceMileage: latestJobCard ? latestJobCard.nextServiceMileage : null,
+      };
+    });
 
     // Recent History (max 5)
     const historyRes = await this.getBookingHistory(mobile);

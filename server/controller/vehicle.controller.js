@@ -68,25 +68,37 @@ module.exports.getMyVehicles = async (mobile) => {
       .populate("image")
       .sort({ createdAt: -1 });
 
-    const populatedVehicles = await Promise.all(
-      vehicles.map(async (v) => {
-        const bookings = await Booking.find({ vehicle: v._id }).select("_id");
-        const bookingIds = bookings.map((b) => b._id);
+    const vehicleIds = vehicles.map(v => v._id);
 
-        const latestJobCard = await JobCard.findOne({
-          booking: { $in: bookingIds },
-          isDeleted: false,
-        })
-          .sort({ createdAt: -1 })
-          .select("nextServiceDate nextServiceMileage");
+    const bookings = await Booking.find({ vehicle: { $in: vehicleIds }, isDeleted: false }).select("_id vehicle");
+    
+    const bookingToVehicleMap = {};
+    const bookingIds = [];
+    bookings.forEach(b => {
+      bookingIds.push(b._id);
+      bookingToVehicleMap[b._id.toString()] = b.vehicle.toString();
+    });
 
-        return {
-          ...v.toObject(),
-          nextServiceDate: latestJobCard ? latestJobCard.nextServiceDate : null,
-          nextServiceMileage: latestJobCard ? latestJobCard.nextServiceMileage : null,
-        };
-      })
-    );
+    const jobCards = await JobCard.find({ booking: { $in: bookingIds }, isDeleted: false })
+      .sort({ createdAt: -1 })
+      .select("booking nextServiceDate nextServiceMileage");
+
+    const latestJobCardPerVehicle = {};
+    jobCards.forEach(jc => {
+      const vId = bookingToVehicleMap[jc.booking.toString()];
+      if (vId && !latestJobCardPerVehicle[vId]) {
+        latestJobCardPerVehicle[vId] = jc;
+      }
+    });
+
+    const populatedVehicles = vehicles.map(v => {
+      const latestJobCard = latestJobCardPerVehicle[v._id.toString()];
+      return {
+        ...v.toObject(),
+        nextServiceDate: latestJobCard ? latestJobCard.nextServiceDate : null,
+        nextServiceMileage: latestJobCard ? latestJobCard.nextServiceMileage : null,
+      };
+    });
 
     return populatedVehicles;
   } catch (error) {
