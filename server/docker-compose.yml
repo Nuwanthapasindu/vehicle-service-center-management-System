@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: vehicle-service-center-ms-server:V1
+    image: vehicle-service-center-ms-server:V2
     container_name: vehicle_service_center_server
     logging:
       driver: "json-file"
