@@ -1,5 +1,5 @@
 # Production Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Set environment to production
 ENV NODE_ENV=production
