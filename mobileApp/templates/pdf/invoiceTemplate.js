@@ -1,6 +1,3 @@
-import { Image } from 'react-native';
-import { Asset } from 'expo-asset';
-import * as FileSystem from 'expo-file-system';
 import colors from '../../constants/colors';
 import enums from '../../constants/enums';
 import formatPrice from '../../utils/formatPrice';
@@ -61,19 +58,8 @@ export const getInvoiceTemplate = async (invoice = {}) => {
         });
     }
 
-    let logoUri = '';
-    try {
-        const [asset] = await Asset.loadAsync(require('../../assets/logo.png'));
-        const base64 = await FileSystem.readAsStringAsync(asset.localUri || asset.uri, {
-            encoding: FileSystem.EncodingType.Base64,
-        });
-        logoUri = `data:image/png;base64,${base64}`;
-    } catch (error) {
-        console.warn('Error loading logo for PDF:', error);
-        // Fallback for development just in case
-        const logoSource = Image.resolveAssetSource(require('../../assets/logo.png'));
-        logoUri = logoSource ? logoSource.uri : '';
-    }
+    // Replace this URL with your actual online hosted logo link
+    const logoUri = 'https://shinedepot.lk/logo.jpeg';
 
     const itemsHtml = billedItems.map(item => `
         <tr>
