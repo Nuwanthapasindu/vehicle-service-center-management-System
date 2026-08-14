@@ -249,7 +249,7 @@ export default function ViewInvoice() {
 
   const printQuote = async () => {
     try {
-      const html = getInvoiceTemplate(invoice);
+      const html = await getInvoiceTemplate(invoice);
       await pdfGenerator.print(html);
     } catch (error) {
       console.error('Error printing:', error);
@@ -258,7 +258,7 @@ export default function ViewInvoice() {
 
   const sharePDF = async () => {
     try {
-      const html = getInvoiceTemplate(invoice);
+      const html = await getInvoiceTemplate(invoice);
       await pdfGenerator.share(html, `Invoice_${invoice.invoiceId}`);
     } catch (error) {
       console.error('Error sharing pdf:', error);

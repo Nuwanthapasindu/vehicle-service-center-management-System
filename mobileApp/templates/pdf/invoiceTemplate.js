@@ -1,9 +1,11 @@
 import { Image } from 'react-native';
+import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system';
 import colors from '../../constants/colors';
 import enums from '../../constants/enums';
 import formatPrice from '../../utils/formatPrice';
 
-export const getInvoiceTemplate = (invoice = {}) => {
+export const getInvoiceTemplate = async (invoice = {}) => {
     if (!invoice || !invoice._id) return '<html><body><h3>No Invoice Data</h3></body></html>';
 
     const vehicle = invoice.jobCard?.booking?.vehicle || {};
@@ -59,8 +61,19 @@ export const getInvoiceTemplate = (invoice = {}) => {
         });
     }
 
-    const logoSource = Image.resolveAssetSource(require('../../assets/logo.png'));
-    const logoUri = logoSource ? logoSource.uri : '';
+    let logoUri = '';
+    try {
+        const [asset] = await Asset.loadAsync(require('../../assets/logo.png'));
+        const base64 = await FileSystem.readAsStringAsync(asset.localUri || asset.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+        });
+        logoUri = `data:image/png;base64,${base64}`;
+    } catch (error) {
+        console.warn('Error loading logo for PDF:', error);
+        // Fallback for development just in case
+        const logoSource = Image.resolveAssetSource(require('../../assets/logo.png'));
+        logoUri = logoSource ? logoSource.uri : '';
+    }
 
     const itemsHtml = billedItems.map(item => `
         <tr>
