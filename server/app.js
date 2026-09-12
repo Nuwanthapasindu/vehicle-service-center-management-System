@@ -33,6 +33,7 @@ const inventoryLogsRouter = require("./routes/inventoryLogs.route");
 const galleryRouter = require("./routes/gallery.route");
 const smsNotificationRouter = require("./routes/smsNotification.route");
 const notificationRouter = require("./routes/notification.route");
+const healthRouter = require("./routes/health.route");
 
 const app = express();
 connectDB();
@@ -64,6 +65,7 @@ app.use(
 );
 
 // ROUTES
+app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/file", fileRouter);

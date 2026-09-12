@@ -117,7 +117,7 @@ export default function CustomersList() {
                   <Text style={styles.avatarText}>{customer.name.charAt(0).toUpperCase()}</Text>
                 </View>
                 <View style={styles.infoCol}>
-                  <Text style={styles.customerName}>{customer.name}</Text>
+                  <Text style={styles.customerName}>{customer.name.split(" ")[0]} {customer.name.split(" ")[1]}</Text>
                   <Text style={styles.customerMobile}>{customer.mobile}</Text>
                 </View>
               </View>
