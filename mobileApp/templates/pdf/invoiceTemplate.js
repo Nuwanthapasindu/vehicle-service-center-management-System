@@ -1,6 +1,7 @@
 import colors from '../../constants/colors';
 import enums from '../../constants/enums';
 import formatPrice from '../../utils/formatPrice';
+import PDF_LOGO_DATA_URI from '../../constants/pdfLogo';
 
 export const getInvoiceTemplate = async (invoice = {}) => {
     if (!invoice || !invoice._id) return '<html><body><h3>No Invoice Data</h3></body></html>';
@@ -58,8 +59,7 @@ export const getInvoiceTemplate = async (invoice = {}) => {
         });
     }
 
-    // Replace this URL with your actual online hosted logo link
-    const logoUri = 'https://shinedepot.lk/logo.jpeg';
+    const logoUri = PDF_LOGO_DATA_URI;
 
     const itemsHtml = billedItems.map(item => `
         <tr>
