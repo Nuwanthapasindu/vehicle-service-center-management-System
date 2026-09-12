@@ -17,7 +17,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.7.9",
     "babel-preset-expo": "~54.0.10",
-    "expo": "~54.0.35",
+    "expo": "~54.0.34",
     "expo-background-task": "~1.0.10",
     "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.13",

@@ -249,19 +249,29 @@ export default function ViewInvoice() {
 
   const printQuote = async () => {
     try {
-      const html = getInvoiceTemplate(invoice);
+      const html = await getInvoiceTemplate(invoice);
       await pdfGenerator.print(html);
     } catch (error) {
       console.error('Error printing:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Unable to print quote',
+        text2: 'Please try again.',
+      });
     }
   };
 
   const sharePDF = async () => {
     try {
-      const html = getInvoiceTemplate(invoice);
+      const html = await getInvoiceTemplate(invoice);
       await pdfGenerator.share(html, `Invoice_${invoice.invoiceId}`);
     } catch (error) {
       console.error('Error sharing pdf:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Unable to share PDF',
+        text2: 'Please try again.',
+      });
     }
   };
 

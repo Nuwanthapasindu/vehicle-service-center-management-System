@@ -1,9 +1,9 @@
-import { Image } from 'react-native';
 import colors from '../../constants/colors';
 import enums from '../../constants/enums';
 import formatPrice from '../../utils/formatPrice';
+import PDF_LOGO_DATA_URI from '../../constants/pdfLogo';
 
-export const getInvoiceTemplate = (invoice = {}) => {
+export const getInvoiceTemplate = async (invoice = {}) => {
     if (!invoice || !invoice._id) return '<html><body><h3>No Invoice Data</h3></body></html>';
 
     const vehicle = invoice.jobCard?.booking?.vehicle || {};
@@ -59,8 +59,7 @@ export const getInvoiceTemplate = (invoice = {}) => {
         });
     }
 
-    const logoSource = Image.resolveAssetSource(require('../../assets/logo.png'));
-    const logoUri = logoSource ? logoSource.uri : '';
+    const logoUri = PDF_LOGO_DATA_URI;
 
     const itemsHtml = billedItems.map(item => `
         <tr>
